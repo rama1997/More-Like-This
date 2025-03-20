@@ -29,7 +29,7 @@ async function validateAPIKey() {
 		});
 
 		if (!response.ok) {
-			throw new Error(`HTTP error! Status: ${response.status}`);
+			validKey = false;
 		}
 
 		const responseData = await response.json();
