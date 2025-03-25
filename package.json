@@ -9,6 +9,7 @@
 	"dependencies": {
 		"@google/generative-ai": "^0.22.0",
 		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
 		"needle": "^3.3.1",
 		"stremio-addon-sdk": "^1.6.10"
 	}

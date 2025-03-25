@@ -30,6 +30,7 @@ async function validateAPIKey() {
 
 		if (!response.ok) {
 			validKey = false;
+			return;
 		}
 
 		const responseData = await response.json();

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Stremio Add-on Configuration</title>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
+	<body>
+		<div class="container">
+			<h1>More Like This</h1>
+
+			<form action="/saveConfig" method="POST">
+				<div class="form-group">
+					<label for="tmdbApiKey">TMDB API Key</label>
+					<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" required />
+				</div>
+
+				<div class="form-group">
+					<label for="traktApiKey">TRAKT API Key</label>
+					<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter TRAKT API Key" required />
+				</div>
+
+				<div class="form-group">
+					<label for="tastediveApiKey">TASTEDIVE API Key</label>
+					<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TASTEDIVE API Key" required />
+				</div>
+
+				<div class="form-group">
+					<label for="geminiApiKey">GEMINI API Key</label>
+					<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter GEMINI API Key" required />
+				</div>
+
+				<div class="toggle-group">
+					<span>Combine Into One Catalog</span>
+					<label for="combineCatalogs" class="toggle">
+						<input type="checkbox" id="combineCatalogs" name="combineCatalogs" />
+						<span class="toggle-slider"></span>
+					</label>
+				</div>
+
+				<button type="submit" class="install-button">Install</button>
+			</form>
+
+			<div class="footer">To report issues or suggest improvements, please visit the project page.</div>
+		</div>
+	</body>
+</html>

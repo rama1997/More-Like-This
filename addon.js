@@ -70,7 +70,7 @@ const manifest = {
 	],
 	resources: ["catalog", "stream"],
 	types: ["movie", "series"],
-	name: "more-like-this",
+	name: "More-Like-This",
 	description: "Shows recommendations from various sources",
 	logo: "https://www.stremio.com/website/stremio-logo-small.png",
 	idPrefixes: [""],
