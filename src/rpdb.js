@@ -27,7 +27,15 @@ async function isValidKey() {
 }
 
 async function getRPDBPoster(mediaId) {
-	return `${RPDB_API_BASE_URL}/${apiKey}/imdb/poster-default/${mediaId}.jpg`;
+	try {
+		const url = `${RPDB_API_BASE_URL}/${apiKey}/imdb/poster-default/${mediaId}.jpg`;
+
+		const response = await fetch(url);
+		console.log();
+		return response.status === 200 ? response.url : "";
+	} catch (error) {
+		return "";
+	}
 }
 
 module.exports = {

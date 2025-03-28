@@ -60,8 +60,10 @@ async function createMeta(imdbId, type) {
 			let poster = "";
 			if (await rpdb.isValidKey()) {
 				poster = await rpdb.getRPDBPoster(imdbId);
-			} else {
-				poster = media.poster_path ? media.poster : null;
+			}
+			// If RPDB is not used or fails to provide a poster, then use default Cinemeta poster
+			if (poster === "") {
+				poster = media.poster_path ? media.poster : "";
 			}
 
 			meta = {
