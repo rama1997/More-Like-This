@@ -71,7 +71,7 @@ async function addonSetUp() {
 			switch (type) {
 				case "movie":
 					if (extra.search && searchType !== "series") {
-						if (COMBINE_CATALOGS === true) {
+						if (COMBINE_CATALOGS() === true) {
 							if (id === "mlt-combined-movie-rec") {
 								catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
 							} else {
@@ -97,7 +97,7 @@ async function addonSetUp() {
 					}
 				case "series":
 					if (extra.search && searchType !== "movie") {
-						if (COMBINE_CATALOGS === true) {
+						if (COMBINE_CATALOGS() === true) {
 							if (id === "mlt-combined-series-rec") {
 								catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
 							} else {

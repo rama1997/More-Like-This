@@ -5,7 +5,7 @@ const { addonInterface, generateManifest } = require("./addon");
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const PORT = process.env.PORT || 62030;
+const { PORT } = require("./config/config");
 
 async function startServer() {
 	const app = express();
@@ -37,7 +37,7 @@ async function startServer() {
 
 	app.post("/saveConfig", (req, res) => {
 		try {
-			// Get form data from the request body
+			// Get form data
 			const config = {
 				tmdbApiKey: req.body.tmdbApiKey || "",
 				traktApiKey: req.body.traktApiKey || "",

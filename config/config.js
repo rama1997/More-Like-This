@@ -2,7 +2,7 @@
 require("dotenv").config();
 const { getUserConfig } = require("./userConfig");
 
-// Logging
+const PORT = process.env.PORT || 62030;
 const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
 
 // API Keys
@@ -47,7 +47,6 @@ async function getGeminiPrompt(title, year, type) {
 		- Setting and world-building elements
 		
 	RECOMMENDATION GUIDELINES:
-	- Always include "${title}" ${year} as the first result
 	- If direct sequels, prequels, spin-offs or remakes exist, list the most relevant ones
 	- Prioritize recommendations based on:
 		- Structural and thematic similarities 
@@ -77,4 +76,5 @@ module.exports = {
 	CACHE_TTL,
 	MAX_CACHE_SIZE,
 	ENABLE_LOGGING,
+	PORT,
 };

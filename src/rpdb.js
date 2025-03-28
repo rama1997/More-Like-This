@@ -31,7 +31,6 @@ async function getRPDBPoster(mediaId) {
 		const url = `${RPDB_API_BASE_URL}/${apiKey}/imdb/poster-default/${mediaId}.jpg`;
 
 		const response = await fetch(url);
-		console.log();
 		return response.status === 200 ? response.url : "";
 	} catch (error) {
 		return "";

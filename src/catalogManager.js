@@ -524,7 +524,6 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 	// Need to search each rec in TMDB to get details
 	let recs = await Promise.all(
 		recTitles
-			.slice(1)
 			.filter((row) => row[0] !== "") // Remove blank rows
 			.map(async (rec) => {
 				const { title: recTitle, year: recYear } = rec;
