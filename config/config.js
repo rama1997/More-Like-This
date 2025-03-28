@@ -2,7 +2,7 @@
 require("dotenv").config();
 const { getUserConfig } = require("./userConfig");
 
-const PORT = process.env.PORT || 62030;
+const PORT = process.env.PORT || 7000;
 const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
 
 // API Keys
