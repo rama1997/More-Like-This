@@ -1,22 +1,20 @@
 // Load environment variables from .env file
 require("dotenv").config();
+const { getUserConfig } = require("./userConfig");
 
 // Logging
-const ENABLE_LOGGING = process.env.ENABLE_LOGGING;
-
-// Recs Config
-const COMBINE_RECS = false;
-const TMDB_RECS = true;
-const TRAKT_RECS = true;
-const GEMINI_RECS = true;
-const TASTEDIVE_RECS = true;
+const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
 
 // API Keys
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
-const TRAKT_API_KEY = process.env.TRAKT_API_KEY;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const RPDB_API_KEY = process.env.RPDB_API_KEY;
-const TASTEDIVE_API_KEY = process.env.TASTEDIVE_API_KEY;
+const TMDB_API_KEY = () => process.env.TMDB_API_KEY || getUserConfig().tmdbApiKey || "";
+const TRAKT_API_KEY = () => process.env.TRAKT_API_KEY || getUserConfig().traktApiKey || "";
+const TASTEDIVE_API_KEY = () => process.env.TASTEDIVE_API_KEY || getUserConfig().tastediveApiKey || "";
+const GEMINI_API_KEY = () => process.env.GEMINI_API_KEY || getUserConfig().geminiApiKey || "";
+const RPDB_API_KEY = () => process.env.RPDB_API_KEY || getUserConfig().rpdbApiKey || "";
+
+// Catalog
+const COMBINE_CATALOGS = () => getUserConfig().combineCatalogs || false;
+const CATALOG_ORDER = () => getUserConfig().catalogOrder || ["TMDB", "Trakt", "TasteDive", "Gemini AI"];
 
 // Cache Configs
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // Cache expiration time - 1 week
@@ -74,11 +72,8 @@ module.exports = {
 	GEMINI_MODEL,
 	getGeminiPrompt,
 	getGeminiSystemInstructions,
-	COMBINE_RECS,
-	TMDB_RECS,
-	TRAKT_RECS,
-	GEMINI_RECS,
-	TASTEDIVE_RECS,
+	COMBINE_CATALOGS,
+	CATALOG_ORDER,
 	CACHE_TTL,
 	MAX_CACHE_SIZE,
 	ENABLE_LOGGING,

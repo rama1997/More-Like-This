@@ -1,22 +1,27 @@
 const fetch = require("node-fetch");
-const { TASTEDIVE_API_KEY } = require("../config");
+const { TASTEDIVE_API_KEY } = require("../config/config");
 const TASTEDIVE_API_BASE_URL = "https://tastedive.com/api/similar?";
 
+const apiKey = TASTEDIVE_API_KEY();
 let validKey = false;
 
 async function validateAPIKey() {
-	if (!TASTEDIVE_API_KEY || TASTEDIVE_API_KEY === "") {
+	if (!apiKey || apiKey === "") {
 		validKey = false;
+		return validKey;
 	}
 
 	try {
-		const url = `${TASTEDIVE_API_BASE_URL}q=hi&type=movie&limit=1&slimit=1&k=${TASTEDIVE_API_KEY}`;
+		const url = `${TASTEDIVE_API_BASE_URL}q=hi&type=movie&limit=1&slimit=1&k=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();
+
 		validKey = json.similar ? true : false;
+		return validKey;
 	} catch (error) {
 		validKey = false;
+		return validKey;
 	}
 }
 
@@ -33,7 +38,7 @@ async function fetchRecs(title, year, mediaType) {
 	try {
 		const cleanedTitle = encodeURI(title.replace(/[^a-zA-Z0-9 ]/g, ""));
 
-		const url = `${TASTEDIVE_API_BASE_URL}q=${mediaType}:${cleanedTitle}+${year}&type=${mediaType}&slimit=1&k=${TASTEDIVE_API_KEY}`;
+		const url = `${TASTEDIVE_API_BASE_URL}q=${mediaType}:${cleanedTitle}+${year}&type=${mediaType}&slimit=1&k=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();

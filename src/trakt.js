@@ -1,12 +1,14 @@
 const fetch = require("node-fetch");
-const { TRAKT_API_KEY } = require("../config");
+const { TRAKT_API_KEY } = require("../config/config");
 const TRAKT_API_BASE_URL = "https://api.trakt.tv";
 
+const apiKey = TRAKT_API_KEY();
 let validKey = false;
 
 async function validateAPIKey() {
-	if (!TRAKT_API_KEY || TRAKT_API_KEY === "") {
+	if (!apiKey || apiKey === "") {
 		validKey = false;
+		return validKey;
 	}
 
 	try {
@@ -16,7 +18,7 @@ async function validateAPIKey() {
 			headers: {
 				"Content-Type": "application/json",
 				"trakt-api-version": "2",
-				"trakt-api-key": TRAKT_API_KEY,
+				"trakt-api-key": apiKey,
 			},
 		};
 
@@ -24,8 +26,10 @@ async function validateAPIKey() {
 		const json = await response.json();
 
 		validKey = json ? true : false;
+		return validKey;
 	} catch (error) {
 		validKey = false;
+		return validKey;
 	}
 }
 
@@ -47,7 +51,7 @@ async function fetchSearchResult(title, mediaType) {
 			headers: {
 				"Content-Type": "application/json",
 				"trakt-api-version": "2",
-				"trakt-api-key": TRAKT_API_KEY,
+				"trakt-api-key": apiKey,
 			},
 		};
 
@@ -73,7 +77,7 @@ async function fetchRecommendations(imdbID, mediaType) {
 			headers: {
 				"Content-Type": "application/json",
 				"trakt-api-version": "2",
-				"trakt-api-key": TRAKT_API_KEY,
+				"trakt-api-key": apiKey,
 			},
 		};
 
@@ -95,7 +99,7 @@ async function fetchMediaDetails(id, mediaType) {
 			headers: {
 				"Content-Type": "application/json",
 				"trakt-api-version": "2",
-				"trakt-api-key": TRAKT_API_KEY,
+				"trakt-api-key": apiKey,
 			},
 		};
 

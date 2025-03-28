@@ -1,23 +1,27 @@
 const fetch = require("node-fetch");
-const { TMDB_API_KEY } = require("../config");
+const { TMDB_API_KEY } = require("../config/config");
 const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
 
+const apiKey = TMDB_API_KEY();
 let validKey = false;
 
 async function validateAPIKey() {
-	if (!TMDB_API_KEY || TMDB_API_KEY === "") {
+	if (!apiKey || apiKey === "") {
 		validKey = false;
+		return validKey;
 	}
 
 	try {
-		const url = `${TMDB_API_BASE_URL}/movie/popular`;
+		const url = `${TMDB_API_BASE_URL}/movie/popular?api_key=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();
 
-		validKey = json ? true : false;
+		validKey = json?.results ? true : false;
+		return validKey;
 	} catch (error) {
 		validKey = false;
+		return validKey;
 	}
 }
 
@@ -32,7 +36,7 @@ async function getAPIEndpoint(mediaType) {
 
 async function fetchSearchResult(title, year, mediaType) {
 	try {
-		let url = `${TMDB_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}&include_adult=false&language=en-US&page=1&api_key=${TMDB_API_KEY}`;
+		let url = `${TMDB_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}&include_adult=false&language=en-US&page=1&api_key=${apiKey}`;
 
 		if (year && year !== "") {
 			url = url + `&year=${year}`;
@@ -48,7 +52,7 @@ async function fetchSearchResult(title, year, mediaType) {
 
 async function fetchRecommendations(tmdbId, mediaType) {
 	try {
-		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/recommendations?language=en-US&page=1&api_key=${TMDB_API_KEY}`;
+		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/recommendations?language=en-US&page=1&api_key=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();
@@ -60,7 +64,7 @@ async function fetchRecommendations(tmdbId, mediaType) {
 
 async function fetchImdbID(tmdbId, mediaType) {
 	try {
-		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/external_ids?api_key=${TMDB_API_KEY}`;
+		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/external_ids?api_key=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();
@@ -76,9 +80,9 @@ async function fetchMediaDetails(id, mediaType) {
 
 		// Get details through different endpoints depending on what type of id is given. Either imdb id or tmdb id
 		if (id.toString().startsWith("tt")) {
-			url = `${TMDB_API_BASE_URL}/find/${id}?external_source=imdb_id&api_key=${TMDB_API_KEY}`;
+			url = `${TMDB_API_BASE_URL}/find/${id}?external_source=imdb_id&api_key=${apiKey}`;
 		} else {
-			url = `${TMDB_API_BASE_URL}/${mediaType}/${id}?language=en-US&api_key=${TMDB_API_KEY}`;
+			url = `${TMDB_API_BASE_URL}/${mediaType}/${id}?language=en-US&api_key=${apiKey}`;
 		}
 
 		const response = await fetch(url);

@@ -1,0 +1,9 @@
+{
+	"tmdbApiKey": "9a850ede748d848f0c97749bce34f81b",
+	"traktApiKey": "80bfb52552bacaf6945a027aab816c6958e472a44fc8a0e93057f2514f51ed12",
+	"tastediveApiKey": "1047714-MLT-6419DB33",
+	"geminiApiKey": "AIzaSyBX7q7dKa5e4AT8IeMlm9vtXBNHH8_1Xxo",
+	"rpdbApiKey": "t0-free-rpdb",
+	"combineCatalogs": false,
+	"catalogOrder": ["TMDB", "Trakt", "TasteDive", "Gemini AI"]
+}

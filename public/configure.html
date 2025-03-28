@@ -10,26 +10,38 @@
 		<div class="container">
 			<h1>More Like This</h1>
 
+			<div class="instructions">
+				<p>Please obtain API keys from the respective platforms before configuring the add-on. Click the links below each input field to get your free API keys.</p>
+			</div>
+
+			<div class="section-header">Recommendation Sources</div>
+
 			<form action="/saveConfig" method="POST">
 				<div class="form-group">
-					<label for="tmdbApiKey">TMDB API Key</label>
+					<label for="tmdbApiKey">TMDB API Key <span class="required">*</span></label>
 					<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" required />
+					<p class="key-help">Get your free key <a href="https://www.themoviedb.org/settings/api" target="_blank">here</a></p>
 				</div>
 
 				<div class="form-group">
-					<label for="traktApiKey">TRAKT API Key</label>
-					<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter TRAKT API Key" required />
+					<label for="traktApiKey">Trakt API Key </label>
+					<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter Trakt API Key" />
+					<p class="key-help">Get your free key <a href="https://trakt.tv/oauth/applications" target="_blank">here</a></p>
 				</div>
 
 				<div class="form-group">
-					<label for="tastediveApiKey">TASTEDIVE API Key</label>
-					<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TASTEDIVE API Key" required />
+					<label for="tastediveApiKey">TasteDive API Key </label>
+					<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TasteDive API Key" />
+					<p class="key-help">Get your free key <a href="https://tastedive.com/account/api_access" target="_blank">here</a></p>
 				</div>
 
 				<div class="form-group">
-					<label for="geminiApiKey">GEMINI API Key</label>
-					<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter GEMINI API Key" required />
+					<label for="geminiApiKey">Gemini AI API Key</label>
+					<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter your Gemini AI key" />
+					<p class="key-help">Get your free key <a href="https://aistudio.google.com/app/apikey" target="_blank">here</a></p>
 				</div>
+
+				<div class="section-header">Catalog Setting</div>
 
 				<div class="toggle-group">
 					<span>Combine Into One Catalog</span>
@@ -39,10 +51,43 @@
 					</label>
 				</div>
 
+				<div id="catalogOrderSection" class="catalog-order-section" style="display: block">
+					<label>Catalog Order</label>
+					<div class="catalog-order">
+						<div id="tmdb-catalog" class="catalog-item">
+							<span class="catalog-icon">≡</span>
+							<span class="catalog-name">TMDB</span>
+						</div>
+						<div id="trakt-catalog" class="catalog-item">
+							<span class="catalog-icon">≡</span>
+							<span class="catalog-name">Trakt</span>
+						</div>
+						<div id="tastedive-catalog" class="catalog-item">
+							<span class="catalog-icon">≡</span>
+							<span class="catalog-name">TasteDive</span>
+						</div>
+						<div id="gemini-catalog" class="catalog-item">
+							<span class="catalog-icon">≡</span>
+							<span class="catalog-name">Gemini AI</span>
+						</div>
+						<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,TasteDive,Gemini AI" />
+					</div>
+				</div>
+
+				<div class="section-header">Optional Settings</div>
+
+				<div class="form-group">
+					<label for="rpdbApiKey">RPDB API Key</label>
+					<input type="text" id="rpdbApiKey" name="rpdbApiKey" placeholder="Enter your RPDB key" />
+					<p class="key-help">Get your key <a href="https://ratingposterdb.com/api-key/" target="_blank">here</a></p>
+				</div>
+
 				<button type="submit" class="install-button">Install</button>
 			</form>
 
-			<div class="footer">To report issues or suggest improvements, please visit the project page.</div>
+			<div class="footer">To report issues or make suggestions, please visit the project page.</div>
 		</div>
+
+		<script src="catalogOrder.js"></script>
 	</body>
 </html>

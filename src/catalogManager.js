@@ -4,17 +4,22 @@ const gemini = require("./gemini");
 const rpdb = require("./rpdb");
 const tastedive = require("./tastedive");
 const kitsu = require("./kitsu");
-const { createMeta } = require("./meta");
+const fetch = require("node-fetch");
 const cache = require("../utils/cache");
-const { COMBINE_RECS, TMDB_RECS, TRAKT_RECS, GEMINI_RECS, TASTEDIVE_RECS } = require("../config");
 const logger = require("../utils/logger");
 
 async function validateAPIKeys() {
-	await gemini.validateAPIKey();
-	await tastedive.validateAPIKey();
-	await tmdb.validateAPIKey();
-	await trakt.validateAPIKey();
-	await rpdb.validateAPIKey();
+	const validGeminiKey = await gemini.validateAPIKey();
+	const validTastediveKey = await tastedive.validateAPIKey();
+	const validTMDBKey = await tmdb.validateAPIKey();
+	const validTraktKey = await trakt.validateAPIKey();
+	const validRPDBKey = await rpdb.validateAPIKey();
+
+	logger.info("GEMINI API KEY: " + (validGeminiKey ? "valid" : "invalid"));
+	logger.info("TASTEDIVE API KEY: " + (validTastediveKey ? "valid" : "invalid"));
+	logger.info("TMDB API KEY: " + (validTMDBKey ? "valid" : "invalid"));
+	logger.info("TRAKT API KEY: " + (validTraktKey ? "valid" : "invalid"));
+	logger.info("RPDB API KEY: " + (validRPDBKey ? "valid" : "invalid"));
 }
 
 async function checkCache(key, year, mediaType, source) {
@@ -35,8 +40,49 @@ async function saveCache(key, year, mediaType, source, catalog) {
 	await cache.setCache(cacheKey, catalog);
 }
 
+async function createMeta(imdbId, type) {
+	try {
+		const mediaType = type === "movie" ? "movie" : "series";
+		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
+
+		const response = await fetch(url);
+		const json = await response.json();
+
+		let meta = {};
+		if (json && json.meta) {
+			const media = json.meta;
+
+			// Will not create a meta/add to catalog for any media that is not released yet
+			if (media?.status === "Upcoming") {
+				return null;
+			}
+
+			let poster = "";
+			if (await rpdb.isValidKey()) {
+				poster = await rpdb.getRPDBPoster(imdbId);
+			} else {
+				poster = media.poster_path ? media.poster : null;
+			}
+
+			meta = {
+				id: media.imdb_id,
+				name: media.title || media.name,
+				poster: poster,
+				backdrop: media.background,
+				type: mediaType,
+				year: media.releaseInfo,
+				genres: media.genres,
+			};
+		}
+
+		return meta;
+	} catch (error) {
+		return null;
+	}
+}
+
 async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
-	if ((await tmdb.isValidKey()) === false || TMDB_RECS === false || searchKey === "") {
+	if ((await tmdb.isValidKey()) === false || searchKey === "") {
 		return [];
 	}
 
@@ -149,7 +195,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 }
 
 async function getTraktRecCatalog(searchKey, searchYear, searchType) {
-	if ((await trakt.isValidKey()) === false || TRAKT_RECS === false || searchKey === "") {
+	if ((await trakt.isValidKey()) === false || searchKey === "") {
 		return [];
 	}
 
@@ -254,7 +300,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType) {
 }
 
 async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
-	if ((await tastedive.isValidKey()) === false || TASTEDIVE_RECS === false || searchKey === "") {
+	if ((await tastedive.isValidKey()) === false || searchKey === "") {
 		return [];
 	}
 
@@ -384,7 +430,7 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
 }
 
 async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
-	if ((await gemini.isValidKey()) === false || (await tmdb.isValidKey()) === false || GEMINI_RECS === false || searchKey === "") {
+	if ((await gemini.isValidKey()) === false || (await tmdb.isValidKey()) === false || searchKey === "") {
 		return [];
 	}
 
@@ -520,7 +566,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 }
 
 async function getCombinedRecCatalog(searchKey, searchYear, searchType) {
-	if (COMBINE_RECS === false || searchKey === "") {
+	if (searchKey === "") {
 		return [];
 	}
 

@@ -6,6 +6,7 @@
 	--text-muted: #b0b0b0;
 	--accent-color: #42a5f5;
 	--border-color: #3c3c3c;
+	--required-color: #f44336;
 }
 
 body {
@@ -24,10 +25,10 @@ body {
 
 .container {
 	width: 100%;
-	max-width: 400px;
+	max-width: 500px;
 	background-color: var(--bg-medium);
 	border-radius: 12px;
-	padding: 20px;
+	padding: 30px;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	box-sizing: border-box;
 }
@@ -35,20 +36,45 @@ body {
 h1 {
 	text-align: center;
 	color: var(--accent-color);
-	margin-bottom: 20px;
-	font-size: 1.5em;
+	margin-bottom: 25px;
+	font-size: 2.2em;
+	font-weight: bold;
+	letter-spacing: -1px; /* Tightens up the letter spacing for a more compact look */
 }
 
 .form-group {
-	margin-bottom: 20px;
+	margin-bottom: 15px;
 	width: 100%;
 }
 
 .form-group label {
 	display: block;
-	margin-bottom: 8px;
+	margin-bottom: 5px;
 	color: var(--text-muted);
 	font-size: 0.9em;
+}
+
+.required {
+	color: var(--required-color);
+	margin-left: 4px;
+}
+
+.key-help {
+	color: var(--text-muted);
+	font-size: 0.75em; /* Slightly smaller font size */
+	margin-top: 4px; /* Reduced margin */
+	margin-bottom: 0;
+	line-height: 1.4; /* Tighter line height */
+}
+
+.key-help a {
+	color: var(--accent-color);
+	text-decoration: none;
+	transition: color 0.3s ease;
+}
+
+.key-help a:hover {
+	text-decoration: underline;
 }
 
 .form-group input,
@@ -183,4 +209,69 @@ h1 {
 .footer a:hover {
 	color: var(--accent-color);
 	text-decoration: underline;
+}
+
+.instructions {
+	background-color: transparent;
+	border-radius: 6px;
+	padding: 12px;
+	margin-bottom: 20px;
+	font-size: 0.9em;
+	color: var(--text-muted);
+	line-height: 1.5;
+	text-align: center;
+}
+
+.section-header {
+	text-align: center;
+	color: var(--accent-color);
+	font-size: 1.2em;
+	font-weight: bold;
+	margin-bottom: 20px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.catalog-order {
+	background-color: var(--bg-light);
+	border-radius: 6px;
+	padding: 10px;
+	margin-bottom: 20px;
+}
+
+.catalog-item {
+	display: flex;
+	align-items: center;
+	background-color: var(--bg-medium);
+	border-radius: 6px;
+	padding: 10px;
+	margin-bottom: 10px;
+	cursor: move;
+	user-select: none;
+	transition: background-color 0.3s ease;
+}
+
+.catalog-item:hover {
+	background-color: var(--bg-dark);
+}
+
+.catalog-item.dragging {
+	opacity: 0.5;
+	transform: scale(1.05);
+}
+
+.catalog-icon {
+	margin-right: 15px;
+	color: var(--text-muted);
+	font-size: 1.2em;
+}
+
+.catalog-name {
+	flex-grow: 1;
+	color: var(--text-light);
+}
+
+.catalog-order-section {
+	margin-top: 20px;
+	transition: opacity 0.3s ease, max-height 0.3s ease;
 }

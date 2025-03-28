@@ -1,180 +1,160 @@
 const { addonBuilder } = require("stremio-addon-sdk");
 const catalogManager = require("./src/catalogManager");
-const { parseSearchKey } = require("./utils/helper");
-const { COMBINE_RECS } = require("./config");
+const { parseSearchKey } = require("./utils/parser");
+const { COMBINE_CATALOGS, CATALOG_ORDER } = require("./config/config");
 
-const manifest = {
-	id: "community.morelikethis",
-	version: "0.0.1",
-	catalogs: [
-		{
-			type: "movie",
-			id: "tmdb-movie-rec",
-			name: "TMDB Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "movie",
-			id: "trakt-movie-rec",
-			name: "Trakt Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "movie",
-			id: "tastedive-movie-rec",
-			name: "TasteDive Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "movie",
-			id: "gemini-movie-rec",
-			name: "Gemini AI Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "movie",
-			id: "combined-movie-rec",
-			name: "Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "series",
-			id: "tmdb-series-rec",
-			name: "TMDB Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "series",
-			id: "trakt-series-rec",
-			name: "Trakt Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "series",
-			id: "tastedive-series-rec",
-			name: "TasteDive Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "series",
-			id: "gemini-series-rec",
-			name: "Gemini AI Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-		{
-			type: "series",
-			id: "combined-series-rec",
-			name: "Recommendations",
-			extra: [{ name: "search", isRequired: true }],
-		},
-	],
-	resources: ["catalog", "stream"],
-	types: ["movie", "series"],
-	name: "More-Like-This",
-	description: "Shows recommendations from various sources",
-	logo: "https://www.stremio.com/website/stremio-logo-small.png",
-	idPrefixes: [""],
-};
+async function generateManifest() {
+	let catalogs = [];
+	const types = ["movie", "series"];
+	const combine = COMBINE_CATALOGS();
+
+	if (combine === true) {
+		types.forEach((type) => {
+			catalogs.push({
+				type: type,
+				id: `mlt-combined-${type}-rec`,
+				name: `Recommendations`,
+				extra: [{ name: "search", isRequired: true }],
+			});
+		});
+	} else {
+		const order = CATALOG_ORDER();
+		order.forEach((source) => {
+			catalogs.push({
+				type: "movie",
+				id: `mlt-${source.toLowerCase().split(" ").join("-")}-movie-rec`,
+				name: `${source} Recommendations`,
+				extra: [{ name: "search", isRequired: true }],
+			});
+		});
+		order.forEach((source) => {
+			catalogs.push({
+				type: "series",
+				id: `mlt-${source.toLowerCase().split(" ").join("-")}-series-rec`,
+				name: `${source} Recommendations`,
+				extra: [{ name: "search", isRequired: true }],
+			});
+		});
+	}
+
+	const manifest = {
+		id: "community.morelikethis",
+		version: "0.0.1",
+		resources: ["catalog", "stream"],
+		types: ["movie", "series"],
+		name: "More Like This",
+		description: "Shows recommendations from various sources",
+		logo: "https://www.stremio.com/website/stremio-logo-small.png",
+		idPrefixes: [""],
+		catalogs: catalogs,
+	};
+
+	return manifest;
+}
 
 async function addonSetUp() {
 	await catalogManager.validateAPIKeys();
-}
+	const manifest = await generateManifest();
+	const builder = new addonBuilder(manifest);
 
-addonSetUp();
+	builder.defineCatalogHandler(({ type, id, extra }) => {
+		return new Promise(async (resolve, reject) => {
+			// Parse the search input
+			let parsedSearchKey = [];
+			if (extra.search) {
+				parsedSearchKey = await parseSearchKey(extra.search);
+			}
 
-const builder = new addonBuilder(manifest);
+			const { searchKey = "", searchYear = "", searchType = "" } = parsedSearchKey;
 
-builder.defineCatalogHandler(({ type, id, extra }) => {
-	return new Promise(async (resolve, reject) => {
-		// Parse the search input
-		let parsedSearchKey = [];
-		if (extra.search) {
-			parsedSearchKey = await parseSearchKey(extra.search);
-		}
-
-		const { searchKey = "", searchYear = "", searchType = "" } = parsedSearchKey;
-
-		let catalog;
-		switch (type) {
-			case "movie":
-				if (extra.search && searchType !== "series") {
-					if (COMBINE_RECS === true) {
-						if (id === "combined-movie-rec") {
-							catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
+			let catalog;
+			switch (type) {
+				case "movie":
+					if (extra.search && searchType !== "series") {
+						if (COMBINE_CATALOGS === true) {
+							if (id === "mlt-combined-movie-rec") {
+								catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
+							} else {
+								catalog = [];
+							}
 						} else {
-							catalog = [];
+							if (id === "mlt-tmdb-movie-rec") {
+								catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type);
+							} else if (id === "mlt-trakt-movie-rec") {
+								catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type);
+							} else if (id === "mlt-tastedive-movie-rec") {
+								catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type);
+							} else if (id === "mlt-gemini-ai-movie-rec") {
+								catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type);
+							} else {
+								catalog = [];
+							}
 						}
+						break;
 					} else {
-						if (id === "tmdb-movie-rec") {
-							catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type);
-						} else if (id === "trakt-movie-rec") {
-							catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type);
-						} else if (id === "tastedive-movie-rec") {
-							catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type);
-						} else if (id === "gemini-movie-rec") {
-							catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type);
-						} else {
-							catalog = [];
-						}
+						catalog = [];
+						break;
 					}
-					break;
-				} else {
+				case "series":
+					if (extra.search && searchType !== "movie") {
+						if (COMBINE_CATALOGS === true) {
+							if (id === "mlt-combined-series-rec") {
+								catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
+							} else {
+								catalog = [];
+							}
+						} else {
+							if (id == "mlt-tmdb-series-rec") {
+								catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type);
+							} else if (id === "mlt-trakt-series-rec") {
+								catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type);
+							} else if (id === "mlt-tastedive-series-rec") {
+								catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type);
+							} else if (id === "mlt-gemini-ai-series-rec") {
+								catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type);
+							} else {
+								catalog = [];
+							}
+						}
+						break;
+					} else {
+						catalog = [];
+						break;
+					}
+				default:
 					catalog = [];
 					break;
-				}
-			case "series":
-				if (extra.search && searchType !== "movie") {
-					if (COMBINE_RECS === true) {
-						if (id === "combined-series-rec") {
-							catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
-						} else {
-							catalog = [];
-						}
-					} else {
-						if (id == "tmdb-series-rec") {
-							catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type);
-						} else if (id === "trakt-series-rec") {
-							catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type);
-						} else if (id === "tastedive-series-rec") {
-							catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type);
-						} else if (id === "gemini-series-rec") {
-							catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type);
-						} else {
-							catalog = [];
-						}
-					}
-					break;
-				} else {
-					catalog = [];
-					break;
-				}
-			default:
-				catalog = [];
-				break;
-		}
+			}
 
-		Promise.resolve(catalog).then((items) => {
-			resolve({ metas: items });
+			Promise.resolve(catalog).then((items) => {
+				resolve({ metas: items });
+			});
 		});
 	});
-});
 
-builder.defineStreamHandler(async ({ type, id }) => {
-	let searchKey;
+	builder.defineStreamHandler(async ({ type, id }) => {
+		let searchKey;
 
-	// Parsing IMDB Id and Kitsu Id
-	if (id.startsWith("tt")) {
-		searchKey = id.split(":")[0];
-	} else if (id.startsWith("kitsu")) {
-		searchKey = id.split(":").slice(0, 2).join(":");
-	}
+		// Parsing IMDB Id and Kitsu Id
+		if (id.startsWith("tt")) {
+			searchKey = id.split(":")[0];
+		} else if (id.startsWith("kitsu")) {
+			searchKey = id.split(":").slice(0, 2).join(":");
+		}
 
-	const stream = {
-		title: `Search for similar ${type}s`,
-		externalUrl: `stremio://search?search=${searchKey}`,
-	};
+		const stream = {
+			title: `Search for similar ${type}s`,
+			externalUrl: `stremio://search?search=${searchKey}`,
+		};
 
-	return Promise.resolve({ streams: [stream] });
-});
+		return Promise.resolve({ streams: [stream] });
+	});
 
-module.exports = builder.getInterface();
+	const addonInterface = builder.getInterface();
+	return addonInterface;
+}
+
+module.exports = {
+	addonInterface: addonSetUp(),
+	generateManifest,
+};

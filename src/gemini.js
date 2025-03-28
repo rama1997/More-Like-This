@@ -1,13 +1,14 @@
 const fetch = require("node-fetch");
-const { GEMINI_API_KEY, GEMINI_MODEL, getGeminiPrompt, getGeminiSystemInstructions } = require("../config");
+const { GEMINI_API_KEY, GEMINI_MODEL, getGeminiPrompt, getGeminiSystemInstructions } = require("../config/config");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+const apiKey = GEMINI_API_KEY();
 let validKey = false;
 
 async function validateAPIKey() {
-	if (!GEMINI_API_KEY || GEMINI_API_KEY === "") {
+	if (!apiKey || apiKey === "") {
 		validKey = false;
-		return;
+		return validKey;
 	}
 
 	// Create the request payload
@@ -20,7 +21,7 @@ async function validateAPIKey() {
 	};
 
 	try {
-		const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+		const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -30,13 +31,15 @@ async function validateAPIKey() {
 
 		if (!response.ok) {
 			validKey = false;
-			return;
+			return validKey;
 		}
 
 		const responseData = await response.json();
 		validKey = responseData ? true : false;
+		return validKey;
 	} catch (error) {
 		validKey = false;
+		return validKey;
 	}
 }
 
@@ -46,7 +49,7 @@ async function isValidKey() {
 
 async function getGeminiRecs(title, year, mediaType) {
 	try {
-		const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+		const genAI = new GoogleGenerativeAI(apiKey);
 		const model = genAI.getGenerativeModel({
 			model: GEMINI_MODEL,
 			systemInstruction: await getGeminiSystemInstructions(mediaType),
