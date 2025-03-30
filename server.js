@@ -31,6 +31,10 @@ async function startServer() {
 
 	// Configuration page route
 	app.get("/manifest.json", async (req, res) => {
+		res.setHeader("Access-Control-Allow-Origin", "*");
+		res.setHeader("Access-Control-Allow-Headers", "*");
+		res.setHeader("Content-Type", "application/json");
+
 		const manifest = await generateManifest();
 		res.json(manifest);
 	});
