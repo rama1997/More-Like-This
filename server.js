@@ -64,8 +64,6 @@ async function startServer() {
 		}
 	});
 
-	serveHTTP(await addonInterface, { server: app });
-
 	app.listen(PORT, () => {});
 }
 
