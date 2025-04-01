@@ -154,6 +154,8 @@ async function addonSetUp() {
 	return addonInterface;
 }
 
+addonSetUp();
+
 module.exports = {
 	addonInterface: addonSetUp(),
 	generateManifest,
