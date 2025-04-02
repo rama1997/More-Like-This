@@ -46,6 +46,9 @@ async function generateManifest() {
 		description: "Shows recommendations from various sources",
 		logo: "https://www.stremio.com/website/stremio-logo-small.png",
 		idPrefixes: [""],
+		behaviorHints: {
+			configurable: true,
+		},
 		catalogs: catalogs,
 	};
 
@@ -53,9 +56,9 @@ async function generateManifest() {
 }
 
 async function addonSetUp() {
-	await catalogManager.validateAPIKeys();
 	const manifest = await generateManifest();
 	const builder = new addonBuilder(manifest);
+	await catalogManager.validateAPIKeys();
 
 	builder.defineCatalogHandler(({ type, id, extra }) => {
 		return new Promise(async (resolve, reject) => {
@@ -154,9 +157,7 @@ async function addonSetUp() {
 	return addonInterface;
 }
 
-addonSetUp();
-
 module.exports = {
-	addonInterface: addonSetUp(),
+	addonSetUp,
 	generateManifest,
 };

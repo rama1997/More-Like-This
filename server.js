@@ -1,14 +1,29 @@
 #!/usr/bin/env node
 
-const { serveHTTP, publishToCentral } = require("stremio-addon-sdk");
-const { addonInterface, generateManifest } = require("./addon");
+const { serveHTTP, publishToCentral, getRouter } = require("stremio-addon-sdk");
+const { addonSetUp, generateManifest } = require("./addon");
 const express = require("express");
+const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const { PORT } = require("./config/config");
 
+const userConfigs = new Map();
+
 async function startServer() {
 	const app = express();
+	const addonInterface = await addonSetUp();
+	const sdkRouter = getRouter(addonInterface);
+
+	// Apply CORS middleware to all routes
+	app.use(
+		cors({
+			origin: "*",
+			methods: "*",
+			allowedHeaders: "*",
+			maxAge: 86400, // Cache preflight requests for 24 hours
+		}),
+	);
 
 	// Middleware to parse JSON bodies
 	app.use(express.json());
@@ -31,11 +46,7 @@ async function startServer() {
 
 	// Configuration page route
 	app.get("/manifest.json", async (req, res) => {
-		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.setHeader("Access-Control-Allow-Headers", "*");
-		res.setHeader("Content-Type", "application/json");
-
-		const manifest = await generateManifest();
+		let manifest = await generateManifest();
 		res.json(manifest);
 	});
 
@@ -52,19 +63,27 @@ async function startServer() {
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 			};
 
+			const configParam = encodeURIComponent(JSON.stringify(config));
+
 			// Save data to JSON file
 			const configFilePath = path.join(__dirname, "config", "userConfig.json");
 			fs.writeFileSync(configFilePath, JSON.stringify(config, null, 4));
 
 			// Redirect to Stremio download link
 			res.redirect("stremio://bbab4a35b833-more-like-this.baby-beamup.club/manifest.json");
+			//res.redirect(`stremio://localhost:${PORT}/manifest.json`);
 		} catch (error) {
 			// Redirect back to configuration page with an error message
 			res.status(400).send("Error: Something went wrong. Please try again.");
 		}
 	});
 
-	app.listen(PORT, () => {});
+	// Mount the Stremio SDK router
+	app.use("/", sdkRouter);
+
+	app.listen(PORT, () => {
+		console.log(`Server running at http://localhost:${PORT}`);
+	});
 }
 
 startServer();
