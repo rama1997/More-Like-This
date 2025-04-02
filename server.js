@@ -8,8 +8,6 @@ const path = require("path");
 const fs = require("fs");
 const { PORT } = require("./config/config");
 
-const userConfigs = new Map();
-
 async function startServer() {
 	const app = express();
 	const addonInterface = await addonSetUp();
@@ -34,9 +32,9 @@ async function startServer() {
 	// Serve static files
 	app.use(express.static(path.join(__dirname, "public")));
 
-	// Main route - redirect to configure
-	app.get("/", async function (_, res) {
-		res.redirect("/configure");
+	app.use((req, res, next) => {
+		console.log(`Incoming request: ${req.method} ${req.url}`);
+		next();
 	});
 
 	// Configuration page route
@@ -63,15 +61,13 @@ async function startServer() {
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 			};
 
-			const configParam = encodeURIComponent(JSON.stringify(config));
-
 			// Save data to JSON file
 			const configFilePath = path.join(__dirname, "config", "userConfig.json");
 			fs.writeFileSync(configFilePath, JSON.stringify(config, null, 4));
 
 			// Redirect to Stremio download link
-			res.redirect("stremio://bbab4a35b833-more-like-this.baby-beamup.club/manifest.json");
-			//res.redirect(`stremio://localhost:${PORT}/manifest.json`);
+			//res.redirect("stremio://bbab4a35b833-more-like-this.baby-beamup.club/manifest.json");
+			res.redirect(`stremio://localhost:${PORT}/manifest.json`);
 		} catch (error) {
 			// Redirect back to configuration page with an error message
 			res.status(400).send("Error: Something went wrong. Please try again.");
@@ -88,8 +84,4 @@ async function startServer() {
 
 startServer();
 
-// serveHTTP(addonInterface, { port: PORT });
-// cacheMaxAge: parseInt(process.env.CACHE_MAX_AGE) || 1 * 60;
-// when you've deployed your addon, un-comment this line
 // publishToCentral("https://bbab4a35b833-more-like-this.baby-beamup.club/manifest.json");
-// for more information on deploying, see: https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/deploying/README.md
