@@ -84,9 +84,11 @@ async function createMeta(imdbId, type) {
 }
 
 async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
+	console.log("tmdb catalog");
 	if ((await tmdb.isValidKey()) === false || searchKey === "") {
 		return [];
 	}
+	console.log("valid key");
 
 	// Check cache for previously saved catalog associated with the search input and return if exist
 	let cachedRecsCatalog = await checkCache(searchKey, searchYear, searchType, "tmdb");

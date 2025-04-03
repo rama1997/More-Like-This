@@ -62,6 +62,7 @@ async function addonSetUp() {
 
 	builder.defineCatalogHandler(({ type, id, extra }) => {
 		return new Promise(async (resolve, reject) => {
+			console.log("catalog handler");
 			// Parse the search input
 			let parsedSearchKey = [];
 			if (extra.search) {
