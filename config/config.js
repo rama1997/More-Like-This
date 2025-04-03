@@ -74,7 +74,6 @@ function debugConfig() {
 		console.log("User Config:", userConfig);
 		console.log("TMDB API Key from config:", userConfig.tmdbApiKey || "not set");
 		console.log("RPDB API Key from config:", userConfig.rpdbApiKey || "not set");
-		console.log("Combined Key:", TMDB_API_KEY());
 	} catch (error) {
 		console.error("Debug config error:", error);
 	}
