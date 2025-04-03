@@ -66,8 +66,14 @@ async function startServer() {
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 			};
 
+			// Ensure config directory exists
+			const configDir = path.join(__dirname, "config");
+			if (!fs.existsSync(configDir)) {
+				fs.mkdirSync(configDir, { recursive: true });
+			}
+
 			// Save data to JSON file
-			const configFilePath = path.join(__dirname, "config", "userConfig.json");
+			const configFilePath = path.join(configDir, "userConfig.json");
 			fs.writeFileSync(configFilePath, JSON.stringify(config, null, 4));
 
 			// Redirect to Stremio download link
