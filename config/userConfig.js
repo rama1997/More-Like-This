@@ -7,7 +7,7 @@ function getUserConfig() {
 		const userConfigFilePath = path.join(__dirname, "userConfig.json");
 		if (fs.existsSync(userConfigFilePath)) {
 			const content = JSON.parse(fs.readFileSync(userConfigFilePath, "utf-8"));
-			console.log(`USERCONFIG = ${content.tmdbApiKey}`);
+			console.log("userconfig file found");
 			return content;
 		} else {
 			return {};
