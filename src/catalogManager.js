@@ -85,6 +85,7 @@ async function createMeta(imdbId, type) {
 
 async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 	console.log("tmdb catalog");
+	console.log(searchKey);
 	if ((await tmdb.isValidKey()) === false || searchKey === "") {
 		return [];
 	}

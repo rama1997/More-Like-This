@@ -34,7 +34,6 @@ async function startServer() {
 
 	app.use((req, res, next) => {
 		console.log(`Incoming request: ${req.method} ${req.url}`);
-		console.log(`TESTING CODE CHANGE`);
 		next();
 	});
 

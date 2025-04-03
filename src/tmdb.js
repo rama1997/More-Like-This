@@ -26,6 +26,7 @@ async function validateAPIKey() {
 }
 
 async function isValidKey() {
+	console.log(`API  KEY - ${apiKey}`);
 	return validKey;
 }
 
