@@ -77,8 +77,8 @@ async function startServer() {
 			fs.writeFileSync(configFilePath, JSON.stringify(config, null, 4));
 
 			// Redirect to Stremio download link
-			res.redirect("stremio://bbab4a35b833-more-like-this.baby-beamup.club/manifest.json");
-			//res.redirect(`stremio://localhost:${PORT}/manifest.json`);
+			//res.redirect("stremio://bbab4a35b833-more-like-this.baby-beamup.club/manifest.json");
+			res.redirect(`stremio://localhost:${PORT}/manifest.json`);
 		} catch (error) {
 			// Redirect back to configuration page with an error message
 			res.status(400).send("Error: Something went wrong. Please try again.");
