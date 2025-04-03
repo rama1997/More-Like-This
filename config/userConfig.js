@@ -8,6 +8,7 @@ function getUserConfig() {
 	if (fs.existsSync(userConfigFilePath)) {
 		userConfig = JSON.parse(fs.readFileSync(userConfigFilePath, "utf-8"));
 	}
+	console.log(`USERCONFIG = ${userConfig}`);
 	return userConfig;
 }
 
