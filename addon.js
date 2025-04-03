@@ -71,18 +71,22 @@ async function addonSetUp() {
 
 			const { searchKey = "", searchYear = "", searchType = "" } = parsedSearchKey;
 
+			console.log(searchKey);
+
 			let catalog;
 			switch (type) {
 				case "movie":
 					if (extra.search && searchType !== "series") {
 						if (COMBINE_CATALOGS() === true) {
 							if (id === "mlt-combined-movie-rec") {
+								console.log("combine movie");
 								catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
 							} else {
 								catalog = [];
 							}
 						} else {
 							if (id === "mlt-tmdb-movie-rec") {
+								console.log("tmdb movie");
 								catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type);
 							} else if (id === "mlt-trakt-movie-rec") {
 								catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type);

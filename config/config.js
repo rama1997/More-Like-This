@@ -69,8 +69,8 @@ function debugConfig() {
 		const userConfig = getUserConfig();
 		console.log("DEBUG CONFIG:");
 		console.log("__dirname:", __dirname);
-		console.log("User Config Path:", path.join(__dirname, "userConfig.json"));
-		console.log("File exists:", fs.existsSync(path.join(__dirname, "userConfig.json")));
+		console.log("User Config Path:", path.join(__dirname, "..", "config", "userConfig.json"));
+		console.log("File exists:", fs.existsSync(path.join(__dirname, "..", "config", "userConfig.json")));
 		console.log("User Config:", userConfig);
 		console.log("TMDB API Key from env:", process.env.TMDB_API_KEY || "not set");
 		console.log("TMDB API Key from config:", userConfig.tmdbApiKey || "not set");
