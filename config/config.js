@@ -1,5 +1,7 @@
 // Load environment variables from .env file
 require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
 const { getUserConfig } = require("./userConfig");
 
 const PORT = process.env.PORT || 7000;
@@ -61,6 +63,25 @@ async function getGeminiPrompt(title, year, type) {
 	- One recommendation per line in the format: "Title, Year"
 	- No explanations or additional text`.toString();
 }
+
+function debugConfig() {
+	try {
+		const userConfig = getUserConfig();
+		console.log("DEBUG CONFIG:");
+		console.log("__dirname:", __dirname);
+		console.log("User Config Path:", path.join(__dirname, "userConfig.json"));
+		console.log("File exists:", fs.existsSync(path.join(__dirname, "userConfig.json")));
+		console.log("User Config:", userConfig);
+		console.log("TMDB API Key from env:", process.env.TMDB_API_KEY || "not set");
+		console.log("TMDB API Key from config:", userConfig.tmdbApiKey || "not set");
+		console.log("Combined Key:", TMDB_API_KEY());
+	} catch (error) {
+		console.error("Debug config error:", error);
+	}
+}
+
+// Call this at startup
+debugConfig();
 
 module.exports = {
 	TMDB_API_KEY,
