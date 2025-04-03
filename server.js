@@ -49,7 +49,8 @@ async function startServer() {
 
 	// Configuration page route
 	app.get("/manifest.json", async (req, res) => {
-		let manifest = await generateManifest();
+		const manifest = await generateManifest();
+		console.log("new manifest");
 		res.json(manifest);
 	});
 
@@ -67,7 +68,7 @@ async function startServer() {
 			};
 
 			// // Save data to JSON file inside config folder
-			const configDir = path.join(__dirname, "config");
+			const configDir = path.join(__dirname, ".", "config");
 			if (!fs.existsSync(configDir)) {
 				fs.mkdirSync(configDir, { recursive: true });
 			}

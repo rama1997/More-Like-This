@@ -1,7 +1,7 @@
 const { addonBuilder } = require("stremio-addon-sdk");
 const catalogManager = require("./src/catalogManager");
 const { parseSearchKey } = require("./utils/parser");
-const { COMBINE_CATALOGS, CATALOG_ORDER } = require("./config/config");
+const { COMBINE_CATALOGS, CATALOG_ORDER, debugConfig } = require("./config/config");
 
 async function generateManifest() {
 	let catalogs = [];
@@ -63,6 +63,8 @@ async function addonSetUp() {
 	builder.defineCatalogHandler(({ type, id, extra }) => {
 		return new Promise(async (resolve, reject) => {
 			console.log("catalog handler");
+			debugConfig();
+
 			// Parse the search input
 			let parsedSearchKey = [];
 			if (extra.search) {

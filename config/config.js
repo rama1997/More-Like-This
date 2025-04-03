@@ -80,9 +80,6 @@ function debugConfig() {
 	}
 }
 
-// Call this at startup
-debugConfig();
-
 module.exports = {
 	TMDB_API_KEY,
 	TRAKT_API_KEY,
@@ -98,4 +95,5 @@ module.exports = {
 	MAX_CACHE_SIZE,
 	ENABLE_LOGGING,
 	PORT,
+	debugConfig,
 };
