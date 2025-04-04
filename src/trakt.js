@@ -1,14 +1,9 @@
 const fetch = require("node-fetch");
-const { TRAKT_API_KEY } = require("../config/config");
 const TRAKT_API_BASE_URL = "https://api.trakt.tv";
 
-const apiKey = TRAKT_API_KEY();
-let validKey = false;
-
-async function validateAPIKey() {
+async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
-		validKey = false;
-		return validKey;
+		return false;
 	}
 
 	try {
@@ -25,16 +20,10 @@ async function validateAPIKey() {
 		const response = await fetch(url, options);
 		const json = await response.json();
 
-		validKey = json ? true : false;
-		return validKey;
+		return json ? true : false;
 	} catch (error) {
-		validKey = false;
-		return validKey;
+		return false;
 	}
-}
-
-async function isValidKey() {
-	return validKey;
 }
 
 async function getAPIEndpoint(mediaType) {
@@ -43,7 +32,7 @@ async function getAPIEndpoint(mediaType) {
 	return mediaType === "movie" ? "movie" : "show";
 }
 
-async function fetchSearchResult(title, mediaType) {
+async function fetchSearchResult(title, mediaType, apiKey) {
 	try {
 		const url = `${TRAKT_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}`;
 		const options = {
@@ -68,7 +57,7 @@ async function fetchSearchResult(title, mediaType) {
 	}
 }
 
-async function fetchRecommendations(imdbID, mediaType) {
+async function fetchRecommendations(imdbID, mediaType, apiKey) {
 	const adjustedMediaType = mediaType === "movie" ? "movies" : "shows";
 	try {
 		const url = `${TRAKT_API_BASE_URL}/${adjustedMediaType}/${imdbID}/related`;
@@ -89,7 +78,7 @@ async function fetchRecommendations(imdbID, mediaType) {
 	}
 }
 
-async function fetchMediaDetails(id, mediaType) {
+async function fetchMediaDetails(id, mediaType, apiKey) {
 	const adjustedMediaType = mediaType === "movie" ? "movies" : "shows";
 
 	try {
@@ -117,7 +106,6 @@ async function fetchMediaDetails(id, mediaType) {
 }
 
 module.exports = {
-	isValidKey,
 	validateAPIKey,
 	fetchSearchResult,
 	fetchRecommendations,

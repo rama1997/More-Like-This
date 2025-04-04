@@ -1,14 +1,10 @@
 const fetch = require("node-fetch");
-const { GEMINI_API_KEY, GEMINI_MODEL, getGeminiPrompt, getGeminiSystemInstructions } = require("../config/config");
+const { GEMINI_MODEL, getGeminiPrompt, getGeminiSystemInstructions } = require("../config");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const apiKey = GEMINI_API_KEY();
-let validKey = false;
-
-async function validateAPIKey() {
+async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
-		validKey = false;
-		return validKey;
+		return false;
 	}
 
 	// Create the request payload
@@ -30,24 +26,17 @@ async function validateAPIKey() {
 		});
 
 		if (!response.ok) {
-			validKey = false;
-			return validKey;
+			return false;
 		}
 
 		const responseData = await response.json();
-		validKey = responseData ? true : false;
-		return validKey;
+		return responseData ? true : false;
 	} catch (error) {
-		validKey = false;
-		return validKey;
+		return false;
 	}
 }
 
-async function isValidKey() {
-	return validKey;
-}
-
-async function getGeminiRecs(title, year, mediaType) {
+async function getGeminiRecs(title, year, mediaType, apiKey) {
 	try {
 		const genAI = new GoogleGenerativeAI(apiKey);
 		const model = genAI.getGenerativeModel({
@@ -83,7 +72,6 @@ async function parseGeminiReturn(str) {
 }
 
 module.exports = {
-	isValidKey,
 	validateAPIKey,
 	getGeminiRecs,
 };

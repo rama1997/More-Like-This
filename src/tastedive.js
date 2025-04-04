@@ -1,14 +1,9 @@
 const fetch = require("node-fetch");
-const { TASTEDIVE_API_KEY } = require("../config/config");
 const TASTEDIVE_API_BASE_URL = "https://tastedive.com/api/similar?";
 
-const apiKey = TASTEDIVE_API_KEY();
-let validKey = false;
-
-async function validateAPIKey() {
+async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
-		validKey = false;
-		return validKey;
+		return false;
 	}
 
 	try {
@@ -17,16 +12,10 @@ async function validateAPIKey() {
 		const response = await fetch(url);
 		const json = await response.json();
 
-		validKey = json.similar ? true : false;
-		return validKey;
+		return json.similar ? true : false;
 	} catch (error) {
-		validKey = false;
-		return validKey;
+		return false;
 	}
-}
-
-async function isValidKey() {
-	return validKey;
 }
 
 async function getAPIEndpoint(mediaType) {
@@ -34,7 +23,7 @@ async function getAPIEndpoint(mediaType) {
 	return mediaType === "movie" ? "movie" : "show";
 }
 
-async function fetchRecs(title, year, mediaType) {
+async function fetchRecs(title, year, mediaType, apiKey) {
 	try {
 		const cleanedTitle = encodeURI(title.replace(/[^a-zA-Z0-9 ]/g, ""));
 
@@ -49,9 +38,7 @@ async function fetchRecs(title, year, mediaType) {
 }
 
 module.exports = {
-	validKey,
 	validateAPIKey,
 	getAPIEndpoint,
-	isValidKey,
 	fetchRecs,
 };

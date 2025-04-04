@@ -8,20 +8,6 @@ const fetch = require("node-fetch");
 const cache = require("../utils/cache");
 const logger = require("../utils/logger");
 
-async function validateAPIKeys() {
-	const validGeminiKey = await gemini.validateAPIKey();
-	const validTastediveKey = await tastedive.validateAPIKey();
-	const validTMDBKey = await tmdb.validateAPIKey();
-	const validTraktKey = await trakt.validateAPIKey();
-	const validRPDBKey = await rpdb.validateAPIKey();
-
-	logger.info("GEMINI API KEY: " + (validGeminiKey ? "valid" : "invalid"));
-	logger.info("TASTEDIVE API KEY: " + (validTastediveKey ? "valid" : "invalid"));
-	logger.info("TMDB API KEY: " + (validTMDBKey ? "valid" : "invalid"));
-	logger.info("TRAKT API KEY: " + (validTraktKey ? "valid" : "invalid"));
-	logger.info("RPDB API KEY: " + (validRPDBKey ? "valid" : "invalid"));
-}
-
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {
 		return null;
@@ -40,7 +26,7 @@ async function saveCache(key, year, mediaType, source, catalog) {
 	await cache.setCache(cacheKey, catalog);
 }
 
-async function createMeta(imdbId, type) {
+async function createMeta(imdbId, type, rpdbApiKey) {
 	try {
 		const mediaType = type === "movie" ? "movie" : "series";
 		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
@@ -58,8 +44,8 @@ async function createMeta(imdbId, type) {
 			}
 
 			let poster = "";
-			if (await rpdb.isValidKey()) {
-				poster = await rpdb.getRPDBPoster(imdbId);
+			if (await rpdb.validateAPIKey(rpdbApiKey)) {
+				poster = await rpdb.getRPDBPoster(imdbId, rpdbApiKey);
 			}
 			// If RPDB is not used or fails to provide a poster, then use default Cinemeta poster
 			if (poster === "") {
@@ -83,13 +69,10 @@ async function createMeta(imdbId, type) {
 	}
 }
 
-async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
-	console.log("tmdb catalog");
-	console.log(searchKey);
-	if ((await tmdb.isValidKey()) === false || searchKey === "") {
+async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
+	if ((await tmdb.validateAPIKey(apiKey)) === false || searchKey === "") {
 		return [];
 	}
-	console.log("valid key");
 
 	// Check cache for previously saved catalog associated with the search input and return if exist
 	let cachedRecsCatalog = await checkCache(searchKey, searchYear, searchType, "tmdb");
@@ -106,7 +89,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 	let foundMedia = {};
 	if (searchKey.startsWith("tt")) {
 		// If an IMDB Id is searched, TMDB can obtain metadata from that Id
-		const idMetaData = await tmdb.fetchMediaDetails(searchKey, mediaTypeForAPI);
+		const idMetaData = await tmdb.fetchMediaDetails(searchKey, mediaTypeForAPI, apiKey);
 		if (!idMetaData || idMetaData.length === 0) {
 			logger.emptyCatalog("TMDB: No metadata found for IMDB Id", searchKey);
 			return [];
@@ -147,14 +130,14 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 		}
 
 		// Search TMDB's search results for a title + year and fetch the top result
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI);
+		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI, apiKey);
 		if (!searchResults || searchResults.length === 0) {
 			logger.emptyCatalog(`TMDB: No search result found`, { searchKey, searchType });
 			return [];
 		}
 		foundMedia = searchResults[0];
 	}
-	foundMedia.imdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI);
+	foundMedia.imdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, apiKey);
 	logger.info("TMDB: Searched Media", searchType === "movie" ? { title: foundMedia.title, year: foundMedia.release_date, searchType } : { title: foundMedia.name, year: foundMedia.first_air_date, searchType });
 
 	// Check cache for previously saved catalog associated with the associated IMDB Id and return if exist
@@ -165,7 +148,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 	}
 
 	// If none found in cache, get recs of the found media from TMDB API
-	const recs = (await tmdb.fetchRecommendations(foundMedia.id, mediaTypeForAPI)).filter((row) => row !== undefined);
+	const recs = (await tmdb.fetchRecommendations(foundMedia.id, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
 	if (!recs || recs.length === 0) {
 		logger.emptyCatalog(`TMDB: No recs found`, searchKey);
 		return [];
@@ -174,7 +157,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 	// Get IMDB Id for all recs
 	const recsImdbId = await Promise.all(
 		recs.map(async (rec) => {
-			return await tmdb.fetchImdbID(rec.id, mediaTypeForAPI);
+			return await tmdb.fetchImdbID(rec.id, mediaTypeForAPI, apiKey);
 		}),
 	);
 
@@ -183,7 +166,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 		recsImdbId
 			.filter((row) => row != null)
 			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType);
+				const meta = await createMeta(rec, searchType, rpdbApiKey);
 				if (meta != null) {
 					return { ...meta, ranking: index + 1 };
 				}
@@ -199,8 +182,8 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType) {
 	return catalog;
 }
 
-async function getTraktRecCatalog(searchKey, searchYear, searchType) {
-	if ((await trakt.isValidKey()) === false || searchKey === "") {
+async function getTraktRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
+	if ((await trakt.validateAPIKey(apiKey)) === false || searchKey === "") {
 		return [];
 	}
 
@@ -218,7 +201,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType) {
 	let foundMedia = {};
 	if (searchKey.startsWith("tt")) {
 		// If an IMDB Id was searched, Trakt can obtain metadata from that Id
-		foundMedia = await trakt.fetchMediaDetails(searchKey, mediaTypeForAPI);
+		foundMedia = await trakt.fetchMediaDetails(searchKey, mediaTypeForAPI, apiKey);
 		if (!foundMedia || foundMedia.length === 0) {
 			logger.emptyCatalog("Trakt: No metadata found for IMDB Id", searchKey);
 			return [];
@@ -252,7 +235,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType) {
 		}
 
 		// Search Trakt's search results for a title and fetch the top result
-		const searchResults = await trakt.fetchSearchResult(title, mediaTypeForAPI);
+		const searchResults = await trakt.fetchSearchResult(title, mediaTypeForAPI, apiKey);
 		if (!searchResults || searchResults.length === 0) {
 			logger.emptyCatalog("Trakt: No search result found", { searchKey, searchType });
 			return [];
@@ -270,7 +253,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType) {
 	}
 
 	// Get recs based on the found media
-	const recs = (await trakt.fetchRecommendations(foundMedia.imdbId, mediaTypeForAPI)).filter((row) => row !== undefined);
+	const recs = (await trakt.fetchRecommendations(foundMedia.imdbId, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
 	if (!recs || recs.length === 0) {
 		logger.emptyCatalog(`Trakt: No recs found`, searchKey);
 		return [];
@@ -288,7 +271,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType) {
 		recsImdbId
 			.filter((row) => row != null)
 			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType);
+				const meta = await createMeta(rec, searchType, rpdbApiKey);
 				if (meta != null) {
 					return { ...meta, ranking: index + 1 };
 				}
@@ -304,8 +287,8 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType) {
 	return catalog;
 }
 
-async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
-	if ((await tastedive.isValidKey()) === false || searchKey === "") {
+async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey, tmdbApiKey, rpdbApiKey) {
+	if ((await tastedive.validateAPIKey(apiKey)) === false || (await tmdb.validateAPIKey(tmdbApiKey)) === false || searchKey === "") {
 		return [];
 	}
 
@@ -324,7 +307,7 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
 	if (searchKey.startsWith("tt")) {
 		// Tastedive API does not take a Imdb id input
 		// If an IMDB Id was searched, then use TMDB's API to get metadata
-		const idDetails = await tmdb.fetchMediaDetails(searchKey, mediaTypeForTmdbAPI);
+		const idDetails = await tmdb.fetchMediaDetails(searchKey, mediaTypeForTmdbAPI, tmdbApiKey);
 		if (!idDetails || idDetails.length === 0) {
 			logger.emptyCatalog("Tastedive: No metadata found for IMDB Id", searchKey);
 			return [];
@@ -376,10 +359,10 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
 	if (searchKey.startsWith("tt")) {
 		searchedMediaImdbId = searchKey;
 	} else {
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForTmdbAPI);
+		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForTmdbAPI, tmdbApiKey);
 		if (searchResults && searchResults.length !== 0) {
 			const foundMedia = searchResults[0];
-			searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdbAPI);
+			searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdbAPI, tmdbApiKey);
 		}
 	}
 
@@ -391,7 +374,7 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
 	}
 
 	// Get recs from Tastedive. Only contains title of each recommendation
-	const recTitles = await tastedive.fetchRecs(title, year, mediaTypeForTasteDiveAPI);
+	const recTitles = await tastedive.fetchRecs(title, year, mediaTypeForTasteDiveAPI, apiKey);
 	if (!recTitles || recTitles.length === 0) {
 		logger.emptyCatalog("Tastdive: No recs found", searchKey);
 		return [];
@@ -401,13 +384,13 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
 	let recs = await Promise.all(
 		recTitles.map(async (rec) => {
 			// Search TMDB for recs
-			const searchResults = await tmdb.fetchSearchResult(rec.name, "", mediaTypeForTmdbAPI);
+			const searchResults = await tmdb.fetchSearchResult(rec.name, "", mediaTypeForTmdbAPI, tmdbApiKey);
 			if (!searchResults || searchResults.length === 0) {
 				return;
 			}
 			const foundMedia = searchResults[0];
 
-			return await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdbAPI);
+			return await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdbAPI, tmdbApiKey);
 		}),
 	);
 
@@ -416,7 +399,7 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
 		recs
 			.filter((row) => row != null)
 			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType);
+				const meta = await createMeta(rec, searchType, rpdbApiKey);
 				if (meta != null) {
 					return { ...meta, ranking: index + 1 };
 				}
@@ -434,8 +417,8 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType) {
 	return catalog;
 }
 
-async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
-	if ((await gemini.isValidKey()) === false || (await tmdb.isValidKey()) === false || searchKey === "") {
+async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, tmdbApiKey, rpdbApiKey) {
+	if ((await gemini.validateAPIKey(apiKey)) === false || (await tmdb.validateAPIKey(tmdbApiKey)) === false || searchKey === "") {
 		return [];
 	}
 
@@ -446,7 +429,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 	}
 
 	// Gemini uses TMDB API to get metadata. Get specific TMDB terminlogy for movie/series for API endpoints
-	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
+	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType, tmdbApiKey);
 
 	// Get searched media's title and year for Gemini prompt
 	let title = "";
@@ -454,7 +437,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 	if (searchKey.startsWith("tt")) {
 		// If an IMDB Id was searched, then call TMDB's API to retreive metadata associated with that Id
 		// Gemini is inaccurate in determining what media is associated with what IMDB Id.
-		const idDetails = await tmdb.fetchMediaDetails(searchKey, mediaTypeForAPI);
+		const idDetails = await tmdb.fetchMediaDetails(searchKey, mediaTypeForAPI, tmdbApiKey);
 		if (!idDetails || idDetails.length === 0) {
 			logger.emptyCatalog("Gemini: No metadata found for IMDB Id", searchKey);
 			return [];
@@ -503,10 +486,10 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 	if (searchKey.startsWith("tt")) {
 		searchedMediaImdbId = searchKey;
 	} else {
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI);
+		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI, tmdbApiKey);
 		if (searchResults && searchResults.length !== 0) {
 			const foundMedia = searchResults[0];
-			searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI);
+			searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, tmdbApiKey);
 		}
 	}
 
@@ -518,7 +501,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 	}
 
 	// Get recs from Gemini - Gemini can only return rec's title and year as a string
-	const recTitles = await gemini.getGeminiRecs(title, year, mediaTypeForAPI);
+	const recTitles = await gemini.getGeminiRecs(title, year, mediaTypeForAPI, apiKey);
 	if (!recTitles || recTitles.length === 0) {
 		logger.emptyCatalog("Gemini: No recs found", searchKey);
 		return [];
@@ -532,13 +515,13 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 				const { title: recTitle, year: recYear } = rec;
 
 				// Search TMDB for recs
-				const searchResults = await tmdb.fetchSearchResult(recTitle, recYear, mediaTypeForAPI);
+				const searchResults = await tmdb.fetchSearchResult(recTitle, recYear, mediaTypeForAPI, tmdbApiKey);
 				if (!searchResults || searchResults.length === 0) {
 					return;
 				}
 				const foundMedia = searchResults[0];
 
-				return await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI);
+				return await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, tmdbApiKey);
 			}),
 	);
 
@@ -551,7 +534,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 		recs
 			.filter((row) => row != null)
 			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType);
+				const meta = await createMeta(rec, searchType, rpdbApiKey);
 				if (meta != null) {
 					return { ...meta, ranking: index + 1 };
 				}
@@ -569,7 +552,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType) {
 	return catalog;
 }
 
-async function getCombinedRecCatalog(searchKey, searchYear, searchType) {
+async function getCombinedRecCatalog(searchKey, searchYear, searchType, apiKeys) {
 	if (searchKey === "") {
 		return [];
 	}
@@ -657,5 +640,4 @@ module.exports = {
 	getGeminiRecCatalog,
 	getTastediveRecCatalog,
 	getCombinedRecCatalog,
-	validateAPIKeys,
 };

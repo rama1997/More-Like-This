@@ -1,5 +1,5 @@
 const logger = require("./logger");
-const { CACHE_TTL, MAX_CACHE_SIZE } = require("../config/config");
+const { CACHE_TTL, MAX_CACHE_SIZE } = require("../config");
 
 const cache = new Map();
 

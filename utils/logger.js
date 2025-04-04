@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { ENABLE_LOGGING } = require("../config/config");
+const { ENABLE_LOGGING } = require("../config");
 
 // Define log directory
 const logsDir = path.join(__dirname, "..", "logs");

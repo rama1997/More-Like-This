@@ -1,22 +1,8 @@
 // Load environment variables from .env file
 require("dotenv").config();
-const fs = require("fs");
-const path = require("path");
-const { getUserConfig } = require("./userConfig");
 
 const PORT = process.env.PORT || 7000;
 const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
-
-// API Keys
-const TMDB_API_KEY = () => process.env.TMDB_API_KEY || getUserConfig().tmdbApiKey || "";
-const TRAKT_API_KEY = () => process.env.TRAKT_API_KEY || getUserConfig().traktApiKey || "";
-const TASTEDIVE_API_KEY = () => process.env.TASTEDIVE_API_KEY || getUserConfig().tastediveApiKey || "";
-const GEMINI_API_KEY = () => process.env.GEMINI_API_KEY || getUserConfig().geminiApiKey || "";
-const RPDB_API_KEY = () => process.env.RPDB_API_KEY || getUserConfig().rpdbApiKey || "";
-
-// Catalog
-const COMBINE_CATALOGS = () => getUserConfig().combineCatalogs || false;
-const CATALOG_ORDER = () => getUserConfig().catalogOrder || ["TMDB", "Trakt", "TasteDive", "Gemini AI"];
 
 // Cache Configs
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // Cache expiration time - 1 week
@@ -64,35 +50,12 @@ async function getGeminiPrompt(title, year, type) {
 	- No explanations or additional text`.toString();
 }
 
-function debugConfig() {
-	try {
-		const userConfig = getUserConfig();
-		console.log("DEBUG CONFIG:");
-		console.log("__dirname:", __dirname);
-		console.log("User Config Path:", path.join(__dirname, "..", "config", "userConfig.json"));
-		console.log("File exists:", fs.existsSync(path.join(__dirname, "..", "config", "userConfig.json")));
-		console.log("User Config:", userConfig);
-		console.log("TMDB API Key from config:", userConfig.tmdbApiKey || "not set");
-		console.log("RPDB API Key from config:", userConfig.rpdbApiKey || "not set");
-	} catch (error) {
-		console.error("Debug config error:", error);
-	}
-}
-
 module.exports = {
-	TMDB_API_KEY,
-	TRAKT_API_KEY,
-	GEMINI_API_KEY,
-	RPDB_API_KEY,
-	TASTEDIVE_API_KEY,
 	GEMINI_MODEL,
 	getGeminiPrompt,
 	getGeminiSystemInstructions,
-	COMBINE_CATALOGS,
-	CATALOG_ORDER,
 	CACHE_TTL,
 	MAX_CACHE_SIZE,
 	ENABLE_LOGGING,
 	PORT,
-	debugConfig,
 };

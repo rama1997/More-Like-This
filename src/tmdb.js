@@ -1,14 +1,9 @@
 const fetch = require("node-fetch");
-const { TMDB_API_KEY } = require("../config/config");
 const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
 
-const apiKey = TMDB_API_KEY();
-let validKey = false;
-
-async function validateAPIKey() {
+async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
-		validKey = false;
-		return validKey;
+		return false;
 	}
 
 	try {
@@ -17,17 +12,10 @@ async function validateAPIKey() {
 		const response = await fetch(url);
 		const json = await response.json();
 
-		validKey = json?.results ? true : false;
-		return validKey;
+		return json?.results ? true : false;
 	} catch (error) {
-		validKey = false;
-		return validKey;
+		return false;
 	}
-}
-
-async function isValidKey() {
-	console.log(`API  KEY - ${apiKey}`);
-	return validKey;
 }
 
 async function getAPIEndpoint(mediaType) {
@@ -35,7 +23,7 @@ async function getAPIEndpoint(mediaType) {
 	return mediaType === "movie" ? "movie" : "tv";
 }
 
-async function fetchSearchResult(title, year, mediaType) {
+async function fetchSearchResult(title, year, mediaType, apiKey) {
 	try {
 		let url = `${TMDB_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}&include_adult=false&language=en-US&page=1&api_key=${apiKey}`;
 
@@ -51,7 +39,7 @@ async function fetchSearchResult(title, year, mediaType) {
 	}
 }
 
-async function fetchRecommendations(tmdbId, mediaType) {
+async function fetchRecommendations(tmdbId, mediaType, apiKey) {
 	try {
 		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/recommendations?language=en-US&page=1&api_key=${apiKey}`;
 
@@ -63,7 +51,7 @@ async function fetchRecommendations(tmdbId, mediaType) {
 	}
 }
 
-async function fetchImdbID(tmdbId, mediaType) {
+async function fetchImdbID(tmdbId, mediaType, apiKey) {
 	try {
 		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/external_ids?api_key=${apiKey}`;
 
@@ -75,7 +63,7 @@ async function fetchImdbID(tmdbId, mediaType) {
 	}
 }
 
-async function fetchMediaDetails(id, mediaType) {
+async function fetchMediaDetails(id, mediaType, apiKey) {
 	try {
 		let url = "";
 
@@ -96,7 +84,6 @@ async function fetchMediaDetails(id, mediaType) {
 
 module.exports = {
 	validateAPIKey,
-	isValidKey,
 	fetchSearchResult,
 	fetchRecommendations,
 	fetchImdbID,
