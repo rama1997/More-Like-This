@@ -49,6 +49,7 @@ async function startServer() {
 
 	// Configuration page route
 	app.get("/manifest.json", async (req, res) => {
+		console.log("/manifest.json reached");
 		const manifest = await generateManifest();
 		console.log("new manifest");
 		res.json(manifest);
