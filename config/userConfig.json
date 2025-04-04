@@ -3,8 +3,8 @@
     "traktApiKey": "",
     "tastediveApiKey": "",
     "geminiApiKey": "",
-    "rpdbApiKey": "t0-free-rpdb",
-    "combineCatalogs": true,
+    "rpdbApiKey": "",
+    "combineCatalogs": false,
     "catalogOrder": [
         "TMDB",
         "Trakt",
