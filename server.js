@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-const { serveHTTP, publishToCentral, getRouter } = require("stremio-addon-sdk");
-const { catalogHandler, streamHandler } = require("./addon");
+const { catalogHandler, streamHandler } = require("./src/addon");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");

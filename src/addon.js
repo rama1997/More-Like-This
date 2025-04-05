@@ -1,5 +1,5 @@
-const catalogManager = require("./src/catalogManager");
-const { parseSearchKey } = require("./utils/parser");
+const catalogManager = require("./catalogManager");
+const { parseSearchKey } = require("../utils/parser");
 
 async function catalogHandler(type, id, extra, apiKeys) {
 	return new Promise(async (resolve, reject) => {

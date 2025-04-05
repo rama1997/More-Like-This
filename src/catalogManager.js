@@ -1,12 +1,13 @@
-const tmdb = require("./tmdb");
-const trakt = require("./trakt");
-const gemini = require("./gemini");
-const rpdb = require("./rpdb");
-const tastedive = require("./tastedive");
-const kitsu = require("./kitsu");
 const fetch = require("node-fetch");
+const tmdb = require("../services/tmdb");
+const trakt = require("../services/trakt");
+const gemini = require("../services/gemini");
+const rpdb = require("../services/rpdb");
+const tastedive = require("../services/tastedive");
+const kitsu = require("../services/kitsu");
 const cache = require("../utils/cache");
 const logger = require("../utils/logger");
+const { imdbToMeta, titleToImdb } = require("./convertMetadata");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {
@@ -27,46 +28,36 @@ async function saveCache(key, year, mediaType, source, catalog) {
 }
 
 async function createMeta(imdbId, type, rpdbApiKey) {
-	try {
-		const mediaType = type === "movie" ? "movie" : "series";
-		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
+	const mediaType = type === "movie" ? "movie" : "series";
+	const media = await imdbToMeta(imdbId, mediaType);
 
-		const response = await fetch(url);
-		const json = await response.json();
-
-		let meta = {};
-		if (json && json.meta) {
-			const media = json.meta;
-
-			// Will not create a meta/add to catalog for any media that is not released yet
-			if (media?.status === "Upcoming") {
-				return null;
-			}
-
-			let poster = "";
-			if (await rpdb.validateAPIKey(rpdbApiKey)) {
-				poster = await rpdb.getRPDBPoster(imdbId, rpdbApiKey);
-			}
-			// If RPDB is not used or fails to provide a poster, then use default Cinemeta poster
-			if (poster === "") {
-				poster = media.poster_path ? media.poster : "";
-			}
-
-			meta = {
-				id: media.imdb_id,
-				name: media.title || media.name,
-				poster: poster,
-				backdrop: media.background,
-				type: mediaType,
-				year: media.releaseInfo,
-				genres: media.genres,
-			};
+	let meta = {};
+	if (media) {
+		// Will not create a meta/add to catalog for any media that is not released yet
+		if (media?.status === "Upcoming") {
+			return null;
 		}
 
-		return meta;
-	} catch (error) {
-		return null;
+		let poster = "";
+		if (await rpdb.validateAPIKey(rpdbApiKey)) {
+			poster = await rpdb.getRPDBPoster(imdbId, rpdbApiKey);
+		}
+		// If RPDB is not used or fails to provide a poster, then use default Cinemeta poster
+		if (poster === "") {
+			poster = media.poster_path ? media.poster : "";
+		}
+
+		meta = {
+			id: media.imdb_id,
+			name: media.title || media.name,
+			poster: poster,
+			backdrop: media.background,
+			type: mediaType,
+			year: media.releaseInfo,
+			genres: media.genres,
+		};
 	}
+	return meta;
 }
 
 async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
@@ -306,26 +297,15 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey,
 	let year = "";
 	if (searchKey.startsWith("tt")) {
 		// Tastedive API does not take a Imdb id input
-		// If an IMDB Id was searched, then use TMDB's API to get metadata
-		const idDetails = await tmdb.fetchMediaDetails(searchKey, mediaTypeForTmdbAPI, tmdbApiKey);
-		if (!idDetails || idDetails.length === 0) {
+		// If an IMDB Id was searched, then get metadata from Cinemeta
+		const media = await imdbToMeta(searchKey, searchType);
+		if (!media || media.type !== searchType) {
 			logger.emptyCatalog("Tastedive: No metadata found for IMDB Id", searchKey);
 			return [];
 		}
-		const foundMedia = searchType === "movie" ? idDetails.movie_results[0] : idDetails.tv_results[0];
-		if (!foundMedia) {
-			logger.emptyCatalog(`Tastedive: No ${searchType} found for IMDB Id`, searchKey);
-			return [];
-		}
 
-		// If the IMDB Id's media does not match catalog type, skip the catalog
-		const mediaType = foundMedia.media_type === "movie" ? "movie" : "series";
-		if (mediaType !== searchType) {
-			return [];
-		}
-
-		title = mediaType === "movie" ? foundMedia.title : foundMedia.name;
-		year = mediaType === "movie" ? foundMedia.release_date.split("-")[0] : foundMedia.first_air_date.split("-")[0];
+		title = media.name;
+		year = media.year.split(/[–-]/)[0];
 	} else {
 		// Otherwise, we have to manually search on Tastedive to get metadata.
 		// If an Kitsu Id was searched, retrieve title and year associated with that Id to search on Tastedive
@@ -435,27 +415,16 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, tm
 	let title = "";
 	let year = "";
 	if (searchKey.startsWith("tt")) {
-		// If an IMDB Id was searched, then call TMDB's API to retreive metadata associated with that Id
 		// Gemini is inaccurate in determining what media is associated with what IMDB Id.
-		const idDetails = await tmdb.fetchMediaDetails(searchKey, mediaTypeForAPI, tmdbApiKey);
-		if (!idDetails || idDetails.length === 0) {
+		// If an IMDB Id was searched, then get metadata from Cinemeta
+		const media = await imdbToMeta(searchKey, searchType);
+		if (!media || media.type !== searchType) {
 			logger.emptyCatalog("Gemini: No metadata found for IMDB Id", searchKey);
 			return [];
 		}
-		const foundMedia = searchType === "movie" ? idDetails.movie_results[0] : idDetails.tv_results[0];
-		if (!foundMedia) {
-			logger.emptyCatalog(`Gemini: No ${searchType} found for IMDB Id`, searchKey);
-			return [];
-		}
 
-		// If the IMDB Id's media does not match catalog type, skip the catalog
-		const mediaType = foundMedia.media_type === "movie" ? "movie" : "series";
-		if (mediaType !== searchType) {
-			return [];
-		}
-
-		title = mediaType === "movie" ? foundMedia.title : foundMedia.name;
-		year = mediaType === "movie" ? foundMedia.release_date.split("-")[0] : foundMedia.first_air_date.split("-")[0];
+		title = media.name;
+		year = media.year.split(/[–-]/)[0];
 	} else if (searchKey.startsWith("kitsu")) {
 		// If an Kitsu Id was searched, call Kitsu API to retrieve metadata associated with that Id
 		const kitsuMedia = await kitsu.convertKitsuId(searchKey);
