@@ -60,6 +60,30 @@ async function createMeta(imdbId, type, rpdbApiKey) {
 	return meta;
 }
 
+/**
+ * Creates a Stremio recommendation catalog
+ * @param {array} recs - an array of IMDB Ids
+ * @param {string} mediaType - Media type of catalog. Either "movie" or "series"
+ * @param {string} rpdbApiKey - API Key for RPDB
+ * @returns {array} - Stremio Catalog
+ */
+async function createRecCatalog(recs, mediaType, rpdbApiKey) {
+	let catalog = await Promise.all(
+		recs
+			.filter((row) => row != null)
+			.map(async (rec, index) => {
+				const meta = await createMeta(rec, mediaType, rpdbApiKey);
+				if (meta != null) {
+					return { ...meta, ranking: index + 1 };
+				}
+				return null;
+			}),
+	);
+	catalog = catalog.filter((row) => row != null);
+
+	return catalog;
+}
+
 async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
 	if ((await tmdb.validateAPIKey(apiKey)) === false || searchKey === "") {
 		return [];
@@ -138,7 +162,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 		return cachedRecsCatalog;
 	}
 
-	// If none found in cache, get recs of the found media from TMDB API
+	// Get recs from TMDB API
 	const recs = (await tmdb.fetchRecommendations(foundMedia.id, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
 	if (!recs || recs.length === 0) {
 		logger.emptyCatalog(`TMDB: No recs found`, searchKey);
@@ -152,23 +176,13 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 		}),
 	);
 
-	// Create catalog from recs
-	let catalog = await Promise.all(
-		recsImdbId
-			.filter((row) => row != null)
-			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType, rpdbApiKey);
-				if (meta != null) {
-					return { ...meta, ranking: index + 1 };
-				}
-				return null;
-			}),
-	);
-	catalog = catalog.filter((row) => row != null);
+	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "tmdb", catalog);
-	await saveCache(foundMedia.imdbId, null, searchType, "tmdb", catalog);
+	if (foundMedia.imdb != null) {
+		await saveCache(foundMedia.imdbId, null, searchType, "tmdb", catalog);
+	}
 
 	return catalog;
 }
@@ -257,47 +271,36 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, apiKey, rpd
 		}),
 	);
 
-	// Create catalog from recs
-	let catalog = await Promise.all(
-		recsImdbId
-			.filter((row) => row != null)
-			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType, rpdbApiKey);
-				if (meta != null) {
-					return { ...meta, ranking: index + 1 };
-				}
-				return null;
-			}),
-	);
-	catalog = catalog.filter((row) => row != null);
+	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "trakt", catalog);
-	await saveCache(foundMedia.imdbId, null, searchType, "trakt", catalog);
+	if (foundMedia.imdbId != null) {
+		await saveCache(foundMedia.imdbId, null, searchType, "trakt", catalog);
+	}
 
 	return catalog;
 }
 
-async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey, tmdbApiKey, rpdbApiKey) {
-	if ((await tastedive.validateAPIKey(apiKey)) === false || (await tmdb.validateAPIKey(tmdbApiKey)) === false || searchKey === "") {
+async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
+	if ((await tastedive.validateAPIKey(apiKey)) === false || searchKey === "") {
 		return [];
 	}
 
-	// Check cache for previously saved catalog
+	// Check cache for previously saved catalog for the search input
 	let cachedRecsCatalog = await checkCache(searchKey, searchYear, searchType, "tastedive");
 	if (cachedRecsCatalog) {
 		return cachedRecsCatalog;
 	}
 
 	// Get specific terminlogy for movie/series for API endpoints
-	const mediaTypeForTasteDiveAPI = await tastedive.getAPIEndpoint(searchType);
-	const mediaTypeForTmdbAPI = await tmdb.getAPIEndpoint(searchType);
+	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
 
+	// Obtain title and year to search in Tastedive.
 	let title = "";
 	let year = "";
 	if (searchKey.startsWith("tt")) {
-		// Tastedive API does not take a Imdb id input
-		// If an IMDB Id was searched, then get metadata from Cinemeta
+		// Tastedive API does not take a Imdb id input. If an IMDB Id was searched, then get metadata from Cinemeta
 		const media = await imdbToMeta(searchKey, searchType);
 		if (!media || media.type !== searchType) {
 			logger.emptyCatalog("Tastedive: No metadata found for IMDB Id", searchKey);
@@ -306,87 +309,61 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey,
 
 		title = media.name;
 		year = media.year.split(/[–-]/)[0];
-	} else {
-		// Otherwise, we have to manually search on Tastedive to get metadata.
-		// If an Kitsu Id was searched, retrieve title and year associated with that Id to search on Tastedive
-		if (searchKey.startsWith("kitsu")) {
-			const kitsuMedia = await kitsu.convertKitsuId(searchKey);
-			if (kitsuMedia || Object.keys(kitsuMedia).length !== 0) {
-				title = kitsuMedia.title;
-				year = kitsuMedia.year;
-				const kitsuType = kitsuMedia.type;
+	} else if (searchKey.startsWith("kitsu")) {
+		// If an Kitsu Id was searched, retrieve title and year associated with that Id
+		const kitsuMedia = await kitsu.convertKitsuId(searchKey);
+		if (kitsuMedia || Object.keys(kitsuMedia).length !== 0) {
+			title = kitsuMedia.title;
+			year = kitsuMedia.year;
+			const kitsuType = kitsuMedia.type;
 
-				// If the Kitsu Id's media does not match catalog type, skip this catalog
-				if (kitsuType != searchType) {
-					return [];
-				}
-			} else {
-				logger.emptyCatalog("Tastdive: No metadata found for Kitsu Id", searchKey);
+			// If the Kitsu Id's media does not match catalog type, skip this catalog
+			if (kitsuType != searchType) {
 				return [];
 			}
 		} else {
-			// If a normal title/year was searched, then we will use those
-			title = searchKey;
-			year = searchYear;
+			logger.emptyCatalog("Tastdive: No metadata found for Kitsu Id", searchKey);
+			return [];
 		}
+	} else {
+		// If a normal title/year was searched, then we will use those
+		title = searchKey;
+		year = searchYear;
 	}
 
 	logger.info("Tastedive: Searched Media", { title, year, searchType });
 
-	// Before getting recs, check cache for previously saved catalog associated with the IMDB Id
-	// Convert to Imdb Id if search input was not an Imdb Id using TMDB API
-	let searchedMediaImdbId = "";
+	// Before getting recs, perform another cache check, but with the IMDB Id of the search media
+	let searchedMediaImdbId = null;
 	if (searchKey.startsWith("tt")) {
 		searchedMediaImdbId = searchKey;
 	} else {
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForTmdbAPI, tmdbApiKey);
-		if (searchResults && searchResults.length !== 0) {
-			const foundMedia = searchResults[0];
-			searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdbAPI, tmdbApiKey);
+		searchedMediaImdbId = await titleToImdb(title, year, searchType);
+	}
+
+	if (searchedMediaImdbId) {
+		cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "tastedive");
+		if (cachedRecsCatalog) {
+			await saveCache(searchKey, searchYear, searchType, "tastedive", cachedRecsCatalog); // Save cached catalog for searchinput as well
+			return cachedRecsCatalog;
 		}
 	}
 
-	// Check cache
-	cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "tastedive");
-	if (cachedRecsCatalog) {
-		await saveCache(searchKey, searchYear, searchType, "tastedive", cachedRecsCatalog); // Save cached catalog for searchinput as well
-		return cachedRecsCatalog;
-	}
-
-	// Get recs from Tastedive. Only contains title of each recommendation
-	const recTitles = await tastedive.fetchRecs(title, year, mediaTypeForTasteDiveAPI, apiKey);
+	// Get recs titles from Tastedive
+	const recTitles = await tastedive.fetchRecs(title, year, mediaTypeForAPI, apiKey);
 	if (!recTitles || recTitles.length === 0) {
 		logger.emptyCatalog("Tastdive: No recs found", searchKey);
 		return [];
 	}
 
-	// Need to search each rec in TMDB to get details
+	// Get IMDB Ids for all the rec titles
 	let recs = await Promise.all(
 		recTitles.map(async (rec) => {
-			// Search TMDB for recs
-			const searchResults = await tmdb.fetchSearchResult(rec.name, "", mediaTypeForTmdbAPI, tmdbApiKey);
-			if (!searchResults || searchResults.length === 0) {
-				return;
-			}
-			const foundMedia = searchResults[0];
-
-			return await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdbAPI, tmdbApiKey);
+			return await titleToImdb(rec.name, "", searchType);
 		}),
 	);
 
-	// Create catalog from recs
-	let catalog = await Promise.all(
-		recs
-			.filter((row) => row != null)
-			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType, rpdbApiKey);
-				if (meta != null) {
-					return { ...meta, ranking: index + 1 };
-				}
-				return null;
-			}),
-	);
-	catalog = catalog.filter((row) => row != null);
+	const catalog = await createRecCatalog(recs, searchType, rpdbApiKey);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "tastedive", catalog);
@@ -397,8 +374,8 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey,
 	return catalog;
 }
 
-async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, tmdbApiKey, rpdbApiKey) {
-	if ((await gemini.validateAPIKey(apiKey)) === false || (await tmdb.validateAPIKey(tmdbApiKey)) === false || searchKey === "") {
+async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
+	if ((await gemini.validateAPIKey(apiKey)) === false || searchKey === "") {
 		return [];
 	}
 
@@ -407,9 +384,6 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, tm
 	if (cachedRecsCatalog) {
 		return cachedRecsCatalog;
 	}
-
-	// Gemini uses TMDB API to get metadata. Get specific TMDB terminlogy for movie/series for API endpoints
-	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType, tmdbApiKey);
 
 	// Get searched media's title and year for Gemini prompt
 	let title = "";
@@ -449,68 +423,44 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, tm
 
 	logger.info("Gemini: Searched Media", { title, year, searchType });
 
-	// Before asking Gemini for recs, check cache for previously saved catalog associated with the IMDB Id
-	// Convert to Imdb Id if search input was not an Imdb Id using TMDB API
+	// Before getting recs, perform another cache check, but with the IMDB Id of the search media
 	let searchedMediaImdbId = "";
 	if (searchKey.startsWith("tt")) {
 		searchedMediaImdbId = searchKey;
 	} else {
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI, tmdbApiKey);
-		if (searchResults && searchResults.length !== 0) {
-			const foundMedia = searchResults[0];
-			searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, tmdbApiKey);
+		searchedMediaImdbId = await titleToImdb(title, year, searchType);
+	}
+
+	if (searchedMediaImdbId) {
+		cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "gemini");
+		if (cachedRecsCatalog) {
+			await saveCache(searchKey, searchYear, searchType, "gemini", cachedRecsCatalog); // Save cached catalog for searchinput as well
+			return cachedRecsCatalog;
 		}
 	}
 
-	// Check cache
-	cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "gemini");
-	if (cachedRecsCatalog) {
-		await saveCache(searchKey, searchYear, searchType, "gemini", cachedRecsCatalog); // Save cached catalog for searchinput as well
-		return cachedRecsCatalog;
-	}
-
-	// Get recs from Gemini - Gemini can only return rec's title and year as a string
-	const recTitles = await gemini.getGeminiRecs(title, year, mediaTypeForAPI, apiKey);
+	// Get recs from Gemini - Gemini returns rec's title and year as a string
+	const recTitles = await gemini.getGeminiRecs(title, year, searchType, apiKey);
 	if (!recTitles || recTitles.length === 0) {
 		logger.emptyCatalog("Gemini: No recs found", searchKey);
 		return [];
 	}
 
-	// Need to search each rec in TMDB to get details
+	// Get IMDB Ids for all the rec titles
 	let recs = await Promise.all(
 		recTitles
 			.filter((row) => row[0] !== "") // Remove blank rows
 			.map(async (rec) => {
-				const { title: recTitle, year: recYear } = rec;
-
-				// Search TMDB for recs
-				const searchResults = await tmdb.fetchSearchResult(recTitle, recYear, mediaTypeForAPI, tmdbApiKey);
-				if (!searchResults || searchResults.length === 0) {
-					return;
-				}
-				const foundMedia = searchResults[0];
-
-				return await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, tmdbApiKey);
+				return await titleToImdb(rec.title, rec.year, searchType);
 			}),
 	);
 
 	if (!recs || Object.keys(recs).length === 0) {
+		logger.emptyCatalog("Gemini: Recs conversion failed", searchKey);
 		return [];
 	}
 
-	// Create catalog from recs
-	let catalog = await Promise.all(
-		recs
-			.filter((row) => row != null)
-			.map(async (rec, index) => {
-				const meta = await createMeta(rec, searchType, rpdbApiKey);
-				if (meta != null) {
-					return { ...meta, ranking: index + 1 };
-				}
-				return null;
-			}),
-	);
-	catalog = catalog.filter((row) => row != null);
+	const catalog = await createRecCatalog(recs, searchType, rpdbApiKey);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "gemini", catalog);

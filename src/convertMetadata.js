@@ -22,13 +22,14 @@ async function titleToImdb(title, year, type) {
 	const mediaType = type === "movie" ? "movie" : "series";
 	const input = { name: title, year: year, type: mediaType };
 
-	nameToImdb(input)
-		.then(function ({ res, inf }) {
-			return res;
-		})
-		.catch(function (error) {
-			return "";
+	return new Promise((resolve, reject) => {
+		nameToImdb(input, (err, res, inf) => {
+			if (err) {
+				return resolve(null);
+			}
+			resolve(res);
 		});
+	});
 }
 
 module.exports = {

@@ -3,9 +3,8 @@ const { parseSearchKey } = require("../utils/parser");
 
 async function catalogHandler(type, id, extra, apiKeys) {
 	return new Promise(async (resolve, reject) => {
-		// Parse the search
+		// Parse search input
 		const searchParam = extra?.split("search=")[1];
-
 		let parsedSearchParam = [];
 		if (searchParam) {
 			parsedSearchParam = await parseSearchKey(searchParam);
