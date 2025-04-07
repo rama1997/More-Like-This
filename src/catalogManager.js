@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
 const gemini = require("../services/gemini");
@@ -7,7 +6,7 @@ const tastedive = require("../services/tastedive");
 const kitsu = require("../services/kitsu");
 const cache = require("../utils/cache");
 const logger = require("../utils/logger");
-const { imdbToMeta, titleToImdb } = require("./convertMetadata");
+const { imdbToMeta, titleToImdb, IdToTitleYearType } = require("./convertMetadata");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {
@@ -98,52 +97,18 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 	// Get specific terminlogy for movie/series for API endpoints
 	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
 
-	let title = "";
-	let year = "";
-	// Get searched media's metadata
-	let foundMedia = {};
-	if (searchKey.startsWith("tt")) {
-		// If an IMDB Id is searched, TMDB can obtain metadata from that Id
-		const idMetaData = await tmdb.fetchMediaDetails(searchKey, mediaTypeForAPI, apiKey);
-		if (!idMetaData || idMetaData.length === 0) {
-			logger.emptyCatalog("TMDB: No metadata found for IMDB Id", searchKey);
-			return [];
-		}
-		foundMedia = searchType === "movie" ? idMetaData.movie_results[0] : idMetaData.tv_results[0];
-		if (!foundMedia) {
-			logger.emptyCatalog(`TMDB: No ${searchType} found for IMDB Id`, searchKey);
-			return [];
-		}
+	// Get searched media's title and year for search
+	const { title, year, type } = searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
 
-		// If the IMDB Id's media does not match catalog type, skip this catalog
-		const mediaType = foundMedia.media_type === "movie" ? "movie" : "series";
-		if (mediaType !== mediaType) {
-			return [];
-		}
-	} else {
-		// Otherwise, we have to manually search on TMDB to get metadata.
-		// If an Kitsu Id was searched, retrieve title and year associated with that Id so we can search on TMDB
-		if (searchKey.startsWith("kitsu")) {
-			const kitsuMedia = await kitsu.convertKitsuId(searchKey);
-			if (kitsuMedia || Object.keys(kitsuMedia).length !== 0) {
-				title = kitsuMedia.title;
-				year = kitsuMedia.year;
-				const kitsuType = kitsuMedia.type;
+	if (type !== searchType) {
+		return [];
+	}
 
-				// If the Kitsu Id's media does not match catalog type, skip this catalog
-				if (kitsuType != searchType) {
-					return [];
-				}
-			} else {
-				logger.emptyCatalog(`TMDB: No metadata found for Kitsu Id`, searchKey);
-				return [];
-			}
-		} else {
-			// If a normal title/year was searched, then we will use those
-			title = searchKey;
-			year = searchYear;
-		}
+	// Get Imdb Id for search
+	let searchedMediaImdbId = searchKey.startsWith("tt") ? searchKey : await titleToImdb(title, year, searchType);
 
+	// If Imdb ID can't be found from title/year, search search result as a backup
+	if (!searchedMediaImdbId) {
 		// Search TMDB's search results for a title + year and fetch the top result
 		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI, apiKey);
 		if (!searchResults || searchResults.length === 0) {
@@ -151,19 +116,31 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 			return [];
 		}
 		foundMedia = searchResults[0];
+
+		// If the IMDB Id's media does not match catalog type, skip the catalog
+		const mediaType = foundMedia.released ? "movie" : "series";
+
+		if (mediaType !== searchType) {
+			return [];
+		}
+
+		searchedMediaImdbId = foundMedia.ids.imdb;
 	}
-	foundMedia.imdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, apiKey);
-	logger.info("TMDB: Searched Media", searchType === "movie" ? { title: foundMedia.title, year: foundMedia.release_date, searchType } : { title: foundMedia.name, year: foundMedia.first_air_date, searchType });
+
+	logger.info("TMDB: Searched Media", { title, year, searchType, searchedMediaImdbId });
 
 	// Check cache for previously saved catalog associated with the associated IMDB Id and return if exist
-	cachedRecsCatalog = await checkCache(foundMedia.imdbId, null, searchType, "tmdb");
+	cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "tmdb");
 	if (cachedRecsCatalog) {
 		await saveCache(searchKey, year, searchType, "tmdb", cachedRecsCatalog); // Save cached catalog for search input as well
 		return cachedRecsCatalog;
 	}
 
 	// Get recs from TMDB API
-	const recs = (await tmdb.fetchRecommendations(foundMedia.id, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
+	const searchedMedia = await tmdb.findByImdbId(searchedMediaImdbId, mediaTypeForAPI, apiKey);
+	const searchedMediaTmdbId = searchedMedia[0]?.id;
+
+	const recs = (await tmdb.fetchRecommendations(searchedMediaTmdbId, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
 	if (!recs || recs.length === 0) {
 		logger.emptyCatalog(`TMDB: No recs found`, searchKey);
 		return [];
@@ -180,8 +157,8 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "tmdb", catalog);
-	if (foundMedia.imdb != null) {
-		await saveCache(foundMedia.imdbId, null, searchType, "tmdb", catalog);
+	if (searchedMediaImdbId != null) {
+		await saveCache(searchedMediaImdbId, null, searchType, "tmdb", catalog);
 	}
 
 	return catalog;
@@ -201,44 +178,18 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, apiKey, rpd
 	// Get specific Trakt terminlogy for movie/series for API endpoints
 	const mediaTypeForAPI = await trakt.getAPIEndpoint(searchType);
 
-	let title = "";
-	// Get searched media's metadata
-	let foundMedia = {};
-	if (searchKey.startsWith("tt")) {
-		// If an IMDB Id was searched, Trakt can obtain metadata from that Id
-		foundMedia = await trakt.fetchMediaDetails(searchKey, mediaTypeForAPI, apiKey);
-		if (!foundMedia || foundMedia.length === 0) {
-			logger.emptyCatalog("Trakt: No metadata found for IMDB Id", searchKey);
-			return [];
-		}
+	// Get searched media's title and year for search
+	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
 
-		// If the IMDB Id's media does not match catalog type, skip the catalog
-		const mediaType = foundMedia.released ? "movie" : "series";
-		if (mediaType !== mediaType) {
-			return [];
-		}
-	} else {
-		// Otherwise, we have to manually search on Trakt to get metadata
-		// If an Kitsu Id was searched, retrieve title associated with that Id so we can search on TMDB
-		if (searchKey.startsWith("kitsu")) {
-			const kitsuMedia = await kitsu.convertKitsuId(searchKey);
-			if (kitsuMedia || Object.keys(kitsuMedia).length !== 0) {
-				title = kitsuMedia.title;
-				const kitsuType = kitsuMedia.type;
+	if (type !== searchType) {
+		return [];
+	}
 
-				// If the Kitsu Id's media does not match catalog type, skip this catalog
-				if (kitsuType != searchType) {
-					return [];
-				}
-			} else {
-				logger.emptyCatalog("Trakt: No metadata found for Kitsu Id", searchKey);
-				return [];
-			}
-		} else {
-			// If a normal title was searched, then we will use those
-			title = searchKey;
-		}
+	// Get Imdb Id for search
+	let searchedMediaImdbId = searchKey.startsWith("tt") ? searchKey : await titleToImdb(title, year, searchType);
 
+	// If Imdb ID can't be found from title/year, search search result as a backup
+	if (!searchedMediaImdbId) {
 		// Search Trakt's search results for a title and fetch the top result
 		const searchResults = await trakt.fetchSearchResult(title, mediaTypeForAPI, apiKey);
 		if (!searchResults || searchResults.length === 0) {
@@ -246,19 +197,28 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, apiKey, rpd
 			return [];
 		}
 		foundMedia = searchResults[0][mediaTypeForAPI];
+
+		// If the IMDB Id's media does not match catalog type, skip the catalog
+		const mediaType = foundMedia.released ? "movie" : "series";
+
+		if (mediaType !== searchType) {
+			return [];
+		}
+
+		searchedMediaImdbId = foundMedia.ids.imdb;
 	}
-	foundMedia.imdbId = foundMedia.ids.imdb;
-	logger.info("Trakt: Searched Media", { title: foundMedia.title, year: foundMedia.year, searchType });
+
+	logger.info("Trakt: Searched Media", { title, year, searchType, searchedMediaImdbId });
 
 	// Check cache for previously saved catalog associated with the associated IMDB Id and return if exist
-	cachedRecsCatalog = await checkCache(foundMedia.imdbId, null, searchType, "trakt");
+	cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "trakt");
 	if (cachedRecsCatalog) {
 		await saveCache(searchKey, searchYear, searchType, "trakt", cachedRecsCatalog); // Save cached catalog for searchinput as well
 		return cachedRecsCatalog;
 	}
 
 	// Get recs based on the found media
-	const recs = (await trakt.fetchRecommendations(foundMedia.imdbId, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
+	const recs = (await trakt.fetchRecommendations(searchedMediaImdbId, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
 	if (!recs || recs.length === 0) {
 		logger.emptyCatalog(`Trakt: No recs found`, searchKey);
 		return [];
@@ -275,8 +235,8 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, apiKey, rpd
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "trakt", catalog);
-	if (foundMedia.imdbId != null) {
-		await saveCache(foundMedia.imdbId, null, searchType, "trakt", catalog);
+	if (searchedMediaImdbId != null) {
+		await saveCache(searchedMediaImdbId, null, searchType, "trakt", catalog);
 	}
 
 	return catalog;
@@ -296,39 +256,11 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey,
 	// Get specific terminlogy for movie/series for API endpoints
 	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
 
-	// Obtain title and year to search in Tastedive.
-	let title = "";
-	let year = "";
-	if (searchKey.startsWith("tt")) {
-		// Tastedive API does not take a Imdb id input. If an IMDB Id was searched, then get metadata from Cinemeta
-		const media = await imdbToMeta(searchKey, searchType);
-		if (!media || media.type !== searchType) {
-			logger.emptyCatalog("Tastedive: No metadata found for IMDB Id", searchKey);
-			return [];
-		}
+	// Get searched media's title and year for search
+	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
 
-		title = media.name;
-		year = media.year.split(/[–-]/)[0];
-	} else if (searchKey.startsWith("kitsu")) {
-		// If an Kitsu Id was searched, retrieve title and year associated with that Id
-		const kitsuMedia = await kitsu.convertKitsuId(searchKey);
-		if (kitsuMedia || Object.keys(kitsuMedia).length !== 0) {
-			title = kitsuMedia.title;
-			year = kitsuMedia.year;
-			const kitsuType = kitsuMedia.type;
-
-			// If the Kitsu Id's media does not match catalog type, skip this catalog
-			if (kitsuType != searchType) {
-				return [];
-			}
-		} else {
-			logger.emptyCatalog("Tastdive: No metadata found for Kitsu Id", searchKey);
-			return [];
-		}
-	} else {
-		// If a normal title/year was searched, then we will use those
-		title = searchKey;
-		year = searchYear;
+	if (type !== searchType) {
+		return [];
 	}
 
 	logger.info("Tastedive: Searched Media", { title, year, searchType });
@@ -385,43 +317,14 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, rp
 		return cachedRecsCatalog;
 	}
 
-	// Get searched media's title and year for Gemini prompt
-	let title = "";
-	let year = "";
-	if (searchKey.startsWith("tt")) {
-		// Gemini is inaccurate in determining what media is associated with what IMDB Id.
-		// If an IMDB Id was searched, then get metadata from Cinemeta
-		const media = await imdbToMeta(searchKey, searchType);
-		if (!media || media.type !== searchType) {
-			logger.emptyCatalog("Gemini: No metadata found for IMDB Id", searchKey);
-			return [];
-		}
+	// Get searched media's title and year for search
+	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
 
-		title = media.name;
-		year = media.year.split(/[–-]/)[0];
-	} else if (searchKey.startsWith("kitsu")) {
-		// If an Kitsu Id was searched, call Kitsu API to retrieve metadata associated with that Id
-		const kitsuMedia = await kitsu.convertKitsuId(searchKey);
-		if (kitsuMedia || Object.keys(kitsuMedia).length !== 0) {
-			title = kitsuMedia.title;
-			year = kitsuMedia.year;
-			const kitsuType = kitsuMedia.type;
-
-			// If the Kitsu Id's media does not match catalog type, skip this catalog
-			if (kitsuType != searchType) {
-				return [];
-			}
-		} else {
-			logger.emptyCatalog("Gemini: No metadata found for Kitsu Id", searchKey);
-			return [];
-		}
-	} else {
-		// If a normal title/year was searched, then we will just use those
-		title = searchKey;
-		year = searchYear;
+	if (type !== searchType) {
+		return [];
 	}
 
-	logger.info("Gemini: Searched Media", { title, year, searchType });
+	logger.info("Gemini: Searched Media", { title, year, type });
 
 	// Before getting recs, perform another cache check, but with the IMDB Id of the search media
 	let searchedMediaImdbId = "";

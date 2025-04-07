@@ -82,6 +82,23 @@ async function fetchMediaDetails(id, mediaType, apiKey) {
 	}
 }
 
+async function findByImdbId(imdbId, searchType, apiKey) {
+	try {
+		const url = `${TMDB_API_BASE_URL}/find/${imdbId}?external_source=imdb_id&api_key=${apiKey}`;
+
+		const response = await fetch(url);
+		const json = await response.json();
+
+		if (json) {
+			return searchType === "movie" ? json?.movie_results : json?.tv_results;
+		} else {
+			return {};
+		}
+	} catch (error) {
+		return {};
+	}
+}
+
 module.exports = {
 	validateAPIKey,
 	fetchSearchResult,
@@ -89,4 +106,5 @@ module.exports = {
 	fetchImdbID,
 	fetchMediaDetails,
 	getAPIEndpoint,
+	findByImdbId,
 };

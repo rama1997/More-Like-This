@@ -23,9 +23,9 @@ async function catalogHandler(type, id, extra, apiKeys) {
 					} else if (id === "mlt-trakt-movie-rec") {
 						catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type, apiKeys.trakt, apiKeys.rpdb);
 					} else if (id === "mlt-tastedive-movie-rec") {
-						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.tmdb, apiKeys.rpdb);
+						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.rpdb);
 					} else if (id === "mlt-gemini-ai-movie-rec") {
-						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.tmdb, apiKeys.rpdb);
+						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.rpdb);
 					} else {
 						catalog = [];
 					}
@@ -43,9 +43,9 @@ async function catalogHandler(type, id, extra, apiKeys) {
 					} else if (id === "mlt-trakt-series-rec") {
 						catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type, apiKeys.trakt, apiKeys.rpdb);
 					} else if (id === "mlt-tastedive-series-rec") {
-						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.tmdb, apiKeys.rpdb);
+						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.rpdb);
 					} else if (id === "mlt-gemini-ai-series-rec") {
-						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.tmdb, apiKeys.rpdb);
+						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.rpdb);
 					} else {
 						catalog = [];
 					}
