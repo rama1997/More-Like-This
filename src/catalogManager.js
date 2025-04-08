@@ -3,7 +3,6 @@ const trakt = require("../services/trakt");
 const gemini = require("../services/gemini");
 const rpdb = require("../services/rpdb");
 const tastedive = require("../services/tastedive");
-const kitsu = require("../services/kitsu");
 const cache = require("../utils/cache");
 const logger = require("../utils/logger");
 const { imdbToMeta, titleToImdb, IdToTitleYearType } = require("./convertMetadata");
@@ -56,6 +55,7 @@ async function createMeta(imdbId, type, rpdbApiKey) {
 			genres: media.genres,
 		};
 	}
+
 	return meta;
 }
 
@@ -119,12 +119,11 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 
 		// If the IMDB Id's media does not match catalog type, skip the catalog
 		const mediaType = foundMedia.released ? "movie" : "series";
-
 		if (mediaType !== searchType) {
 			return [];
 		}
 
-		searchedMediaImdbId = foundMedia.ids.imdb;
+		searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, apiKey);
 	}
 
 	logger.info("TMDB: Searched Media", { title, year, searchType, searchedMediaImdbId });

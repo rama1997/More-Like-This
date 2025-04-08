@@ -8,7 +8,10 @@ async function convertKitsuId(id) {
 		const response = await fetch(url);
 		const json = await response.json();
 
-		const title = json?.data?.attributes?.titles?.en || json?.data?.attributes?.titles?.en_jp || "";
+		const rawTitle = json?.data?.attributes?.titles?.en || json?.data?.attributes?.titles?.en_jp || "";
+		const match = rawTitle.match(/^(.*?)\s+Season\s+\d+/i);
+		const title = match ? match[1].trim() : rawTitle.trim();
+
 		const year = json?.data?.attributes?.startDate.split("-")[0] || "";
 
 		// Kitsu contains a subtype called "specials", but they are considered as movies in most other platforms
