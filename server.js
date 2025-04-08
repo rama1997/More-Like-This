@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const { PORT } = require("./config");
+const { validateApiKeys } = require("./services/api");
 
 async function generateManifest(combine, catalog_order) {
 	let catalogs = [];
@@ -110,17 +111,21 @@ async function startServer() {
 		res.json(streams);
 	});
 
-	app.post("/saveConfig", (req, res) => {
+	app.post("/saveConfig", async (req, res) => {
 		try {
+			const apikeys = {
+				tmdb: req.body.tmdbApiKey || "",
+				trakt: req.body.traktApiKey || "",
+				tastedive: req.body.tastediveApiKey || "",
+				gemini: req.body.geminiApiKey || "",
+				rpdb: req.body.rpdbApiKey || "",
+			};
+
+			const validatedApiKeys = await validateApiKeys(apikeys);
+
 			// Get form data
 			const config = {
-				apiKeys: {
-					tmdb: req.body.tmdbApiKey || "",
-					trakt: req.body.traktApiKey || "",
-					tastedive: req.body.tastediveApiKey || "",
-					gemini: req.body.geminiApiKey || "",
-					rpdb: req.body.rpdbApiKey || "",
-				},
+				apiKeys: validatedApiKeys,
 				combineCatalogs: req.body.combineCatalogs === "on" || false,
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 			};

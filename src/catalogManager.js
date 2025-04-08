@@ -26,23 +26,37 @@ async function saveCache(key, year, mediaType, source, catalog) {
 }
 
 async function createMeta(imdbId, type, rpdbApiKey) {
+	const apiKey = rpdbApiKey.key;
+	const validKey = rpdbApiKey.valid;
+
 	const mediaType = type === "movie" ? "movie" : "series";
 	const media = await imdbToMeta(imdbId, mediaType);
 
 	let meta = {};
 	if (media) {
-		// Will not create a meta/add to catalog for any media that is not released yet
-		if (media?.status === "Upcoming" || media?.imdb_id == null) {
+		// Filters out any media that is not released yet or does not have a proper imdb id
+		if (media?.imdb_id == null || media?.status === "Upcoming" || media?.releaseInfo == null) {
+			return null;
+		}
+
+		const year = Number(media.releaseInfo);
+		const currentYear = new Date().getFullYear();
+		if (currentYear < year) {
 			return null;
 		}
 
 		let poster = "";
-		if (await rpdb.validateAPIKey(rpdbApiKey)) {
-			poster = await rpdb.getRPDBPoster(imdbId, rpdbApiKey);
+		if (validKey) {
+			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
 		}
 		// If RPDB is not used or fails to provide a poster, then use default Cinemeta poster
 		if (poster === "") {
 			poster = media.poster_path ? media.poster : "";
+		}
+
+		// Remove media if there is no poster. Mostly for visual improvements for the catalogs
+		if (poster === "") {
+			return null;
 		}
 
 		meta = {
@@ -72,7 +86,7 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey) {
 			.filter((row) => row != null)
 			.map(async (rec, index) => {
 				const meta = await createMeta(rec, mediaType, rpdbApiKey);
-				if (meta == null || Object.keys(meta).length === 0 || meta?.id == null) {
+				if (meta == null || Object.keys(meta).length === 0) {
 					return null;
 				}
 				return { ...meta, ranking: index + 1 };
@@ -83,8 +97,10 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey) {
 	return catalog;
 }
 
-async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
-	if ((await tmdb.validateAPIKey(apiKey)) === false || searchKey === "") {
+async function getTMDBRecCatalog(searchKey, searchYear, searchType, tmdbApiKey, rpdbApiKey) {
+	const apiKey = tmdbApiKey.key;
+	const validKey = tmdbApiKey.valid;
+	if (!validKey || searchKey === "") {
 		return [];
 	}
 
@@ -163,8 +179,10 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 	return catalog;
 }
 
-async function getTraktRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
-	if ((await trakt.validateAPIKey(apiKey)) === false || searchKey === "") {
+async function getTraktRecCatalog(searchKey, searchYear, searchType, traktApiKey, rpdbApiKey) {
+	const apiKey = traktApiKey.key;
+	const validKey = traktApiKey.valid;
+	if (!validKey || searchKey === "") {
 		return [];
 	}
 
@@ -241,8 +259,10 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, apiKey, rpd
 	return catalog;
 }
 
-async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
-	if ((await tastedive.validateAPIKey(apiKey)) === false || searchKey === "") {
+async function getTastediveRecCatalog(searchKey, searchYear, searchType, tastediveApiKey, rpdbApiKey) {
+	const apiKey = tastediveApiKey.key;
+	const validKey = tastediveApiKey.valid;
+	if (!validKey || searchKey === "") {
 		return [];
 	}
 
@@ -305,8 +325,10 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, apiKey,
 	return catalog;
 }
 
-async function getGeminiRecCatalog(searchKey, searchYear, searchType, apiKey, rpdbApiKey) {
-	if ((await gemini.validateAPIKey(apiKey)) === false || searchKey === "") {
+async function getGeminiRecCatalog(searchKey, searchYear, searchType, geminiApiKey, rpdbApiKey) {
+	const apiKey = geminiApiKey.key;
+	const validKey = geminiApiKey.valid;
+	if (!validKey || searchKey === "") {
 		return [];
 	}
 
