@@ -333,3 +333,15 @@ h1 {
 	visibility: visible;
 	opacity: 1;
 }
+
+/* Label with tooltip layout */
+.label-with-tooltip {
+	display: flex;
+	align-items: center;
+	margin-bottom: 10px;
+}
+
+.label-with-tooltip label {
+	margin-bottom: 0;
+	margin-right: 8px;
+}
