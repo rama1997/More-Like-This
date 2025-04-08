@@ -32,7 +32,7 @@ async function createMeta(imdbId, type, rpdbApiKey) {
 	let meta = {};
 	if (media) {
 		// Will not create a meta/add to catalog for any media that is not released yet
-		if (media?.status === "Upcoming") {
+		if (media?.status === "Upcoming" || media?.imdb_id == null) {
 			return null;
 		}
 
@@ -72,10 +72,10 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey) {
 			.filter((row) => row != null)
 			.map(async (rec, index) => {
 				const meta = await createMeta(rec, mediaType, rpdbApiKey);
-				if (meta != null) {
-					return { ...meta, ranking: index + 1 };
+				if (meta == null || Object.keys(meta).length === 0 || meta?.id == null) {
+					return null;
 				}
-				return null;
+				return { ...meta, ranking: index + 1 };
 			}),
 	);
 	catalog = catalog.filter((row) => row != null);
@@ -153,6 +153,8 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 	);
 
 	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey);
+
+	//console.log(catalog);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "tmdb", catalog);

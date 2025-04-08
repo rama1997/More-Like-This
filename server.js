@@ -76,11 +76,6 @@ async function startServer() {
 
 	app.use(express.static(path.join(__dirname, "public"))); // Serve static files
 
-	// app.use((req, res, next) => {
-	// 	console.log(`Incoming request: ${req.method} ${req.url}`);
-	// 	next();
-	// });
-
 	// Main route - redirect to configure
 	app.get("/", async function (_, res) {
 		res.redirect("/configure");

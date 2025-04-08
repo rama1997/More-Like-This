@@ -10,9 +10,16 @@ async function imdbToMeta(imdbId, type) {
 		const response = await fetch(url);
 		const json = await response.json();
 
-		if (json?.meta?.year) {
+		if (json?.meta) {
+			// Manually add year field if possible
+			if (!json?.meta?.year) {
+				if (json?.meta?.releaseInfo) {
+					json.meta.year = json.meta.releaseInfo.split(/[–-]/)[0];
+				}
+			}
 			return json.meta;
 		}
+
 		return null;
 	} catch (error) {
 		return null;
@@ -45,6 +52,7 @@ async function IdToTitleYearType(id, searchType) {
 		if (!media || media.type !== searchType) {
 			return {};
 		}
+		console.log(media);
 		return { title: media.name, year: media.year.split(/[–-]/)[0], type: media.type === "movie" ? "movie" : "series" };
 	} else if (id.startsWith("kitsu")) {
 		// Kitsu Id
