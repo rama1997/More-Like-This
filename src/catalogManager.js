@@ -154,8 +154,6 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, apiKey, rpdb
 
 	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey);
 
-	//console.log(catalog);
-
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "tmdb", catalog);
 	if (searchedMediaImdbId != null) {

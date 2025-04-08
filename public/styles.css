@@ -275,3 +275,61 @@ h1 {
 	margin-top: 20px;
 	transition: opacity 0.3s ease, max-height 0.3s ease;
 }
+
+/* Tooltip styles */
+.tooltip-container {
+	position: relative;
+	display: inline-block;
+	margin-left: 8px;
+	margin-right: auto;
+}
+
+.tooltip-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background-color: var(--text-muted);
+	color: var(--bg-medium);
+	font-size: 12px;
+	font-weight: bold;
+	cursor: help;
+}
+
+.tooltip-text {
+	visibility: hidden;
+	width: 200px;
+	background-color: var(--bg-dark);
+	color: var(--text-light);
+	text-align: center;
+	border-radius: 6px;
+	padding: 8px;
+	position: absolute;
+	z-index: 1;
+	bottom: 125%;
+	left: 50%;
+	transform: translateX(-50%);
+	opacity: 0;
+	transition: opacity 0.3s;
+	font-size: 12px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	pointer-events: none;
+}
+
+.tooltip-text::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: var(--bg-dark) transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip-text {
+	visibility: visible;
+	opacity: 1;
+}
