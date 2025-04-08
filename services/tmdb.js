@@ -99,6 +99,26 @@ async function findByImdbId(imdbId, searchType, apiKey) {
 	}
 }
 
+async function cleanMeta(rawMeta, imdbId) {
+	let meta = rawMeta;
+
+	// Remove media that are not released yet
+	const year = meta.release_date ? Number(meta.release_date.split(/[–-]/)[0]) : Number(meta.first_air_date.split(/[–-]/)[0]);
+	const currentYear = new Date().getFullYear();
+	if (currentYear < year || year === 0) {
+		return null;
+	}
+
+	meta.imdb_id = imdbId;
+	meta.poster = `https://image.tmdb.org/t/p/original/${meta.poster_path}`;
+	meta.title = meta.title ? meta.title : meta.name;
+	meta.type = meta.media_type === "movie" ? "movie" : "series";
+	meta.year = year;
+	meta.backdrop = meta.backdrop_path;
+	meta.genre = meta.genres_ids;
+	return meta;
+}
+
 module.exports = {
 	validateAPIKey,
 	fetchSearchResult,
@@ -107,4 +127,5 @@ module.exports = {
 	fetchMediaDetails,
 	getAPIEndpoint,
 	findByImdbId,
+	cleanMeta,
 };

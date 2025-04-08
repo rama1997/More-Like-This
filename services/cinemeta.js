@@ -1,3 +1,4 @@
+const { raw } = require("express");
 const fetch = require("node-fetch");
 
 async function fetchMetadata(imdbId, type) {
@@ -15,6 +16,7 @@ async function fetchMetadata(imdbId, type) {
 					json.meta.year = json.meta.releaseInfo.split(/[–-]/)[0];
 				}
 			}
+
 			return json.meta;
 		}
 
@@ -24,6 +26,27 @@ async function fetchMetadata(imdbId, type) {
 	}
 }
 
+async function cleanMeta(rawMeta) {
+	let meta = rawMeta;
+
+	// Remove media that are not released yet
+	if (meta?.imdb_id == null || meta?.status === "Upcoming" || meta?.releaseInfo == null) {
+		return null;
+	}
+
+	const year = Number(meta.releaseInfo);
+	const currentYear = new Date().getFullYear();
+	if (currentYear < year || year === 0) {
+		return null;
+	}
+	meta.year = meta.releaseInfo;
+	meta.backdrop = meta.background;
+	meta.title = meta.title ? meta.title : meta.name;
+
+	return meta;
+}
+
 module.exports = {
 	fetchMetadata,
+	cleanMeta,
 };

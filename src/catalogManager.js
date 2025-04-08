@@ -25,33 +25,23 @@ async function saveCache(key, year, mediaType, source, catalog) {
 	await cache.setCache(cacheKey, catalog);
 }
 
-async function createMeta(imdbId, type, rpdbApiKey) {
+async function createMeta(imdbId, type, rpdbApiKey, metaSource) {
 	const apiKey = rpdbApiKey.key;
 	const validKey = rpdbApiKey.valid;
 
 	const mediaType = type === "movie" ? "movie" : "series";
-	const media = await imdbToMeta(imdbId, mediaType);
+	const media = await imdbToMeta(imdbId, mediaType, metaSource);
 
 	let meta = {};
 	if (media) {
-		// Filters out any media that is not released yet or does not have a proper imdb id
-		if (media?.imdb_id == null || media?.status === "Upcoming" || media?.releaseInfo == null) {
-			return null;
-		}
-
-		const year = Number(media.releaseInfo);
-		const currentYear = new Date().getFullYear();
-		if (currentYear < year) {
-			return null;
-		}
-
 		let poster = "";
 		if (validKey) {
 			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
 		}
-		// If RPDB is not used or fails to provide a poster, then use default Cinemeta poster
+
+		// If RPDB is not used or fails to provide a poster, then use default poster
 		if (poster === "") {
-			poster = media.poster_path ? media.poster : "";
+			poster = media.poster ? media.poster : "";
 		}
 
 		// Remove media if there is no poster. Mostly for visual improvements for the catalogs
@@ -61,11 +51,11 @@ async function createMeta(imdbId, type, rpdbApiKey) {
 
 		meta = {
 			id: media.imdb_id,
-			name: media.title || media.name,
+			name: media.title,
 			poster: poster,
-			backdrop: media.background,
+			backdrop: media.backdrop,
 			type: mediaType,
-			year: media.releaseInfo,
+			year: media.year,
 			genres: media.genres,
 		};
 	}
@@ -80,12 +70,12 @@ async function createMeta(imdbId, type, rpdbApiKey) {
  * @param {object} rpdbApiKey - Contains API Key and valid flag
  * @returns {array} - Stremio Catalog
  */
-async function createRecCatalog(recs, mediaType, rpdbApiKey) {
+async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
 	let catalog = await Promise.all(
 		recs
 			.filter((row) => row != null)
 			.map(async (rec, index) => {
-				const meta = await createMeta(rec, mediaType, rpdbApiKey);
+				const meta = await createMeta(rec, mediaType, rpdbApiKey, metaSource);
 				if (meta == null || Object.keys(meta).length === 0) {
 					return null;
 				}
@@ -97,7 +87,7 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey) {
 	return catalog;
 }
 
-async function getTMDBRecCatalog(searchKey, searchYear, searchType, tmdbApiKey, rpdbApiKey) {
+async function getTMDBRecCatalog(searchKey, searchYear, searchType, tmdbApiKey, rpdbApiKey, metaSource) {
 	const apiKey = tmdbApiKey.key;
 	const validKey = tmdbApiKey.valid;
 	if (!validKey || searchKey === "") {
@@ -114,7 +104,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, tmdbApiKey, 
 	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
 
 	// Get searched media's title and year for search
-	const { title, year, type } = searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
+	const { title, year, type } = searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType, metaSource) : { title: searchKey, year: searchYear, type: searchType };
 
 	if (type !== searchType) {
 		return [];
@@ -168,7 +158,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, tmdbApiKey, 
 		}),
 	);
 
-	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey);
+	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey, metaSource);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "tmdb", catalog);
@@ -179,7 +169,7 @@ async function getTMDBRecCatalog(searchKey, searchYear, searchType, tmdbApiKey, 
 	return catalog;
 }
 
-async function getTraktRecCatalog(searchKey, searchYear, searchType, traktApiKey, rpdbApiKey) {
+async function getTraktRecCatalog(searchKey, searchYear, searchType, traktApiKey, rpdbApiKey, metaSource) {
 	const apiKey = traktApiKey.key;
 	const validKey = traktApiKey.valid;
 	if (!validKey || searchKey === "") {
@@ -196,7 +186,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, traktApiKey
 	const mediaTypeForAPI = await trakt.getAPIEndpoint(searchType);
 
 	// Get searched media's title and year for search
-	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
+	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType, metaSource) : { title: searchKey, year: searchYear, type: searchType };
 
 	if (type !== searchType) {
 		return [];
@@ -248,7 +238,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, traktApiKey
 		}),
 	);
 
-	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey);
+	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey, metaSource);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "trakt", catalog);
@@ -259,7 +249,7 @@ async function getTraktRecCatalog(searchKey, searchYear, searchType, traktApiKey
 	return catalog;
 }
 
-async function getTastediveRecCatalog(searchKey, searchYear, searchType, tastediveApiKey, rpdbApiKey) {
+async function getTastediveRecCatalog(searchKey, searchYear, searchType, tastediveApiKey, rpdbApiKey, metaSource) {
 	const apiKey = tastediveApiKey.key;
 	const validKey = tastediveApiKey.valid;
 	if (!validKey || searchKey === "") {
@@ -276,7 +266,7 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, tastedi
 	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
 
 	// Get searched media's title and year for search
-	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
+	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType, metaSource) : { title: searchKey, year: searchYear, type: searchType };
 
 	if (type !== searchType) {
 		return [];
@@ -314,7 +304,7 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, tastedi
 		}),
 	);
 
-	const catalog = await createRecCatalog(recs, searchType, rpdbApiKey);
+	const catalog = await createRecCatalog(recs, searchType, rpdbApiKey, metaSource);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "tastedive", catalog);
@@ -325,7 +315,7 @@ async function getTastediveRecCatalog(searchKey, searchYear, searchType, tastedi
 	return catalog;
 }
 
-async function getGeminiRecCatalog(searchKey, searchYear, searchType, geminiApiKey, rpdbApiKey) {
+async function getGeminiRecCatalog(searchKey, searchYear, searchType, geminiApiKey, rpdbApiKey, metaSource) {
 	const apiKey = geminiApiKey.key;
 	const validKey = geminiApiKey.valid;
 	if (!validKey || searchKey === "") {
@@ -339,7 +329,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType, geminiApiK
 	}
 
 	// Get searched media's title and year for search
-	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType) : { title: searchKey, year: searchYear, type: searchType };
+	const { title, year, type } = searchKey.startsWith("tt") || searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType, metaSource) : { title: searchKey, year: searchYear, type: searchType };
 
 	if (type !== searchType) {
 		return [];
@@ -384,7 +374,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType, geminiApiK
 		return [];
 	}
 
-	const catalog = await createRecCatalog(recs, searchType, rpdbApiKey);
+	const catalog = await createRecCatalog(recs, searchType, rpdbApiKey, metaSource);
 
 	// Save to cache
 	await saveCache(searchKey, searchYear, searchType, "gemini", catalog);
@@ -395,7 +385,7 @@ async function getGeminiRecCatalog(searchKey, searchYear, searchType, geminiApiK
 	return catalog;
 }
 
-async function getCombinedRecCatalog(searchKey, searchYear, searchType, apiKeys) {
+async function getCombinedRecCatalog(searchKey, searchYear, searchType, apiKeys, metaSource) {
 	if (searchKey === "") {
 		return [];
 	}
@@ -410,10 +400,10 @@ async function getCombinedRecCatalog(searchKey, searchYear, searchType, apiKeys)
 	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
 
 	// Get recs from all sources
-	let tmdbRecs = (await getTMDBRecCatalog(searchKey, searchYear, searchType)) || [];
-	let traktRecs = (await getTraktRecCatalog(searchKey, searchYear, searchType)) || [];
-	let geminiRecs = (await getGeminiRecCatalog(searchKey, searchYear, searchType)) || [];
-	let tastediveRecs = (await getTastediveRecCatalog(searchKey, searchYear, searchType)) || [];
+	let tmdbRecs = (await getTMDBRecCatalog(searchKey, searchYear, searchType, apiKeys.tmdb, apiKeys.rpdb, metaSource)) || [];
+	let traktRecs = (await getTraktRecCatalog(searchKey, searchYear, searchType, apiKeys.trakt, apiKeys.rpdb, metaSource)) || [];
+	let geminiRecs = (await getGeminiRecCatalog(searchKey, searchYear, searchType, apiKeys.gemini, apiKeys.rpdb, metaSource)) || [];
+	let tastediveRecs = (await getTastediveRecCatalog(searchKey, searchYear, searchType, apiKeys.tastedive, apiKeys.rpdb, metaSource)) || [];
 
 	// Merge recs into one array
 	const merged = [...tmdbRecs, ...traktRecs, ...tastediveRecs, ...geminiRecs];

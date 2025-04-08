@@ -18,8 +18,8 @@
 
 			<form action="/saveConfig" method="POST">
 				<div class="form-group">
-					<label for="tmdbApiKey">TMDB API Key <span class="required">*</span></label>
-					<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" required />
+					<label for="tmdbApiKey">TMDB API Key </label>
+					<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" />
 					<p class="key-help">Get your free key <a href="https://www.themoviedb.org/settings/api" target="_blank">here</a></p>
 				</div>
 
@@ -85,6 +85,18 @@
 				</div>
 
 				<div class="section-header">Optional Settings</div>
+
+				<div class="toggle-group">
+					<span>Use TMDB over Cinemeta for metadata</span>
+					<div class="tooltip-container">
+						<div class="tooltip-icon">?</div>
+						<div class="tooltip-text">By default, the addon uses Stremio's primary addon, Cinemeta, to get movie and series data. Toggle the setting to prioritize TMDB over Cinemeta. Requires a TMDB API key.</div>
+					</div>
+					<label for="tmdbOverCinemeta" class="toggle">
+						<input type="checkbox" id="tmdbOverCinemeta" name="tmdbOverCinemeta" />
+						<span class="toggle-slider"></span>
+					</label>
+				</div>
 
 				<div class="form-group">
 					<label for="rpdbApiKey">RPDB API Key</label>

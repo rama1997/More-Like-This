@@ -1,7 +1,7 @@
 const catalogManager = require("./catalogManager");
 const { parseSearchKey } = require("../utils/parser");
 
-async function catalogHandler(type, id, extra, apiKeys) {
+async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 	return new Promise(async (resolve, reject) => {
 		// Parse search input
 		const searchParam = extra?.split("search=")[1];
@@ -12,20 +12,22 @@ async function catalogHandler(type, id, extra, apiKeys) {
 
 		const { searchKey = "", searchYear = "", searchType = "" } = parsedSearchParam;
 
+		const metaSource = { source: useTmdbMeta ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
+
 		let catalog;
 		switch (type) {
 			case "movie":
 				if (searchParam && searchType !== "series") {
 					if (id === "mlt-combined-movie-rec") {
-						catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
+						catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
 					} else if (id === "mlt-tmdb-movie-rec") {
-						catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type, apiKeys.tmdb, apiKeys.rpdb);
+						catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type, apiKeys.tmdb, apiKeys.rpdb, metaSource);
 					} else if (id === "mlt-trakt-movie-rec") {
-						catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type, apiKeys.trakt, apiKeys.rpdb);
+						catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type, apiKeys.trakt, apiKeys.rpdb, metaSource);
 					} else if (id === "mlt-tastedive-movie-rec") {
-						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.rpdb);
+						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.rpdb, metaSource);
 					} else if (id === "mlt-gemini-ai-movie-rec") {
-						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.rpdb);
+						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.rpdb, metaSource);
 					} else {
 						catalog = [];
 					}
@@ -37,15 +39,15 @@ async function catalogHandler(type, id, extra, apiKeys) {
 			case "series":
 				if (searchParam && searchType !== "movie") {
 					if (id === "mlt-combined-series-rec") {
-						catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type);
+						catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
 					} else if (id == "mlt-tmdb-series-rec") {
-						catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type, apiKeys.tmdb, apiKeys.rpdb);
+						catalog = catalogManager.getTMDBRecCatalog(searchKey, searchYear, type, apiKeys.tmdb, apiKeys.rpdb, metaSource);
 					} else if (id === "mlt-trakt-series-rec") {
-						catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type, apiKeys.trakt, apiKeys.rpdb);
+						catalog = catalogManager.getTraktRecCatalog(searchKey, searchYear, type, apiKeys.trakt, apiKeys.rpdb, metaSource);
 					} else if (id === "mlt-tastedive-series-rec") {
-						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.rpdb);
+						catalog = catalogManager.getTastediveRecCatalog(searchKey, searchYear, type, apiKeys.tastedive, apiKeys.rpdb, metaSource);
 					} else if (id === "mlt-gemini-ai-series-rec") {
-						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.rpdb);
+						catalog = catalogManager.getGeminiRecCatalog(searchKey, searchYear, type, apiKeys.gemini, apiKeys.rpdb, metaSource);
 					} else {
 						catalog = [];
 					}
