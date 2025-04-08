@@ -77,7 +77,7 @@ async function createMeta(imdbId, type, rpdbApiKey) {
  * Creates a Stremio recommendation catalog
  * @param {array} recs - an array of IMDB Ids
  * @param {string} mediaType - Media type of catalog. Either "movie" or "series"
- * @param {string} rpdbApiKey - API Key for RPDB
+ * @param {object} rpdbApiKey - Contains API Key and valid flag
  * @returns {array} - Stremio Catalog
  */
 async function createRecCatalog(recs, mediaType, rpdbApiKey) {

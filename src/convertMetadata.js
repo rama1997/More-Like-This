@@ -1,29 +1,11 @@
 const fetch = require("node-fetch");
 const nameToImdb = require("name-to-imdb");
 const kitsu = require("../services/kitsu");
+const cinemeta = require("../services/cinemeta");
 
 async function imdbToMeta(imdbId, type) {
-	try {
-		const mediaType = type === "movie" ? "movie" : "series";
-		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
-
-		const response = await fetch(url);
-		const json = await response.json();
-
-		if (json?.meta) {
-			// Manually add year field if possible
-			if (!json?.meta?.year) {
-				if (json?.meta?.releaseInfo) {
-					json.meta.year = json.meta.releaseInfo.split(/[–-]/)[0];
-				}
-			}
-			return json.meta;
-		}
-
-		return null;
-	} catch (error) {
-		return null;
-	}
+	const meta = await cinemeta.fetchMetadata(imdbId, type);
+	return meta;
 }
 
 async function kitsuToMeta(kitsuId) {
