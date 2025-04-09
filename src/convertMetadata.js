@@ -9,25 +9,29 @@ async function imdbToMeta(imdbId, type, metaSource) {
 	const tmdbApiKey = metaSource.tmdbApiKey.key;
 	const validKey = metaSource.tmdbApiKey.valid;
 
-	// Get metadata from tmdb
-	if (source == "tmdb" && validKey) {
-		const mediaTypeForAPI = await tmdb.getAPIEndpoint(type);
-		const res = await tmdb.fetchMediaDetails(imdbId, mediaTypeForAPI, tmdbApiKey);
-		if (!res || res.length === 0) {
-			return null;
-		}
+	try {
+		// Get metadata from tmdb
+		if (source == "tmdb" && validKey) {
+			const mediaTypeForAPI = await tmdb.getAPIEndpoint(type);
+			const res = await tmdb.fetchMediaDetails(imdbId, mediaTypeForAPI, tmdbApiKey);
+			if (!res || res.length === 0) {
+				return null;
+			}
 
-		const media = mediaTypeForAPI === "movie" ? res.movie_results[0] : res.tv_results[0];
-		if (media) {
-			const meta = await tmdb.cleanMeta(media, imdbId);
+			const media = mediaTypeForAPI === "movie" ? res.movie_results[0] : res.tv_results[0];
+			if (media) {
+				const meta = await tmdb.cleanMeta(media, imdbId);
+				return meta;
+			}
+			return null;
+		} else {
+			// Default to Cinemeta
+			const rawMeta = await cinemeta.fetchMetadata(imdbId, type);
+			const meta = await cinemeta.cleanMeta(rawMeta);
 			return meta;
 		}
+	} catch (error) {
 		return null;
-	} else {
-		// Default to Cinemeta
-		const rawMeta = await cinemeta.fetchMetadata(imdbId, type);
-		const meta = await cinemeta.cleanMeta(rawMeta);
-		return meta;
 	}
 }
 

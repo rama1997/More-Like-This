@@ -6,6 +6,7 @@ const tastedive = require("../services/tastedive");
 const cache = require("../utils/cache");
 const logger = require("../utils/logger");
 const { imdbToMeta, titleToImdb, IdToTitleYearType } = require("./convertMetadata");
+const recManager = require("./recManager");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {
@@ -68,9 +69,13 @@ async function createMeta(imdbId, type, rpdbApiKey, metaSource) {
  * @param {array} recs - an array of IMDB Ids
  * @param {string} mediaType - Media type of catalog. Either "movie" or "series"
  * @param {object} rpdbApiKey - Contains API Key and valid flag
+ * @param {object} metaSource - Indicate what source to use to obtain meta data
  * @returns {array} - Stremio Catalog
  */
 async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
+	if (!recs || recs.length === 0) {
+	}
+
 	let catalog = await Promise.all(
 		recs
 			.filter((row) => row != null)
@@ -83,88 +88,6 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
 			}),
 	);
 	catalog = catalog.filter((row) => row != null);
-
-	return catalog;
-}
-
-async function getTMDBRecCatalog(searchKey, searchYear, searchType, tmdbApiKey, rpdbApiKey, metaSource) {
-	const apiKey = tmdbApiKey.key;
-	const validKey = tmdbApiKey.valid;
-	if (!validKey || searchKey === "") {
-		return [];
-	}
-
-	// Check cache for previously saved catalog associated with the search input and return if exist
-	let cachedRecsCatalog = await checkCache(searchKey, searchYear, searchType, "tmdb");
-	if (cachedRecsCatalog) {
-		return cachedRecsCatalog;
-	}
-
-	// Get specific terminlogy for movie/series for API endpoints
-	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
-
-	// Get searched media's title and year for search
-	const { title, year, type } = searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType, metaSource) : { title: searchKey, year: searchYear, type: searchType };
-
-	if (type !== searchType) {
-		return [];
-	}
-
-	// Get Imdb Id for search
-	let searchedMediaImdbId = searchKey.startsWith("tt") ? searchKey : await titleToImdb(title, year, searchType);
-
-	// If Imdb ID can't be found from title/year, search search result as a backup
-	if (!searchedMediaImdbId) {
-		// Search TMDB's search results for a title + year and fetch the top result
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI, apiKey);
-		if (!searchResults || searchResults.length === 0) {
-			logger.emptyCatalog(`TMDB: No search result found`, { searchKey, searchType });
-			return [];
-		}
-		foundMedia = searchResults[0];
-
-		// If the IMDB Id's media does not match catalog type, skip the catalog
-		const mediaType = foundMedia.released ? "movie" : "series";
-		if (mediaType !== searchType) {
-			return [];
-		}
-
-		searchedMediaImdbId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, apiKey);
-	}
-
-	logger.info("TMDB: Searched Media", { title, year, searchType, searchedMediaImdbId });
-
-	// Check cache for previously saved catalog associated with the associated IMDB Id and return if exist
-	cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "tmdb");
-	if (cachedRecsCatalog) {
-		await saveCache(searchKey, year, searchType, "tmdb", cachedRecsCatalog); // Save cached catalog for search input as well
-		return cachedRecsCatalog;
-	}
-
-	// Get recs from TMDB API
-	const searchedMedia = await tmdb.findByImdbId(searchedMediaImdbId, mediaTypeForAPI, apiKey);
-	const searchedMediaTmdbId = searchedMedia[0]?.id;
-
-	const recs = (await tmdb.fetchRecommendations(searchedMediaTmdbId, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
-	if (!recs || recs.length === 0) {
-		logger.emptyCatalog(`TMDB: No recs found`, searchKey);
-		return [];
-	}
-
-	// Get IMDB Id for all recs
-	const recsImdbId = await Promise.all(
-		recs.map(async (rec) => {
-			return await tmdb.fetchImdbID(rec.id, mediaTypeForAPI, apiKey);
-		}),
-	);
-
-	const catalog = await createRecCatalog(recsImdbId, searchType, rpdbApiKey, metaSource);
-
-	// Save to cache
-	await saveCache(searchKey, searchYear, searchType, "tmdb", catalog);
-	if (searchedMediaImdbId != null) {
-		await saveCache(searchedMediaImdbId, null, searchType, "tmdb", catalog);
-	}
 
 	return catalog;
 }
@@ -396,9 +319,6 @@ async function getCombinedRecCatalog(searchKey, searchYear, searchType, apiKeys,
 		return cachedRecsCatalog;
 	}
 
-	// Get specific TMDB terminlogy for movie/series for API endpoints
-	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
-
 	// Get recs from all sources
 	let tmdbRecs = (await getTMDBRecCatalog(searchKey, searchYear, searchType, apiKeys.tmdb, apiKeys.rpdb, metaSource)) || [];
 	let traktRecs = (await getTraktRecCatalog(searchKey, searchYear, searchType, apiKeys.trakt, apiKeys.rpdb, metaSource)) || [];
@@ -447,30 +367,27 @@ async function getCombinedRecCatalog(searchKey, searchYear, searchType, apiKeys,
 	// Save to cache via search input
 	await saveCache(searchKey, searchYear, searchType, "combined", catalog);
 
-	// Save to cache via imdb id, but need to get first
-	let searchedMediaId;
+	// Save to cache via imdb id
+	let searchedMediaImdbId = null;
 	if (searchKey.startsWith("tt")) {
-		searchedMediaId = searchKey;
-		await saveCache(searchedMediaId, null, searchType, "combined", catalog);
+		searchedMediaImdbId = searchKey;
 	} else {
-		const searchResults = await tmdb.fetchSearchResult(searchKey, searchYear, mediaTypeForAPI);
-		if (searchResults && searchResults.length > 0) {
-			const foundMedia = searchResults[0];
-			searchedMediaId = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI);
-		}
+		searchedMediaImdbId = await titleToImdb(title, year, searchType);
 	}
 
-	if (searchedMediaId != null) {
-		await saveCache(searchedMediaId, null, searchType, "combined", catalog);
+	if (searchedMediaImdbId) {
+		await saveCache(searchedMediaImdbId, null, searchType, "combined", catalog);
 	}
 
 	return catalog;
 }
 
 module.exports = {
-	getTMDBRecCatalog,
 	getTraktRecCatalog,
 	getGeminiRecCatalog,
 	getTastediveRecCatalog,
 	getCombinedRecCatalog,
+	checkCache,
+	saveCache,
+	createRecCatalog,
 };

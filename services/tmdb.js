@@ -1,3 +1,4 @@
+const { raw } = require("express");
 const fetch = require("node-fetch");
 const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
 
@@ -100,10 +101,14 @@ async function findByImdbId(imdbId, searchType, apiKey) {
 }
 
 async function cleanMeta(rawMeta, imdbId) {
+	if (rawMeta == null) {
+		return null;
+	}
+
 	let meta = rawMeta;
 
 	// Remove media that are not released yet
-	const year = meta.release_date ? Number(meta.release_date.split(/[–-]/)[0]) : Number(meta.first_air_date.split(/[–-]/)[0]);
+	const year = meta.release_date ? Number(meta?.release_date?.split(/[–-]/)[0]) : Number(meta?.first_air_date?.split(/[–-]/)[0]);
 	const currentYear = new Date().getFullYear();
 	if (currentYear < year || year === 0) {
 		return null;
