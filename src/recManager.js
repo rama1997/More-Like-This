@@ -6,58 +6,22 @@ const tastedive = require("../services/tastedive");
 const logger = require("../utils/logger");
 const { imdbToMeta, titleToImdb, IdToTitleYearType } = require("./convertMetadata");
 
-async function getTmdbRecs(searchKey, searchYear, searchType, searchImdb, tmdbApiKey, metaSource) {
+async function getTmdbRecs(searchImdb, searchType, tmdbApiKey) {
 	const apiKey = tmdbApiKey.key;
 	const validKey = tmdbApiKey.valid;
-	if (!validKey || searchKey === "") {
+	if (!validKey || searchImdb === "") {
 		return [];
 	}
 
-	// Get specific terminlogy for movie/series for API endpoints
+	// Get specific terminlogy for type for API endpoints
 	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
-
-	// Get searched media's title and year for backup search
-	const { title, year, type } = searchKey.startsWith("kitsu") ? await IdToTitleYearType(searchKey, searchType, metaSource) : { title: searchKey, year: searchYear, type: searchType };
-
-	if (type !== searchType) {
-		return [];
-	}
-
-	// If Imdb ID could not previously be found, search TMDB search result as a backup
-	if (!searchImdb || searchImdb === "") {
-		// Search TMDB's search results for a title + year and fetch the top result
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForAPI, apiKey);
-		if (!searchResults || searchResults.length === 0) {
-			logger.emptyCatalog(`TMDB: No search result found`, { searchKey, searchType });
-			return [];
-		}
-		const foundMedia = searchResults[0];
-
-		// If the IMDB Id's media does not match catalog type, skip the catalog
-		const mediaType = foundMedia.released ? "movie" : "series";
-		if (mediaType !== searchType) {
-			return [];
-		}
-
-		searchImdb = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForAPI, apiKey);
-	}
-
-	logger.info("TMDB: Searched Media", { title, year, searchType, searchImdb });
-
-	// // Check cache for previously saved catalog associated with the associated IMDB Id and return if exist
-	// cachedRecsCatalog = await checkCache(searchedMediaImdbId, null, searchType, "tmdb");
-	// if (cachedRecsCatalog) {
-	// 	await saveCache(searchKey, year, searchType, "tmdb", cachedRecsCatalog); // Save cached catalog for search input as well
-	// 	return cachedRecsCatalog;
-	// }
 
 	// Get recs from TMDB API
 	const searchedMedia = await tmdb.findByImdbId(searchImdb, mediaTypeForAPI, apiKey);
-	const searchedMediaTmdbId = searchedMedia[0]?.id;
+	const searchTmdb = searchedMedia[0]?.id;
 
-	const recs = (await tmdb.fetchRecommendations(searchedMediaTmdbId, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
+	const recs = (await tmdb.fetchRecommendations(searchTmdb, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
 	if (!recs || recs.length === 0) {
-		logger.emptyCatalog(`TMDB: No recs found`, searchKey);
 		return [];
 	}
 
@@ -71,6 +35,86 @@ async function getTmdbRecs(searchKey, searchYear, searchType, searchImdb, tmdbAp
 	return recsImdbId;
 }
 
+async function getTraktRecs(searchImdb, searchType, traktApiKey) {
+	const apiKey = traktApiKey.key;
+	const validKey = traktApiKey.valid;
+	if (!validKey || searchImdb === "") {
+		return [];
+	}
+
+	// Get specific Trakt terminlogy for movie/series for API endpoints
+	const mediaTypeForAPI = await trakt.getAPIEndpoint(searchType);
+
+	// Get recs based on the found media
+	const recs = (await trakt.fetchRecommendations(searchImdb, mediaTypeForAPI, apiKey)).filter((row) => row !== undefined);
+	if (!recs || recs.length === 0) {
+		return [];
+	}
+
+	// Get IMDB Id for all recs
+	const recsImdbId = await Promise.all(
+		recs.map(async (rec) => {
+			return rec.ids.imdb;
+		}),
+	);
+
+	return recsImdbId;
+}
+
+async function getTastediveRecs(searchTitle, searchYear, searchType, tastediveApiKey) {
+	const apiKey = tastediveApiKey.key;
+	const validKey = tastediveApiKey.valid;
+	if (!validKey || searchTitle === "") {
+		return [];
+	}
+
+	// Get specific terminlogy for movie/series for API endpoints
+	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
+
+	// Get recs titles from Tastedive
+	const recTitles = await tastedive.fetchRecs(searchTitle, searchYear, mediaTypeForAPI, apiKey);
+	if (!recTitles || recTitles.length === 0) {
+		return [];
+	}
+
+	// Get IMDB Ids for all the rec titles
+	let recs = await Promise.all(
+		recTitles.map(async (rec) => {
+			return await titleToImdb(rec.name, "", searchType);
+		}),
+	);
+
+	return recs;
+}
+
+async function getGeminiRecs(searchTitle, searchYear, searchType, geminiApiKey) {
+	const apiKey = geminiApiKey.key;
+	const validKey = geminiApiKey.valid;
+	if (!validKey || searchTitle === "") {
+		return [];
+	}
+
+	// Get recs from Gemini - Gemini returns rec's title and year as a string
+	const recTitles = await gemini.getGeminiRecs(searchTitle, searchYear, searchType, apiKey);
+	if (!recTitles || recTitles.length === 0) {
+		return [];
+	}
+
+	// Get IMDB Ids for all the rec titles
+	let recs = await Promise.all(
+		recTitles
+			.filter((row) => row[0] !== "") // Remove blank rows
+			.map(async (rec) => {
+				return await titleToImdb(rec.title, rec.year, searchType);
+			}),
+	);
+
+	return recs;
+}
+
 module.exports = {
 	getTmdbRecs,
+	getTraktRecs,
+	getTastediveRecs,
+	getGeminiRecs,
 };
