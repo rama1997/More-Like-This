@@ -1,12 +1,7 @@
-const tmdb = require("../services/tmdb");
-const trakt = require("../services/trakt");
-const gemini = require("../services/gemini");
 const rpdb = require("../services/rpdb");
-const tastedive = require("../services/tastedive");
 const cache = require("../utils/cache");
 const logger = require("../utils/logger");
-const { imdbToMeta, titleToImdb, IdToTitleYearType } = require("./convertMetadata");
-const recManager = require("./recManager");
+const { imdbToMeta, titleToImdb } = require("./convertMetadata");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {

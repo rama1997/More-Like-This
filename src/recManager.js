@@ -1,15 +1,11 @@
 const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
 const gemini = require("../services/gemini");
-const rpdb = require("../services/rpdb");
 const tastedive = require("../services/tastedive");
-const logger = require("../utils/logger");
-const { imdbToMeta, titleToImdb, IdToTitleYearType } = require("./convertMetadata");
+const { titleToImdb } = require("./convertMetadata");
 
-async function getTmdbRecs(searchImdb, searchType, tmdbApiKey) {
-	const apiKey = tmdbApiKey.key;
-	const validKey = tmdbApiKey.valid;
-	if (!validKey || searchImdb === "") {
+async function getTmdbRecs(searchImdb, searchType, apiKey) {
+	if (searchImdb === "") {
 		return [];
 	}
 
@@ -35,10 +31,8 @@ async function getTmdbRecs(searchImdb, searchType, tmdbApiKey) {
 	return recsImdbId;
 }
 
-async function getTraktRecs(searchImdb, searchType, traktApiKey) {
-	const apiKey = traktApiKey.key;
-	const validKey = traktApiKey.valid;
-	if (!validKey || searchImdb === "") {
+async function getTraktRecs(searchImdb, searchType, apiKey) {
+	if (searchImdb === "") {
 		return [];
 	}
 
@@ -61,10 +55,8 @@ async function getTraktRecs(searchImdb, searchType, traktApiKey) {
 	return recsImdbId;
 }
 
-async function getTastediveRecs(searchTitle, searchYear, searchType, tastediveApiKey) {
-	const apiKey = tastediveApiKey.key;
-	const validKey = tastediveApiKey.valid;
-	if (!validKey || searchTitle === "") {
+async function getTastediveRecs(searchTitle, searchYear, searchType, apiKey) {
+	if (searchTitle === "") {
 		return [];
 	}
 
@@ -87,10 +79,8 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, tastediveAp
 	return recs;
 }
 
-async function getGeminiRecs(searchTitle, searchYear, searchType, geminiApiKey) {
-	const apiKey = geminiApiKey.key;
-	const validKey = geminiApiKey.valid;
-	if (!validKey || searchTitle === "") {
+async function getGeminiRecs(searchTitle, searchYear, searchType, apiKey) {
+	if (searchTitle === "") {
 		return [];
 	}
 

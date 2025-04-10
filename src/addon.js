@@ -16,13 +16,17 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 		if (searchParam) {
 			parsedSearchParam = await parseSearchKey(searchParam);
 		} else {
+			logger.emptyCatalog(`${catalogSource.toUpperCase()}: No search input`);
 			return Promise.resolve([]); // Return empty catalog if no search input so addon does not show up on Discover or Home
 		}
 
 		const { searchKey = "", searchYear = "", searchType = "" } = parsedSearchParam;
 
+		console.log(parsedSearchParam, catalogSource, type);
+
 		// Return empty catalog if no real search key or if catalog type does not match search type
 		if (searchKey === "" || (searchType !== "" && type !== searchType)) {
+			logger.emptyCatalog(`${catalogSource.toUpperCase()}: Mismatch type`, { type, searchType });
 			return Promise.resolve([]);
 		}
 
@@ -32,6 +36,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 			kitsuMedia = await IdToTitleYearType(searchKey, type, metaSource);
 			// Return empty catalog if kitsu type does not match search type
 			if ((searchType !== "" && kitsuMedia.type !== searchType) || kitsuMedia.type !== type) {
+				logger.emptyCatalog(`${catalogSource.toUpperCase()}: Mismatch type`, { type, searchType, kitsuType: kitsuMedia.type });
 				return Promise.resolve([]);
 			}
 		}
@@ -97,6 +102,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 		if (searchKey.startsWith("tt")) {
 			({ title, year, mediaType } = await IdToTitleYearType(searchKey, type, metaSource));
 			if ((searchType !== "" && mediaType !== searchType) || mediaType != type) {
+				logger.emptyCatalog(`${catalogSource.toUpperCase()}: Mismatch IMDB Id type`, { type, mediaType });
 				return Promise.resolve([]);
 			}
 		} else if (searchKey.startsWith("kitsu")) {
@@ -114,28 +120,28 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 		if (type === "movie") {
 			if (id === "mlt-combined-movie-rec") {
 				catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
-			} else if (id === "mlt-tmdb-movie-rec") {
-				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb);
-			} else if (id === "mlt-trakt-movie-rec") {
-				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt);
-			} else if (id === "mlt-tastedive-movie-rec") {
-				recs = await recManager.getTastediveRecs(title, year, type, apiKeys.tastedive);
-			} else if (id === "mlt-gemini-ai-movie-rec") {
-				recs = await recManager.getGeminiRecs(title, year, type, apiKeys.gemini);
+			} else if (id === "mlt-tmdb-movie-rec" && apiKeys.tmdb.valid) {
+				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key);
+			} else if (id === "mlt-trakt-movie-rec" && apiKeys.trakt.valid) {
+				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key);
+			} else if (id === "mlt-tastedive-movie-rec" && apiKeys.tastedive.valid) {
+				recs = await recManager.getTastediveRecs(title, year, type, apiKeys.tastedive.key);
+			} else if (id === "mlt-gemini-ai-movie-rec" && apiKeys.gemini.valid) {
+				recs = await recManager.getGeminiRecs(title, year, type, apiKeys.gemini.key);
 			} else {
 				catalog = [];
 			}
 		} else if (type === "series") {
 			if (id === "mlt-combined-series-rec") {
 				catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
-			} else if (id == "mlt-tmdb-series-rec") {
-				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb);
-			} else if (id === "mlt-trakt-series-rec") {
-				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt);
-			} else if (id === "mlt-tastedive-series-rec") {
-				recs = await recManager.getTastediveRecs(title, year, type, apiKeys.tastedive);
-			} else if (id === "mlt-gemini-ai-series-rec") {
-				recs = await recManager.getGeminiRecs(title, year, type, apiKeys.gemini);
+			} else if (id == "mlt-tmdb-series-rec" && apiKeys.tmdb.valid) {
+				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key);
+			} else if (id === "mlt-trakt-series-rec" && apiKeys.trakt.valid) {
+				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key);
+			} else if (id === "mlt-tastedive-series-rec" && apiKeys.tastedive.valid) {
+				recs = await recManager.getTastediveRecs(title, year, type, apiKeys.tastedive.key);
+			} else if (id === "mlt-gemini-ai-series-rec" && apiKeys.gemini.valid) {
+				recs = await recManager.getGeminiRecs(title, year, type, apiKeys.gemini.key);
 			} else {
 				catalog = [];
 			}

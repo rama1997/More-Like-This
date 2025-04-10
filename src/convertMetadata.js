@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const nameToImdb = require("name-to-imdb");
 const kitsu = require("../services/kitsu");
 const tmdb = require("../services/tmdb");
