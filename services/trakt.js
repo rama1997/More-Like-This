@@ -1,5 +1,7 @@
 const fetch = require("node-fetch");
 const TRAKT_API_BASE_URL = "https://api.trakt.tv";
+const { withTimeout } = require("../utils/timeout");
+const logger = require("../utils/logger");
 
 async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
@@ -44,16 +46,17 @@ async function fetchSearchResult(title, mediaType, apiKey) {
 			},
 		};
 
-		const response = await fetch(url, options);
+		const response = await withTimeout(fetch(url, options), 5000, "Trakt search timed out");
 		const json = await response.json();
 
 		if (json.length > 0) {
 			return json;
 		} else {
-			return Promise.resolve([]);
+			return null;
 		}
 	} catch (error) {
-		return [];
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
@@ -70,11 +73,13 @@ async function fetchRecommendations(imdbID, mediaType, apiKey) {
 			},
 		};
 
-		const response = await fetch(url, options);
+		const response = await withTimeout(fetch(url, options), 5000, "Trakt fetch recs timed out");
 		const json = await response.json();
-		return json.length > 0 ? json : [];
+
+		return json.length > 0 ? json : null;
 	} catch (error) {
-		return [];
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
@@ -92,16 +97,17 @@ async function fetchMediaDetails(id, mediaType, apiKey) {
 			},
 		};
 
-		const response = await fetch(url, options);
+		const response = await withTimeout(fetch(url, options), 5000, "Trakt fetch media details timed out");
 		const json = await response.json();
 
 		if (json) {
 			return json;
 		} else {
-			return Promise.resolve([]);
+			return null;
 		}
 	} catch (error) {
-		return [];
+		logger.error(error.message, null);
+		return null;
 	}
 }
 

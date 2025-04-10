@@ -69,6 +69,7 @@ async function createMeta(imdbId, type, rpdbApiKey, metaSource) {
  */
 async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
 	if (!recs || recs.length === 0) {
+		return null;
 	}
 
 	let catalog = await Promise.all(

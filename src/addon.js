@@ -8,6 +8,12 @@ const logger = require("../utils/logger");
 async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 	return new Promise(async (resolve, reject) => {
 		const catalogSource = id.split("-")[1];
+
+		if (!apiKeys[catalogSource].valid) {
+			logger.emptyCatalog(`${catalogSource.toUpperCase()}: No valid API Key`, { type });
+			return Promise.resolve([]);
+		}
+
 		const metaSource = { source: useTmdbMeta ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
 
 		// Parse search input
@@ -20,12 +26,10 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 			return Promise.resolve([]); // Return empty catalog if no search input so addon does not show up on Discover or Home
 		}
 
-		const { searchKey = "", searchYear = "", searchType = "" } = parsedSearchParam;
-
-		console.log(parsedSearchParam, catalogSource, type);
+		const { searchKey = null, searchYear = null, searchType = null } = parsedSearchParam;
 
 		// Return empty catalog if no real search key or if catalog type does not match search type
-		if (searchKey === "" || (searchType !== "" && type !== searchType)) {
+		if (!searchKey || (searchType && type !== searchType)) {
 			logger.emptyCatalog(`${catalogSource.toUpperCase()}: Mismatch type`, { type, searchType });
 			return Promise.resolve([]);
 		}
@@ -34,9 +38,9 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 		let kitsuMedia;
 		if (searchKey.startsWith("kitsu")) {
 			kitsuMedia = await IdToTitleYearType(searchKey, type, metaSource);
-			// Return empty catalog if kitsu type does not match search type
-			if ((searchType !== "" && kitsuMedia.type !== searchType) || kitsuMedia.type !== type) {
-				logger.emptyCatalog(`${catalogSource.toUpperCase()}: Mismatch type`, { type, searchType, kitsuType: kitsuMedia.type });
+			// Return empty catalog for invalid kitsu id
+			if (!kitsuMedia) {
+				logger.emptyCatalog(`${catalogSource.toUpperCase()}: No Kitsu Data found`, { type, searchKey });
 				return Promise.resolve([]);
 			}
 		}
@@ -60,7 +64,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 		}
 
 		// If default method could not find IMDB Id, try searching API's search result as backup if API key provided
-		if (!searchImdb && apiKeys.tmdb.valid) {
+		if (!searchImdb && catalogSource === "tmdb") {
 			const title = searchKey.startsWith("kitsu") ? kitsuMedia.title : searchKey;
 			const year = searchKey.startsWith("kitsu") ? kitsuMedia.year : searchYear;
 			const mediaTypeForTmdb = await tmdb.getAPIEndpoint(type);
@@ -85,7 +89,6 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 		if (searchImdb) {
 			cachedRecsCatalog = await catalogManager.checkCache(searchImdb, null, type, catalogSource);
 			if (cachedRecsCatalog) {
-				console.log("found");
 				await catalogManager.saveCache(searchKey, searchYear, type, catalogSource, cachedRecsCatalog); // Save cached catalog for searchinput as well
 				return Promise.resolve(cachedRecsCatalog).then((items) => {
 					resolve({ metas: items });
@@ -98,73 +101,86 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 		// Identiy searched media title/year
 		let title;
 		let year;
-		let mediaType;
-		if (searchKey.startsWith("tt")) {
-			({ title, year, mediaType } = await IdToTitleYearType(searchKey, type, metaSource));
-			if ((searchType !== "" && mediaType !== searchType) || mediaType != type) {
-				logger.emptyCatalog(`${catalogSource.toUpperCase()}: Mismatch IMDB Id type`, { type, mediaType });
-				return Promise.resolve([]);
+		if (catalogSource === "tastedive" || catalogSource === "gemini")
+			if (searchKey.startsWith("tt")) {
+				const media = await IdToTitleYearType(searchKey, type, metaSource);
+				if (!media) {
+					logger.emptyCatalog(`${catalogSource.toUpperCase()}: No title/year found for IMDB Id`, { searchKey, type });
+					return Promise.resolve([]);
+				}
+				title = media.title;
+				year = media.year;
+			} else if (searchKey.startsWith("kitsu")) {
+				title = kitsuMedia.title;
+				year = kitsuMedia.year;
+			} else {
+				title = searchKey;
+				year = searchYear;
 			}
-		} else if (searchKey.startsWith("kitsu")) {
-			title = kitsuMedia.title;
-			year = kitsuMedia.year;
-		} else {
-			title = searchKey;
-			year = searchYear;
-		}
 
-		logger.info(`${catalogSource.toUpperCase()}: Searched Media`, { title, year, type, searchImdb });
+		logger.info(`${catalogSource.toUpperCase()}: Searched Media`, { searchKey, title, year, type, searchImdb });
 
-		let catalog = [];
 		let recs = [];
 		if (type === "movie") {
 			if (id === "mlt-combined-movie-rec") {
-				catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
-			} else if (id === "mlt-tmdb-movie-rec" && apiKeys.tmdb.valid) {
+				//catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
+				recs = [];
+			} else if (id === "mlt-tmdb-movie-rec") {
 				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key);
-			} else if (id === "mlt-trakt-movie-rec" && apiKeys.trakt.valid) {
+			} else if (id === "mlt-trakt-movie-rec") {
 				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key);
-			} else if (id === "mlt-tastedive-movie-rec" && apiKeys.tastedive.valid) {
+			} else if (id === "mlt-tastedive-movie-rec") {
 				recs = await recManager.getTastediveRecs(title, year, type, apiKeys.tastedive.key);
-			} else if (id === "mlt-gemini-ai-movie-rec" && apiKeys.gemini.valid) {
+			} else if (id === "mlt-gemini-movie-rec") {
 				recs = await recManager.getGeminiRecs(title, year, type, apiKeys.gemini.key);
 			} else {
-				catalog = [];
+				recs = [];
 			}
 		} else if (type === "series") {
 			if (id === "mlt-combined-series-rec") {
-				catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
-			} else if (id == "mlt-tmdb-series-rec" && apiKeys.tmdb.valid) {
+				//catalog = catalogManager.getCombinedRecCatalog(searchKey, searchYear, type, apiKeys, metaSource);
+				recs = [];
+			} else if (id == "mlt-tmdb-series-rec") {
 				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key);
-			} else if (id === "mlt-trakt-series-rec" && apiKeys.trakt.valid) {
+			} else if (id === "mlt-trakt-series-rec") {
 				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key);
-			} else if (id === "mlt-tastedive-series-rec" && apiKeys.tastedive.valid) {
+			} else if (id === "mlt-tastedive-series-rec") {
 				recs = await recManager.getTastediveRecs(title, year, type, apiKeys.tastedive.key);
-			} else if (id === "mlt-gemini-ai-series-rec" && apiKeys.gemini.valid) {
+			} else if (id === "mlt-gemini-series-rec") {
 				recs = await recManager.getGeminiRecs(title, year, type, apiKeys.gemini.key);
 			} else {
-				catalog = [];
+				recs = [];
 			}
 		} else {
-			catalog = [];
+			recs = [];
 		}
 
+		let catalog = [];
 		if (!recs || recs.length === 0) {
-			logger.emptyCatalog(`${catalogSource.toUpperCase()}: No recs found`, searchKey);
+			logger.emptyCatalog(`${catalogSource.toUpperCase()}: No recs found`, searchKey, type);
 			return Promise.resolve([]);
 		} else {
+			console.log("got recs for ", catalogSource, type);
+			logger.info(`${catalogSource.toUpperCase()}: Got recs`, { searchKey, title, year, type, searchImdb });
 			catalog = await catalogManager.createRecCatalog(recs, type, apiKeys.rpdb, metaSource);
+
+			if (!catalog) {
+				logger.emptyCatalog(`${catalogSource.toUpperCase()}: Catalog Creation Error`, searchKey, type);
+				return Promise.resolve([]);
+			}
 
 			// Save to cache
 			await catalogManager.saveCache(searchKey, searchYear, type, catalogSource, catalog);
-			if (searchImdb != null) {
+			if (searchImdb && searchKey !== searchImdb) {
 				await catalogManager.saveCache(searchImdb, null, type, catalogSource, catalog);
 			}
+
+			Promise.resolve(catalog).then((items) => {
+				resolve({ metas: items });
+			});
 		}
 
-		Promise.resolve(catalog).then((items) => {
-			resolve({ metas: items });
-		});
+		return Promise.resolve([]);
 	});
 }
 

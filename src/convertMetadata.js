@@ -46,6 +46,7 @@ async function titleToImdb(title, year, type) {
 	return new Promise((resolve, reject) => {
 		nameToImdb(input, (err, res, inf) => {
 			if (err) {
+				logger.error("Error with nameToImdb package", null);
 				return resolve(null);
 			}
 			resolve(res);
@@ -58,14 +59,14 @@ async function IdToTitleYearType(id, searchType, metaSource) {
 		// IMDB Id
 		const media = await imdbToMeta(id, searchType, metaSource);
 		if (!media || media.type !== searchType) {
-			return {};
+			return null;
 		}
 		return { title: media.title, year: media.year, type: media.type === "movie" ? "movie" : "series" };
 	} else if (id.startsWith("kitsu")) {
 		// Kitsu Id
 		const media = await kitsuToMeta(id);
 		if (!media || media.type !== searchType) {
-			return {};
+			return null;
 		}
 		return { title: media.title, year: media.year, type: media.type };
 	}

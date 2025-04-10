@@ -1,12 +1,13 @@
-const { raw } = require("express");
 const fetch = require("node-fetch");
+const { withTimeout } = require("../utils/timeout");
+const logger = require("../utils/logger");
 
 async function fetchMetadata(imdbId, type) {
 	try {
 		const mediaType = type === "movie" ? "movie" : "series";
 		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
 
-		const response = await fetch(url);
+		const response = await withTimeout(fetch(url), 5000, "Cinemeta fetch timed out");
 		const json = await response.json();
 
 		if (json?.meta) {
@@ -22,6 +23,7 @@ async function fetchMetadata(imdbId, type) {
 
 		return null;
 	} catch (error) {
+		logger.error(error.message, null);
 		return null;
 	}
 }

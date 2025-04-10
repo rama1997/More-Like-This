@@ -7,7 +7,7 @@ const path = require("path");
 const { PORT } = require("./config");
 const { validateApiKeys } = require("./services/api");
 
-async function generateManifest(combine, catalog_order) {
+async function generateManifest(apiKeys, combine, catalog_order) {
 	let catalogs = [];
 	const types = ["movie", "series"];
 
@@ -21,21 +21,27 @@ async function generateManifest(combine, catalog_order) {
 			});
 		});
 	} else {
-		catalog_order.forEach((source) => {
-			catalogs.push({
-				type: "movie",
-				id: `mlt-${source.toLowerCase().split(" ").join("-")}-movie-rec`,
-				name: `${source} Recommendations`,
-				extra: [{ name: "search", isRequired: true }],
-			});
+		catalog_order.forEach((rawSource) => {
+			const source = rawSource.toLowerCase().split(" ")[0];
+			if (apiKeys[source].valid) {
+				catalogs.push({
+					type: "movie",
+					id: `mlt-${source}-movie-rec`,
+					name: `${source} Recommendations`,
+					extra: [{ name: "search", isRequired: true }],
+				});
+			}
 		});
-		catalog_order.forEach((source) => {
-			catalogs.push({
-				type: "series",
-				id: `mlt-${source.toLowerCase().split(" ").join("-")}-series-rec`,
-				name: `${source} Recommendations`,
-				extra: [{ name: "search", isRequired: true }],
-			});
+		catalog_order.forEach((rawSource) => {
+			const source = rawSource.toLowerCase().split(" ")[0];
+			if (apiKeys[source].valid) {
+				catalogs.push({
+					type: "series",
+					id: `mlt-${source.toLowerCase().split(" ").join("-")}-series-rec`,
+					name: `${source} Recommendations`,
+					extra: [{ name: "search", isRequired: true }],
+				});
+			}
 		});
 	}
 
@@ -59,7 +65,7 @@ async function generateManifest(combine, catalog_order) {
 
 async function startServer() {
 	const app = express();
-	let manifest = await generateManifest(true, []); // Default Manifest
+	let manifest = await generateManifest({}, true, []); // Default Manifest
 
 	// Middle Ware
 	app.use(
@@ -96,11 +102,12 @@ async function startServer() {
 
 	app.get("/:userConfig/manifest.json", async (req, res) => {
 		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
-		manifest = await generateManifest(userConfig.combineCatalogs, userConfig.catalogOrder);
+		manifest = await generateManifest(userConfig.apiKeys, userConfig.combineCatalogs, userConfig.catalogOrder);
 		res.json(manifest);
 	});
 
 	app.get("/:userConfig?/catalog/:type/:id/:extra?.json", async (req, res) => {
+		console.log(req.params.id, req.params.extra);
 		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
 		const apiKeys = userConfig.apiKeys;
 		const useTmdbMeta = userConfig.useTmdbMeta;

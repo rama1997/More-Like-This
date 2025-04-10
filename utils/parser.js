@@ -1,7 +1,7 @@
 async function parseSearchKey(searchKey) {
 	// Check if searchKey contains a year flag in the format 'y:YYYY'
 	const yearMatch = searchKey.match(/y:(\d{4})/i);
-	let searchYear = "";
+	let searchYear = null;
 
 	if (yearMatch && yearMatch[1]) {
 		searchYear = yearMatch[1];
@@ -11,7 +11,7 @@ async function parseSearchKey(searchKey) {
 
 	// Check for media type flag (t:movie or t:series)
 	const typeMatch = searchKey.match(/t:(movie|series)/i);
-	let searchType = "";
+	let searchType = null;
 
 	if (typeMatch && typeMatch[1]) {
 		searchType = typeMatch[1].toLowerCase(); // Normalize to lowercase

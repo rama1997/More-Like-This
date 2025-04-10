@@ -1,6 +1,7 @@
-const { raw } = require("express");
 const fetch = require("node-fetch");
 const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
+const { withTimeout } = require("../utils/timeout");
+const logger = require("../utils/logger");
 
 async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
@@ -32,11 +33,12 @@ async function fetchSearchResult(title, year, mediaType, apiKey) {
 			url = url + `&year=${year}`;
 		}
 
-		const response = await fetch(url);
+		const response = await withTimeout(fetch(url), 5000, "TMDB search timed out");
 		const json = await response.json();
-		return json.results && json.results.length > 0 ? json.results : [];
+		return json.results && json.results.length > 0 ? json.results : null;
 	} catch (error) {
-		return [];
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
@@ -44,11 +46,12 @@ async function fetchRecommendations(tmdbId, mediaType, apiKey) {
 	try {
 		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/recommendations?language=en-US&page=1&api_key=${apiKey}`;
 
-		const response = await fetch(url);
+		const response = await withTimeout(fetch(url), 5000, "TMDB fetch recs timed out");
 		const json = await response.json();
-		return json.results && json.results.length > 0 ? json.results : [];
+		return json.results && json.results.length > 0 ? json.results : null;
 	} catch (error) {
-		return [];
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
@@ -56,11 +59,12 @@ async function fetchImdbID(tmdbId, mediaType, apiKey) {
 	try {
 		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/external_ids?api_key=${apiKey}`;
 
-		const response = await fetch(url);
+		const response = await withTimeout(fetch(url), 5000, "TMDB id fetch timed out");
 		const json = await response.json();
 		return json.imdb_id ? json.imdb_id : null;
 	} catch (error) {
-		return "";
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
@@ -75,11 +79,12 @@ async function fetchMediaDetails(id, mediaType, apiKey) {
 			url = `${TMDB_API_BASE_URL}/${mediaType}/${id}?language=en-US&api_key=${apiKey}`;
 		}
 
-		const response = await fetch(url);
+		const response = await withTimeout(fetch(url), 5000, "TMDB media details fetch timed out");
 		const json = await response.json();
-		return json ? json : {};
+		return json ? json : null;
 	} catch (error) {
-		return {};
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
@@ -87,16 +92,17 @@ async function findByImdbId(imdbId, searchType, apiKey) {
 	try {
 		const url = `${TMDB_API_BASE_URL}/find/${imdbId}?external_source=imdb_id&api_key=${apiKey}`;
 
-		const response = await fetch(url);
+		const response = await withTimeout(fetch(url), 1000, "TMDB find by id timed out");
 		const json = await response.json();
 
 		if (json) {
 			return searchType === "movie" ? json?.movie_results : json?.tv_results;
 		} else {
-			return {};
+			return null;
 		}
 	} catch (error) {
-		return {};
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
