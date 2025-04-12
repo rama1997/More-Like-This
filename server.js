@@ -107,7 +107,6 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig?/catalog/:type/:id/:extra?.json", async (req, res) => {
-		console.log(req.params.id, req.params.extra);
 		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
 		const apiKeys = userConfig.apiKeys;
 		const useTmdbMeta = userConfig.useTmdbMeta;

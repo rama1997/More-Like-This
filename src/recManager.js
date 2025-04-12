@@ -79,7 +79,7 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, apiKey) {
 	// Get IMDB Ids for all the rec titles
 	let recs = await Promise.all(
 		recTitles.map(async (rec) => {
-			return await titleToImdb(rec.name, "", searchType);
+			return await titleToImdb(rec.name, null, searchType);
 		}),
 	);
 

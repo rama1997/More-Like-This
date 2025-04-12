@@ -61,7 +61,7 @@ async function IdToTitleYearType(id, searchType, metaSource) {
 		if (!media || media.type !== searchType) {
 			return null;
 		}
-		return { title: media.title, year: media.year, type: media.type === "movie" ? "movie" : "series" };
+		return { title: media.title, year: media.year, type: media.type };
 	} else if (id.startsWith("kitsu")) {
 		// Kitsu Id
 		const media = await kitsuToMeta(id);

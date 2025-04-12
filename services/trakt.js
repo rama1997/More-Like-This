@@ -78,7 +78,7 @@ async function fetchRecommendations(imdbID, mediaType, apiKey) {
 
 		return json.length > 0 ? json : null;
 	} catch (error) {
-		logger.error(error.message, null);
+		logger.error(error.message, { imdbID, mediaType });
 		return null;
 	}
 }
@@ -106,7 +106,7 @@ async function fetchMediaDetails(id, mediaType, apiKey) {
 			return null;
 		}
 	} catch (error) {
-		logger.error(error.message, null);
+		logger.error(error.message, {});
 		return null;
 	}
 }

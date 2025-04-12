@@ -1,6 +1,7 @@
 const fetch = require("node-fetch");
 const { GEMINI_MODEL, getGeminiPrompt, getGeminiSystemInstructions } = require("../config");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const logger = require("../utils/logger");
 
 async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
@@ -49,7 +50,8 @@ async function getGeminiRecs(title, year, mediaType, apiKey) {
 
 		return await parseGeminiReturn(result.response.text());
 	} catch {
-		return "";
+		logger.error(error.message, null);
+		return null;
 	}
 }
 
