@@ -1,7 +1,6 @@
 const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
-const logger = require("../utils/logger");
-const { imdbToMeta, titleToImdb } = require("./convertMetadata");
+const { imdbToMeta } = require("./convertMetadata");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {
@@ -75,12 +74,12 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
 	let catalog = await Promise.all(
 		recs
 			.filter((row) => row != null)
-			.map(async (rec, index) => {
-				const meta = await createMeta(rec, mediaType, rpdbApiKey, metaSource);
-				if (meta == null || Object.keys(meta).length === 0) {
+			.map(async (rec) => {
+				const meta = await createMeta(rec.id, mediaType, rpdbApiKey, metaSource);
+				if (!meta || Object.keys(meta).length === 0) {
 					return null;
 				}
-				return { ...meta, ranking: index + 1 };
+				return { ...meta };
 			}),
 	);
 	catalog = catalog.filter((row) => row != null);
@@ -88,82 +87,7 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
 	return catalog;
 }
 
-async function getCombinedRecCatalog(searchKey, searchYear, searchType, apiKeys, metaSource) {
-	if (searchKey === "") {
-		return [];
-	}
-
-	// Check cache for previously saved catalog associated with the search input and return if exist
-	let cachedRecsCatalog = await checkCache(searchKey, searchYear, searchType, "combined");
-	if (cachedRecsCatalog) {
-		return cachedRecsCatalog;
-	}
-
-	// Get recs from all sources
-	let tmdbRecs = (await getTMDBRecCatalog(searchKey, searchYear, searchType, apiKeys.tmdb, apiKeys.rpdb, metaSource)) || [];
-	let traktRecs = (await getTraktRecCatalog(searchKey, searchYear, searchType, apiKeys.trakt, apiKeys.rpdb, metaSource)) || [];
-	let geminiRecs = (await getGeminiRecCatalog(searchKey, searchYear, searchType, apiKeys.gemini, apiKeys.rpdb, metaSource)) || [];
-	let tastediveRecs = (await getTastediveRecCatalog(searchKey, searchYear, searchType, apiKeys.tastedive, apiKeys.rpdb, metaSource)) || [];
-
-	// Merge recs into one array
-	const merged = [...tmdbRecs, ...traktRecs, ...tastediveRecs, ...geminiRecs];
-
-	if (merged == []) {
-		logger.emptyCatalog("Combined: Empty catalogy after merge", searchKey);
-		return [];
-	}
-
-	// Count occurrences of each media ID and sum their ranking within the recommendations
-	const countMap = merged.reduce((acc, media) => {
-		if (!acc[media.id]) {
-			acc[media.id] = { count: 0, rankingSum: 0 };
-		}
-		acc[media.id].count += 1;
-		acc[media.id].rankingSum += media.ranking;
-		return acc;
-	}, {});
-
-	// Sort movies first by frequency, then by ranking sum
-	let sorted = merged.sort((a, b) => {
-		// First, sort by frequency (higher count first)
-		if (countMap[b.id].count !== countMap[a.id].count) {
-			return countMap[b.id].count - countMap[a.id].count;
-		}
-		// If frequencies are the same, sort by the sum of rankings (lower ranking first)
-		return countMap[a.id].rankingSum / countMap[a.id].count - countMap[b.id].rankingSum / countMap[b.id].count;
-	});
-
-	// Remove duplicates
-	let catalog = [];
-	const seenIds = new Set();
-
-	for (const media of sorted) {
-		if (!seenIds.has(media.id)) {
-			catalog.push(media);
-			seenIds.add(media.id);
-		}
-	}
-
-	// Save to cache via search input
-	await saveCache(searchKey, searchYear, searchType, "combined", catalog);
-
-	// Save to cache via imdb id
-	let searchedMediaImdbId = null;
-	if (searchKey.startsWith("tt")) {
-		searchedMediaImdbId = searchKey;
-	} else {
-		searchedMediaImdbId = await titleToImdb(title, year, searchType);
-	}
-
-	if (searchedMediaImdbId) {
-		await saveCache(searchedMediaImdbId, null, searchType, "combined", catalog);
-	}
-
-	return catalog;
-}
-
 module.exports = {
-	getCombinedRecCatalog,
 	checkCache,
 	saveCache,
 	createRecCatalog,

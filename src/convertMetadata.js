@@ -13,12 +13,13 @@ async function imdbToMeta(imdbId, type, metaSource) {
 		// Get metadata from tmdb
 		if (source == "tmdb" && validKey) {
 			const mediaTypeForAPI = await tmdb.getAPIEndpoint(type);
+
 			const res = await tmdb.fetchMediaDetails(imdbId, mediaTypeForAPI, tmdbApiKey);
 			if (!res || res.length === 0) {
 				return null;
 			}
 
-			const media = mediaTypeForAPI === "movie" ? res.movie_results[0] : res.tv_results[0];
+			const media = mediaTypeForAPI === "movie" ? res.movie_results?.[0] : res.tv_results?.[0];
 			if (media) {
 				const meta = await tmdb.cleanMeta(media, imdbId);
 				return meta;

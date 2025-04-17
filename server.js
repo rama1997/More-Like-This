@@ -16,7 +16,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 			catalogs.push({
 				type: type,
 				id: `mlt-combined-${type}-rec`,
-				name: `Recommendations`,
+				name: `Similar Recommendations`,
 				extra: [{ name: "search", isRequired: true }],
 			});
 		});

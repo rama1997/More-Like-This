@@ -4,8 +4,8 @@ const gemini = require("../services/gemini");
 const tastedive = require("../services/tastedive");
 const { titleToImdb } = require("./convertMetadata");
 
-async function getTmdbRecs(searchImdb, searchType, apiKey) {
-	if (!searchImdb || searchImdb === "") {
+async function getTmdbRecs(searchImdb, searchType, apiKey, validKey) {
+	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
 
@@ -26,18 +26,18 @@ async function getTmdbRecs(searchImdb, searchType, apiKey) {
 	}
 	recs = recs.filter((row) => row !== undefined);
 
-	// Get IMDB Id for all recs
+	// Get IMDB Id for all recs and add it's placement ranking
 	const recsImdbId = await Promise.all(
-		recs.map(async (rec) => {
-			return await tmdb.fetchImdbID(rec.id, mediaTypeForAPI, apiKey);
+		recs.map(async (rec, index) => {
+			return { id: await tmdb.fetchImdbID(rec.id, mediaTypeForAPI, apiKey), ranking: index + 1 };
 		}),
 	);
 
 	return recsImdbId;
 }
 
-async function getTraktRecs(searchImdb, searchType, apiKey) {
-	if (!searchImdb || searchImdb === "") {
+async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
+	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
 
@@ -52,18 +52,18 @@ async function getTraktRecs(searchImdb, searchType, apiKey) {
 	}
 	recs = recs.filter((row) => row !== undefined);
 
-	// Get IMDB Id for all recs
+	// Get IMDB Id for all recs and add it's placement ranking
 	const recsImdbId = await Promise.all(
-		recs.map(async (rec) => {
-			return rec.ids.imdb;
+		recs.map(async (rec, index) => {
+			return { id: rec.ids.imdb, ranking: index + 1 };
 		}),
 	);
 
 	return recsImdbId;
 }
 
-async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey) {
-	if (!searchTitle || searchTitle === "") {
+async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey) {
+	if (!searchTitle || searchTitle === "" || !validKey) {
 		return null;
 	}
 
@@ -88,18 +88,18 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 		return null;
 	}
 
-	// Get IMDB Ids for all the rec titles
+	// Get IMDB Ids for all the rec titles and add it's placement ranking
 	let recs = await Promise.all(
-		recTitles.map(async (rec) => {
-			return await titleToImdb(rec.name, null, searchType);
+		recTitles.map(async (rec, index) => {
+			return { id: await titleToImdb(rec.name, null, searchType), ranking: index + 1 };
 		}),
 	);
 
 	return recs;
 }
 
-async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey) {
-	if (!searchTitle || searchTitle === "") {
+async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey) {
+	if (!searchTitle || searchTitle === "" || !validKey) {
 		return null;
 	}
 
@@ -117,15 +117,64 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 		return null;
 	}
 
-	// Get IMDB Ids for all the rec titles
+	// Get IMDB Ids for all the rec titles and add it's placement ranking
 	let recs = await Promise.all(
 		recTitles
 			.slice(1)
 			.filter((row) => row[0] !== "") // Remove blank rows
-			.map(async (rec) => {
-				return await titleToImdb(rec.title, rec.year, searchType);
+			.map(async (rec, index) => {
+				return { id: await titleToImdb(rec.title, rec.year, searchType), ranking: index + 1 };
 			}),
 	);
+
+	return recs;
+}
+
+async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys) {
+	// Get recs from all sources
+	const tmdbRecs = (await getTmdbRecs(searchImdb, searchType, apiKeys.tmdb.key, apiKeys.tmdb.valid)) || [];
+	const traktRecs = (await getTraktRecs(searchImdb, searchType, apiKeys.trakt.key, apiKeys.trakt.valid)) || [];
+	const geminiRecs = (await getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid)) || [];
+	const tastediveRecs = (await getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid)) || [];
+
+	// Merge recs into one array
+	const merged = [...tmdbRecs, ...traktRecs, ...tastediveRecs, ...geminiRecs];
+
+	if (merged == []) {
+		logger.emptyCatalog("COMBINED: Empty catalogy after merge", searchKey);
+		return [];
+	}
+
+	// Count occurrences of each media ID and sum their ranking within the recommendations
+	const countMap = merged.reduce((acc, media) => {
+		if (!acc[media.id]) {
+			acc[media.id] = { count: 0, rankingSum: 0 };
+		}
+		acc[media.id].count += 1;
+		acc[media.id].rankingSum += media.ranking;
+		return acc;
+	}, {});
+
+	// Sort movies first by frequency, then by ranking sum
+	let sorted = merged.sort((a, b) => {
+		// First, sort by frequency (higher count first)
+		if (countMap[b.id].count !== countMap[a.id].count) {
+			return countMap[b.id].count - countMap[a.id].count;
+		}
+		// If frequencies are the same, sort by the sum of rankings (lower ranking first)
+		return countMap[a.id].rankingSum / countMap[a.id].count - countMap[b.id].rankingSum / countMap[b.id].count;
+	});
+
+	// Remove duplicates
+	let recs = [];
+	const seenIds = new Set();
+
+	for (const media of sorted) {
+		if (!seenIds.has(media.id)) {
+			recs.push(media);
+			seenIds.add(media.id);
+		}
+	}
 
 	return recs;
 }
@@ -135,4 +184,5 @@ module.exports = {
 	getTraktRecs,
 	getTastediveRecs,
 	getGeminiRecs,
+	getCombinedRecs,
 };
