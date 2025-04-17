@@ -6,7 +6,7 @@ const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
 const logger = require("../utils/logger");
 
-async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
+async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitleSearching) {
 	const catalogSource = id.split("-")[1];
 	const metaSource = { source: useTmdbMeta ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
 
@@ -21,6 +21,10 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta) {
 	}
 
 	const { searchKey = null, searchYear = null, searchType = null } = parsedSearchParam;
+
+	if (!enableTitleSearching && !searchKey.startsWith("tt") && !searchKey.startsWith("kitsu")) {
+		return { metas: [] };
+	}
 
 	// Return empty catalog if no real search key or if catalog type does not match search type
 	if (!searchKey || (searchType && type !== searchType)) {

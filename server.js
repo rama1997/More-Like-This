@@ -110,7 +110,8 @@ async function startServer() {
 		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
 		const apiKeys = userConfig.apiKeys;
 		const useTmdbMeta = userConfig.useTmdbMeta;
-		const catalog = await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, useTmdbMeta);
+		const enableTitleSearching = userConfig.enableTitleSearching;
+		const catalog = await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, useTmdbMeta, enableTitleSearching);
 		res.json(catalog);
 	});
 
@@ -137,6 +138,7 @@ async function startServer() {
 				combineCatalogs: req.body.combineCatalogs === "on" || false,
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 				useTmdbMeta: req.body.tmdbOverCinemeta === "on" || false,
+				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
 
 			const userConfig = encodeURIComponent(JSON.stringify(config));
