@@ -47,7 +47,8 @@ async function getGeminiPrompt(title, year, type) {
 	FORMAT:
 	- Output only the recommendation list
 	- One recommendation per line in the format: "Title, Year"
-	- No explanations or additional text`.toString();
+	- No explanations or additional text
+	- Include ${title} as the first item on the list`.toString();
 }
 
 module.exports = {

@@ -2,6 +2,7 @@ const nameToImdb = require("name-to-imdb");
 const kitsu = require("../services/kitsu");
 const tmdb = require("../services/tmdb");
 const cinemeta = require("../services/cinemeta");
+const logger = require("../utils/logger");
 
 async function imdbToMeta(imdbId, type, metaSource) {
 	const source = metaSource.source;

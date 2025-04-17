@@ -62,7 +62,7 @@ async function getTraktRecs(searchImdb, searchType, apiKey) {
 	return recsImdbId;
 }
 
-async function getTastediveRecs(searchTitle, searchYear, searchType, apiKey) {
+async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey) {
 	if (!searchTitle || searchTitle === "") {
 		return null;
 	}
@@ -70,8 +70,20 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, apiKey) {
 	// Get specific terminlogy for movie/series for API endpoints
 	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
 
-	// Get recs titles from Tastedive
-	const recTitles = await tastedive.fetchRecs(searchTitle, searchYear, mediaTypeForAPI, apiKey);
+	// Get API response from Tastedive
+	const response = await tastedive.fetchRecs(searchTitle, searchYear, mediaTypeForAPI, apiKey);
+	if (!response) {
+		return null;
+	}
+
+	// If recs were found, verify that it is for the proper search input by comparing Imdb Ids
+	const foundMedia = response.info?.[0];
+	const foundMediaImdb = await titleToImdb(foundMedia?.name, null, foundMedia?.type);
+	if (searchImdb && foundMediaImdb !== searchImdb) {
+		return null;
+	}
+
+	const recTitles = response.results;
 	if (!recTitles || recTitles.length === 0) {
 		return null;
 	}
@@ -86,7 +98,7 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, apiKey) {
 	return recs;
 }
 
-async function getGeminiRecs(searchTitle, searchYear, searchType, apiKey) {
+async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey) {
 	if (!searchTitle || searchTitle === "") {
 		return null;
 	}
@@ -97,9 +109,18 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, apiKey) {
 		return null;
 	}
 
+	// If recs were found, verify that it is for the proper search input by comparing Imdb Ids
+	// The first item of Gemini Recs is always the search input
+	const foundMedia = recTitles[0];
+	const foundMediaImdb = await titleToImdb(foundMedia?.title, foundMedia?.year, searchType);
+	if (searchImdb && foundMediaImdb !== searchImdb) {
+		return null;
+	}
+
 	// Get IMDB Ids for all the rec titles
 	let recs = await Promise.all(
 		recTitles
+			.slice(1)
 			.filter((row) => row[0] !== "") // Remove blank rows
 			.map(async (rec) => {
 				return await titleToImdb(rec.title, rec.year, searchType);

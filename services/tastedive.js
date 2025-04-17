@@ -31,7 +31,7 @@ async function fetchRecs(title, year, mediaType, apiKey) {
 
 		const response = await fetch(url);
 		const json = await response.json();
-		return json?.similar?.results ? json.similar.results : [];
+		return json?.similar ? json.similar : [];
 	} catch (error) {
 		return [];
 	}
