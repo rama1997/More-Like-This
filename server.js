@@ -52,7 +52,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 		types: ["movie", "series"],
 		name: "More Like This",
 		description: "Shows recommendations from various sources",
-		logo: "https://www.stremio.com/website/stremio-logo-small.png",
+		logo: "https://i.imgur.com/DHKJ7dT.png",
 		idPrefixes: [""],
 		behaviorHints: {
 			configurable: true,
