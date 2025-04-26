@@ -116,7 +116,7 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig?/stream/:type/:id.json", async (req, res) => {
-		const streams = await streamHandler(req.params.type, req.params.id);
+		const streams = await streamHandler(req.params.type, req.params.id, req.headers.origin);
 		res.json(streams);
 	});
 
@@ -153,9 +153,7 @@ async function startServer() {
 		}
 	});
 
-	app.listen(PORT, () => {
-		console.log(`Server running at http://localhost:${PORT}`);
-	});
+	app.listen(PORT, () => {});
 }
 
 startServer();

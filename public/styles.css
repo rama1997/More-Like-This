@@ -236,6 +236,17 @@ h1 {
 	text-align: center;
 }
 
+.instructions a {
+	color: var(--accent-color);
+	text-decoration: none;
+	transition: color 0.3s ease;
+}
+
+.instructions a:hover {
+	color: var(--accent-color);
+	text-decoration: underline;
+}
+
 .section-header {
 	text-align: center;
 	color: var(--accent-color);
