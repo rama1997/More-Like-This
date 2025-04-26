@@ -1,0 +1,18 @@
+{
+	"name": "more-like-this",
+	"version": "0.0.1",
+	"description": "Shows recommendations for searched media",
+	"author": "rama1997",
+	"license": "ISC",
+	"main": "addon.js",
+	"scripts": {},
+	"dependencies": {
+		"@google/generative-ai": "^0.22.0",
+		"cors": "^2.8.5",
+		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
+		"name-to-imdb": "^3.0.4",
+		"needle": "^3.3.1",
+		"stremio-addon-sdk": "^1.6.10"
+	}
+}
