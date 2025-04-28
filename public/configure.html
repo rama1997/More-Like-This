@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Stremio Add-on Configuration</title>
+		<title>More Like This Configuration</title>
 		<link rel="stylesheet" href="styles.css" />
 	</head>
 	<body>
@@ -16,11 +16,11 @@
 
 			<div class="instructions">
 				<p>
-					This Stremio addon shows similar movie/series recommendations gathered from multiple sources. When you search for a movie or TV show in Stremio, the addon will show recommended movies/series in the addon's catalogs. <br /><br />
+					Discover more of what you like with this Stremio addon! Get movie and TV show recommendations, gathered from multiple sources. <br /><br />
 
-					You will need your own API Keys for each of the recommendation sources. Click the links below each input field to get your free API keys. You only need an API Key for the source that you want (e.g., if you only want TMDB recommendations, you only need to provide a TMDB API key).<br /><br />
+					Getting started is easy — just add your own API keys for the recommendation sources you want to use. Need a key? Click the links under each input field to grab yours for free! You only need keys for the sources you want — for example, if you only want TMDB recommendations, you only need a TMDB key.<br /><br />
 
-					For optimal results when using the addon, please visit the project's <a href="https://github.com/">Github page</a> for more instructions.
+					If you have any questions, please visit the project’s <a href="https://github.com/rama1997/More-Like-This">GitHub page</a> for the full instructions and tips.
 				</p>
 			</div>
 
@@ -57,7 +57,7 @@
 					<span>Combine Into One Catalog</span>
 					<div class="tooltip-container">
 						<div class="tooltip-icon">?</div>
-						<div class="tooltip-text">Enabling this will combine recommendations from all sources into a single catalog instead of showing them as separate catalogs.</div>
+						<div class="tooltip-text">Combine recommendations from all sources into a single catalog, instead of showing them separately.</div>
 					</div>
 					<label for="combineCatalogs" class="toggle">
 						<input type="checkbox" id="combineCatalogs" name="combineCatalogs" />
@@ -70,7 +70,7 @@
 						<label>Catalog Order</label>
 						<div class="tooltip-container">
 							<div class="tooltip-icon">?</div>
-							<div class="tooltip-text">Drag and drop to rearrange the order in which recommendations from different sources will appear in the catalog.</div>
+							<div class="tooltip-text">Drag and drop to set the order of how recommendations catalog appears.</div>
 						</div>
 					</div>
 					<div class="catalog-order">
@@ -100,7 +100,7 @@
 					<span>Use TMDB over Cinemeta for metadata</span>
 					<div class="tooltip-container">
 						<div class="tooltip-icon">?</div>
-						<div class="tooltip-text">By default, the addon uses Stremio's primary addon, Cinemeta, to get movie and series data. Toggle the setting to prioritize TMDB over Cinemeta. Requires a TMDB API key.</div>
+						<div class="tooltip-text">By default, the addon uses Stremio’s main addon, Cinemeta, for movie and series data. Enable this setting to prioritize TMDB instead. (Requires a TMDB API key.)</div>
 					</div>
 					<label for="tmdbOverCinemeta" class="toggle">
 						<input type="checkbox" id="tmdbOverCinemeta" name="tmdbOverCinemeta" />
@@ -112,7 +112,7 @@
 					<span>Enable Manual Title Searching</span>
 					<div class="tooltip-container">
 						<div class="tooltip-icon">?</div>
-						<div class="tooltip-text">Enable to find recommendations from movie/show title searches as well. Note: Title-based searches may be less accurate than using the exact ID obtained from Stremio.</div>
+						<div class="tooltip-text">Enable to find recommendations based on movie or show titles too. (Note: Title-based searches may be less accurate than using the exact ID from Stremio.)</div>
 					</div>
 					<label for="enableTitleSearching" class="toggle">
 						<input type="checkbox" id="enableTitleSearching" name="enableTitleSearching" />
@@ -134,7 +134,7 @@
 				</div>
 			</form>
 
-			<div class="footer">To report issues or make suggestions, please visit the project page <a href="https://github.com/">here</a>.</div>
+			<div class="footer">To report issues or make suggestions, please visit the project page <a href="https://github.com/rama1997/More-Like-This">here</a>.</div>
 		</div>
 
 		<script src="catalogOrder.js"></script>
