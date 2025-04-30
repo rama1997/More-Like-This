@@ -7,6 +7,22 @@ const path = require("path");
 const { PORT, HOST } = require("./config");
 const { validateApiKeys } = require("./services/api");
 
+async function detectPlatform(user_agent, origin) {
+	let platform;
+
+	if (user_agent.includes("Tizen") || user_agent.includes("SMART-TV") || user_agent.includes("tv")) {
+		platform = "tv";
+	} else if (user_agent.includes("Macintosh")) {
+		platform = "mac";
+	} else if (user_agent.includes("Windows")) {
+		platform = "windows";
+	}
+
+	const stremio_origin = origin.includes("web") ? "web" : "app";
+
+	return { stremio_origin, platform };
+}
+
 async function generateManifest(apiKeys, combine, catalog_order) {
 	let catalogs = [];
 	const types = ["movie", "series"];
@@ -116,8 +132,10 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig?/stream/:type/:id.json", async (req, res) => {
-		const origin = req.headers["user-agent"];
-		const streams = await streamHandler(req.params.type, req.params.id, origin);
+		console.log(req.headers);
+		const { stremio_origin = null, platform = null } = await detectPlatform(req?.headers?.["user-agent"], req?.headers?.origin);
+		console.log(stremio_origin, platform);
+		const streams = await streamHandler(req.params.type, req.params.id, stremio_origin, platform);
 		res.json(streams);
 	});
 

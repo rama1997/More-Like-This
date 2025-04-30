@@ -173,7 +173,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 	return { metas: [] };
 }
 
-async function streamHandler(type, id, origin) {
+async function streamHandler(type, id, stremio_origin, platform) {
 	let searchKey;
 
 	// Parsing IMDB Id and Kitsu Ids
@@ -183,12 +183,21 @@ async function streamHandler(type, id, origin) {
 		searchKey = id.split(":").slice(0, 2).join(":");
 	}
 
+	let url;
+	if (stremio_origin === "app") {
+		url = `stremio:///search?search=${searchKey}`;
+	} else if (stremio_origin === "web") {
+		if (platform === "mac") {
+			url = `https://web.stremio.com/#/search?search=${searchKey}`;
+		} else if (platform === "windows") {
+			url = `https://web.stremio.com/#/search?search=${searchKey}`;
+		}
+	}
+
 	const stream = {
 		title: `Search for similar ${type}s`,
-		externalUrl: `stremio:///search?search=${searchKey}`,
+		externalUrl: url,
 	};
-
-	console.log(stream, origin);
 
 	return { streams: [stream] };
 }
