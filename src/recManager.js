@@ -78,7 +78,10 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 
 	// If recs were found, verify that it is for the proper search input by comparing Imdb Ids
 	const foundMedia = response.info?.[0];
-	const foundMediaImdb = await titleToImdb(foundMedia?.name, null, foundMedia?.type);
+	if (!foundMedia || foundMedia.length === 0) {
+		return null;
+	}
+	const foundMediaImdb = await titleToImdb(foundMedia.name, null, foundMedia.type);
 	if (searchImdb && foundMediaImdb !== searchImdb) {
 		return null;
 	}

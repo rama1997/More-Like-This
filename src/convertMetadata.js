@@ -48,7 +48,7 @@ async function titleToImdb(title, year, type) {
 	return new Promise((resolve, reject) => {
 		nameToImdb(input, (err, res, inf) => {
 			if (err) {
-				logger.error("Error with nameToImdb package", null);
+				logger.error("Error with nameToImdb package", { input });
 				return resolve(null);
 			}
 			resolve(res);

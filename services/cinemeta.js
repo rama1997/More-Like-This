@@ -3,6 +3,10 @@ const { withTimeout } = require("../utils/timeout");
 const logger = require("../utils/logger");
 
 async function fetchMetadata(imdbId, type) {
+	if (!imdbId) {
+		return null;
+	}
+
 	try {
 		const mediaType = type === "movie" ? "movie" : "series";
 		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
