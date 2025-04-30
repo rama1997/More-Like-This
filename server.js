@@ -116,6 +116,7 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig?/stream/:type/:id.json", async (req, res) => {
+		console.log(req.headers);
 		const origin = req?.headers?.origin;
 		const platform = origin.includes("web.stremio") ? "web" : "app";
 		const streams = await streamHandler(req.params.type, req.params.id, platform);
