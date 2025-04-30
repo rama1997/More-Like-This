@@ -185,7 +185,7 @@ async function streamHandler(type, id, stremio_origin, platform) {
 
 	let url;
 	if (stremio_origin === "app") {
-		url = `stremio:///search?search=${searchKey}`;
+		url = `stremio://search?search=${searchKey}`;
 	} else if (stremio_origin === "web") {
 		if (platform === "mac") {
 			url = `https://web.stremio.com/#/search?search=${searchKey}`;
