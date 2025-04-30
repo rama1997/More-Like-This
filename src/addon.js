@@ -173,7 +173,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 	return { metas: [] };
 }
 
-async function streamHandler(type, id, user_platform) {
+async function streamHandler(type, id, origin) {
 	let searchKey;
 
 	// Parsing IMDB Id and Kitsu Ids
@@ -183,14 +183,12 @@ async function streamHandler(type, id, user_platform) {
 		searchKey = id.split(":").slice(0, 2).join(":");
 	}
 
-	console.log(searchKey, type, user_platform);
-	// Set redirect Url on search depending if user is calling from Stremio App or Stremio Web app
-	const redirectUrl = user_platform === "web" ? `https://web.stremio.com/#/search?search=${searchKey}` : `stremio://search?search=${searchKey}`;
-
 	const stream = {
 		title: `Search for similar ${type}s`,
-		externalUrl: redirectUrl,
+		externalUrl: `stremio:///search?search=${searchKey}`,
 	};
+
+	console.log(stream, origin);
 
 	return { streams: [stream] };
 }
