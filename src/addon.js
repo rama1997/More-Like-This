@@ -199,6 +199,8 @@ async function streamHandler(type, id, stremio_origin, platform) {
 		externalUrl: url,
 	};
 
+	console.log(stream, stremio_origin, platform);
+
 	return { streams: [stream] };
 }
 
