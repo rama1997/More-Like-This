@@ -183,23 +183,10 @@ async function streamHandler(type, id, stremio_origin, platform) {
 		searchKey = id.split(":").slice(0, 2).join(":");
 	}
 
-	let url;
-	if (stremio_origin === "app") {
-		url = `stremio://search?search=${searchKey}`;
-	} else if (stremio_origin === "web") {
-		if (platform === "mac") {
-			url = `https://web.stremio.com/#/search?search=${searchKey}`;
-		} else if (platform === "windows") {
-			url = `https://web.stremio.com/#/search?search=${searchKey}`;
-		}
-	}
-
 	const stream = {
 		title: `Search for similar ${type}s`,
-		externalUrl: url,
+		externalUrl: `stremio:///search?search=${searchKey}`,
 	};
-
-	console.log(stream, stremio_origin, platform);
 
 	return { streams: [stream] };
 }
