@@ -31,7 +31,6 @@ async function fetchRecs(title, year, mediaType, apiKey) {
 
 		const url = `${TASTEDIVE_API_BASE_URL}q=${mediaType}:${searchInput}&type=${mediaType}&slimit=2&k=${apiKey}`;
 
-		console.log(url);
 		const response = await fetch(url);
 		const json = await response.json();
 		return json?.similar ? json.similar : [];

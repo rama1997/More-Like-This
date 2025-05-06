@@ -67,8 +67,6 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 		return null;
 	}
 
-	console.log(searchTitle, searchYear, searchImdb);
-
 	// Get specific terminlogy for movie/series for API endpoints
 	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
 
