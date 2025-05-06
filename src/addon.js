@@ -22,6 +22,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 
 	const { searchKey = null, searchYear = null, searchType = null } = parsedSearchParam;
 
+	// Return empty on title search, but title searching option is disabled
 	if (!enableTitleSearching && !searchKey.startsWith("tt") && !searchKey.startsWith("kitsu")) {
 		return { metas: [] };
 	}
@@ -76,18 +77,17 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 
 		// Search TMDB's search results for a title + year and fetch the top result
 		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForTmdb, apiKeys.tmdb.key);
-		if (!searchResults || searchResults.length === 0) {
-			return;
-		}
-		const foundMedia = searchResults[0];
+		if (searchResults && searchResults.length !== 0) {
+			const foundMedia = searchResults[0];
 
-		// If the IMDB Id's media does not match catalog type, skip the catalog
-		const mediaType = foundMedia.release_date ? "movie" : "series";
-		if (mediaType !== type) {
-			return;
-		}
+			// If the IMDB Id's media does not match catalog type, skip the catalog
+			const mediaType = foundMedia.release_date ? "movie" : "series";
+			if (mediaType !== type) {
+				return { metas: [] };
+			}
 
-		searchImdb = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdb, apiKeys.tmdb.key);
+			searchImdb = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdb, apiKeys.tmdb.key);
+		}
 	}
 
 	// If IMDB id not found, try Trakt search if API key provided as backup
@@ -95,21 +95,28 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 		const mediaTypeForTrakt = await trakt.getAPIEndpoint(type);
 
 		const searchResults = await trakt.fetchSearchResult(title, mediaTypeForTrakt, apiKeys.trakt.key);
-		if (!searchResults || searchResults.length === 0) {
-			return;
+		if (searchResults && searchResults.length !== 0) {
+			const foundMedia = searchResults[0][mediaTypeForTrakt];
+			searchImdb = foundMedia?.ids?.imdb;
 		}
-
-		const foundMedia = searchResults[0][mediaTypeForTrakt];
-		searchImdb = foundMedia?.ids?.imdb;
 	}
 
-	// Check cache for IMDB id
 	if (searchImdb) {
+		// Check cache for IMDB id
 		cachedRecsCatalog = await catalogManager.checkCache(searchImdb, null, type, catalogSource);
 		if (cachedRecsCatalog) {
 			await catalogManager.saveCache(searchKey, searchYear, type, catalogSource, cachedRecsCatalog); // Save catalog to cache for search input
 			return { metas: cachedRecsCatalog };
 		}
+
+		if (!title || !year) {
+			const media = await IdToTitleYearType(searchImdb, type, metaSource);
+			title = media.title;
+			year = media.year;
+		}
+	} else {
+		// Addon does not continue if an associated IMDB Id is not found for the search input
+		return { metas: [] };
 	}
 
 	logger.info(`${catalogSource.toUpperCase()}: Searched Media`, { title, year, type, searchImdb });
@@ -185,7 +192,6 @@ async function streamHandler(type, id, stremio_origin, platform) {
 
 	const redirectUrl = stremio_origin === "web" ? `https://web.stremio.com/#/search?search=${searchKey}` : `stremio:///search?search=${searchKey}`;
 
-	console.log(stremio_origin, platform);
 	const stream = {
 		title: `Search for similar ${type}s`,
 		externalUrl: redirectUrl,
