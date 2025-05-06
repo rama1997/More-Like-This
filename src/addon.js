@@ -183,9 +183,12 @@ async function streamHandler(type, id, stremio_origin, platform) {
 		searchKey = id.split(":").slice(0, 2).join(":");
 	}
 
+	const redirectUrl = stremio_origin === "web" ? `https://web.stremio.com/#/search?search=${searchKey}` : `stremio:///search?search=${searchKey}`;
+
+	console.log(stremio_origin, platform);
 	const stream = {
 		title: `Search for similar ${type}s`,
-		externalUrl: `stremio:///search?search=${searchKey}`,
+		externalUrl: redirectUrl,
 	};
 
 	return { streams: [stream] };

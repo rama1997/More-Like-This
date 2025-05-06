@@ -63,9 +63,11 @@ async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
 }
 
 async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey) {
-	if (!searchTitle || searchTitle === "" || !validKey) {
+	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
+
+	console.log(searchTitle, searchYear, searchImdb);
 
 	// Get specific terminlogy for movie/series for API endpoints
 	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
@@ -102,7 +104,7 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 }
 
 async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey) {
-	if (!searchTitle || searchTitle === "" || !validKey) {
+	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
 
