@@ -69,6 +69,10 @@ async function fetchImdbID(tmdbId, mediaType, apiKey) {
 }
 
 async function fetchMediaDetails(id, mediaType, apiKey) {
+	if (!id || !mediaType) {
+		return null;
+	}
+
 	try {
 		let url = "";
 

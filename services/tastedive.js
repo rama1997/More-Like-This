@@ -7,7 +7,7 @@ async function validateAPIKey(apiKey) {
 	}
 
 	try {
-		const url = `${TASTEDIVE_API_BASE_URL}q=hi&type=movie&limit=1&slimit=1&k=${apiKey}`;
+		const url = `${TASTEDIVE_API_BASE_URL}q=hi&type=movie&limit=1&k=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();

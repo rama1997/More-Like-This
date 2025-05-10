@@ -11,8 +11,8 @@
 - Pulls recommendations from four different sources:
   - **TMDB**
   - **Trakt**
-  - **Tastedive**
   - **Gemini AI**
+  - **Tastedive**
 - Find recommendations by searching for:
   - **IMDb ID**
   - **Kitsu ID**

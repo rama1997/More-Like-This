@@ -111,8 +111,10 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 
 		if (!title || !year) {
 			const media = await IdToTitleYearType(searchImdb, type, metaSource);
-			title = media.title;
-			year = media.year;
+			if (media) {
+				title = media.title;
+				year = media.year;
+			}
 		}
 	} else {
 		// Addon does not continue if an associated IMDB Id is not found for the search input
@@ -158,13 +160,13 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 	// Transform recs to a Stremio catalog
 	let catalog = [];
 	if (!recs || recs.length === 0) {
-		logger.emptyCatalog(`${catalogSource.toUpperCase()}: No recs found`, title, year, type, searchImdb);
+		logger.emptyCatalog(`${catalogSource.toUpperCase()}: No recs found`, { title, year, type, searchImdb });
 		return { metas: [] };
 	} else {
 		catalog = await catalogManager.createRecCatalog(recs, type, apiKeys.rpdb, metaSource);
 
 		if (!catalog) {
-			logger.emptyCatalog(`${catalogSource.toUpperCase()}: Catalog Creation Error`, itle, year, type, searchImdb);
+			logger.emptyCatalog(`${catalogSource.toUpperCase()}: Catalog Creation Error`, { title, year, type, searchImdb });
 			return { metas: [] };
 		}
 
