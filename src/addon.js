@@ -8,7 +8,7 @@ const logger = require("../utils/logger");
 
 async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitleSearching) {
 	const catalogSource = id.split("-")[1];
-	const metaSource = { source: useTmdbMeta ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
+	const metaSource = { source: useTmdbMeta && apiKeys.tmdb.valid ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
 
 	// Parse search input
 	const searchParam = extra?.split("search=")[1];
