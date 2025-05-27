@@ -182,7 +182,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 	return { metas: [] };
 }
 
-async function streamHandler(type, id, stremio_origin, platform) {
+async function streamHandler(type, id) {
 	let searchKey;
 
 	// Parsing IMDB Id and Kitsu Ids
@@ -191,8 +191,6 @@ async function streamHandler(type, id, stremio_origin, platform) {
 	} else if (id.startsWith("kitsu")) {
 		searchKey = id.split(":").slice(0, 2).join(":");
 	}
-
-	const redirectUrl = stremio_origin === "web" ? `https://web.stremio.com/#/search?search=${searchKey}` : `stremio:///search?search=${searchKey}`;
 
 	const appStream = {
 		name: "More Like This",
