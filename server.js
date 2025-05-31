@@ -135,7 +135,7 @@ async function startServer() {
 		const apiKeys = userConfig.apiKeys;
 		const useTmdbMeta = userConfig.useTmdbMeta;
 		const enableTitleSearching = userConfig.enableTitleSearching;
-		const catalog = await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, useTmdbMeta, enableTitleSearching);
+		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, useTmdbMeta, enableTitleSearching)) || [];
 		res.json(catalog);
 	});
 
