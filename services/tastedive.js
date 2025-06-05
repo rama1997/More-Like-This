@@ -27,7 +27,7 @@ async function fetchRecs(title, year, mediaType, apiKey) {
 	try {
 		const cleanedTitle = title.replace(/[^a-zA-Z0-9 ]/g, "");
 
-		const searchInput = year ? encodeURI(cleanedTitle + " " + year) : encodeURI(cleanedTitle);
+		const searchInput = year ? encodeURI(cleanedTitle) : encodeURI(cleanedTitle);
 
 		const url = `${TASTEDIVE_API_BASE_URL}q=${mediaType}:${searchInput}&type=${mediaType}&slimit=2&k=${apiKey}`;
 
