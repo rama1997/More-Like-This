@@ -49,7 +49,7 @@ async function getGeminiRecs(title, year, mediaType, apiKey) {
 		const result = await model.generateContent(prompt);
 
 		return await parseGeminiReturn(result.response.text());
-	} catch {
+	} catch (error) {
 		logger.error(error.message, null);
 		return null;
 	}
