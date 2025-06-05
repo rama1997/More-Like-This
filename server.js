@@ -117,7 +117,7 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig/configure", (req, res) => {
-		res.sendFile(path.join(__dirname, "public", "configure.html"));
+		res.redirect("/configure");
 	});
 
 	app.get("/manifest.json", async (req, res) => {
@@ -130,7 +130,7 @@ async function startServer() {
 		res.json(manifest);
 	});
 
-	app.get("/:userConfig?/catalog/:type/:id/:extra?.json", async (req, res) => {
+	app.get("/:userConfig/catalog/:type/:id/:extra?.json", async (req, res) => {
 		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
 		const apiKeys = userConfig.apiKeys;
 		const useTmdbMeta = userConfig.useTmdbMeta;
@@ -139,7 +139,7 @@ async function startServer() {
 		res.json(catalog);
 	});
 
-	app.get("/:userConfig?/stream/:type/:id.json", async (req, res) => {
+	app.get("/:userConfig/stream/:type/:id.json", async (req, res) => {
 		const streams = await streamHandler(req.params.type, req.params.id);
 		res.json(streams);
 	});
