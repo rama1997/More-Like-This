@@ -19,6 +19,7 @@
 - Pulls recommendations from four different sources:
   - **TMDB**
   - **Trakt**
+  - **Simkl**
   - **Gemini AI**
   - **Tastedive**
 - Find recommendations by searching for:
@@ -39,7 +40,7 @@ Links to obtain free API keys are available on the addon’s configuration page.
 
 - **Combine Into One Catalog**:  
   By default, each recommendation source appears as its own catalog.
-  Enable this option to merge all recommendations into a single catalog.
+  Enable this option to merge all recommendations into a single catalog. Combined catalogs will display the most frequent recommendations first.
   (Note: Combined catalogs may load more slowly.)
 
 - **Set Catalog Order**:  
@@ -85,12 +86,9 @@ Here are some tips to get the best results:
 
 This addon is still a work in progress. While it works well in many scenarios, some limitations exist:
 
-- Kitsu ID searches may be inaccurate, especially for niche or very specific titles.
-
-- New releases, unreleased titles, and obscure international content may yield strange or no results.
-
 - Not supported on Android or Smart TVs.
-
+- Not supported on Stremio 5
+- Kitsu ID searches may be inaccurate, especially for niche or very specific titles.
+- New releases, unreleased titles, and obscure international content may yield strange or no results.
 - Not compatible with other Stremio addons that generate custom catalogs and IDs. This addon is optimized for IMDb IDs, as used by Cinemeta.
-
 - As of April 2025, TasteDive’s API returns inaccurate results due to API changes. It now returns recommendations that includes another unrelated media titles.

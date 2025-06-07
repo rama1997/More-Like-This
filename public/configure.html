@@ -51,6 +51,18 @@
 					<p class="key-help">Get your free key <a href="https://tastedive.com/account/api_access" target="_blank">here</a></p>
 				</div>
 
+				<div class="toggle-group">
+					<span>Simkl Recommendations</span>
+					<div class="tooltip-container">
+						<div class="tooltip-icon">?</div>
+						<div class="tooltip-text">Simkl API does not require a key</div>
+					</div>
+					<label for="simkl" class="toggle">
+						<input type="checkbox" id="simkl" name="simkl" />
+						<span class="toggle-slider"></span>
+					</label>
+				</div>
+
 				<div class="section-header">Catalog Settings</div>
 
 				<div class="toggle-group">
@@ -82,6 +94,10 @@
 							<span class="catalog-icon">≡</span>
 							<span class="catalog-name">Trakt</span>
 						</div>
+						<div id="simkl-catalog" class="catalog-item">
+							<span class="catalog-icon">≡</span>
+							<span class="catalog-name">Simkl</span>
+						</div>
 						<div id="gemini-catalog" class="catalog-item">
 							<span class="catalog-icon">≡</span>
 							<span class="catalog-name">Gemini AI</span>
@@ -90,7 +106,7 @@
 							<span class="catalog-icon">≡</span>
 							<span class="catalog-name">TasteDive</span>
 						</div>
-						<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,Gemini AI,TasteDive" />
+						<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,Simkl,Gemini AI,TasteDive" />
 					</div>
 				</div>
 

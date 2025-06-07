@@ -149,6 +149,7 @@ async function startServer() {
 			const apikeys = {
 				tmdb: req.body.tmdbApiKey || "",
 				trakt: req.body.traktApiKey || "",
+				simkl: req.body.simkl === "on" ? "default" : "",
 				tastedive: req.body.tastediveApiKey || "",
 				gemini: req.body.geminiApiKey || "",
 				rpdb: req.body.rpdbApiKey || "",
@@ -156,7 +157,7 @@ async function startServer() {
 
 			const validatedApiKeys = await validateApiKeys(apikeys);
 
-			// Get form data
+			// Get user config
 			const config = {
 				apiKeys: validatedApiKeys,
 				combineCatalogs: req.body.combineCatalogs === "on" || false,

@@ -1,5 +1,6 @@
 const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
+const simkl = require("../services/simkl");
 const gemini = require("../services/gemini");
 const rpdb = require("../services/rpdb");
 const tastedive = require("../services/tastedive");
@@ -8,6 +9,7 @@ async function validateApiKeys(apiKeys) {
 	const validators = {
 		tmdb: tmdb.validateAPIKey,
 		trakt: trakt.validateAPIKey,
+		simkl: simkl.validateAPIKey,
 		tastedive: tastedive.validateAPIKey,
 		gemini: gemini.validateAPIKey,
 		rpdb: rpdb.validateAPIKey,
@@ -17,7 +19,7 @@ async function validateApiKeys(apiKeys) {
 
 	for (const [keyName, keyValue] of Object.entries(apiKeys)) {
 		const validator = validators[keyName];
-		if (validator) {
+		if (keyValue !== "" && validator) {
 			try {
 				const isValid = await validator(keyValue);
 				results[keyName] = {

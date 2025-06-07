@@ -79,7 +79,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 		searchImdb = await titleToImdb(searchKey, searchYear, type);
 	}
 
-	// If IMDB id not found, try Tmdb search if API key provided as backup
+	// If IMDB id not found, try Tmdb search if API key is provided
 	if (!searchImdb && apiKeys.tmdb.valid) {
 		const mediaTypeForTmdb = await tmdb.getAPIEndpoint(type);
 
@@ -98,7 +98,7 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 		}
 	}
 
-	// If IMDB id not found, try Trakt search if API key provided as backup
+	// If IMDB id still not found, try Trakt search if API key is provided
 	if (!searchImdb && apiKeys.trakt.valid) {
 		const mediaTypeForTrakt = await trakt.getAPIEndpoint(type);
 
@@ -140,6 +140,8 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid);
 		} else if (id === "mlt-trakt-movie-rec") {
 			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
+		} else if (id === "mlt-simkl-movie-rec") {
+			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
 		} else if (id === "mlt-tastedive-movie-rec") {
 			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid);
 		} else if (id === "mlt-gemini-movie-rec") {
@@ -152,6 +154,8 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 			recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys);
 		} else if (id == "mlt-tmdb-series-rec") {
 			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid);
+		} else if (id === "mlt-simkl-series-rec") {
+			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
 		} else if (id === "mlt-trakt-series-rec") {
 			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
 		} else if (id === "mlt-tastedive-series-rec") {
