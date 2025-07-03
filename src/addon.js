@@ -195,7 +195,7 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 	return { metas: [] };
 }
 
-async function streamHandler(type, id) {
+async function streamHandler(type, id, platform) {
 	let searchKey;
 
 	// Parsing IMDB Id and Kitsu Ids
@@ -205,20 +205,30 @@ async function streamHandler(type, id) {
 		searchKey = id.split(":").slice(0, 2).join(":");
 	}
 
-	const appStream = {
+	const appStreamButton = {
 		name: "More Like This",
 		description: `Search in Stremio App`,
 		externalUrl: `stremio:///search?search=${searchKey}`,
 	};
 
-	const webStream = {
+	const webStreamButton = {
 		name: "More Like This",
 		description: `Search in Stremio Web`,
 		externalUrl: `https://web.stremio.com/#/search?search=${searchKey}`,
 	};
 
+	let stream = [];
+
+	if (platform === "web") {
+		stream = [webStreamButton];
+	} else if (platform === "app") {
+		stream = [appStreamButton];
+	} else {
+		stream = [appStreamButton, webStreamButton];
+	}
+
 	return Promise.resolve({
-		streams: [appStream, webStream],
+		streams: stream,
 		cacheMaxAge: 0,
 	});
 }

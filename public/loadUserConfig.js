@@ -62,6 +62,11 @@ document.addEventListener("DOMContentLoaded", () => {
 				metadataSourceSelect.value = config.metadataSource;
 			}
 
+			const streamButtonPlatform = document.getElementById("streamButtonPlatform");
+			if (streamButtonPlatform && config.streamButtonPlatform) {
+				streamButtonPlatform.value = config.streamButtonPlatform;
+			}
+
 			const enableTitleSearchingCheckbox = document.getElementById("enableTitleSearching");
 			if (enableTitleSearchingCheckbox) {
 				if (config.enableTitleSearching) {

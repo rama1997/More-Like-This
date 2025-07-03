@@ -145,7 +145,9 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig/stream/:type/:id.json", async (req, res) => {
-		const streams = await streamHandler(req.params.type, req.params.id);
+		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
+		const platform = userConfig.streamButtonPlatform;
+		const streams = await streamHandler(req.params.type, req.params.id, platform);
 		res.json(streams);
 	});
 
@@ -168,6 +170,7 @@ async function startServer() {
 				combineCatalogs: req.body.combineCatalogs === "on" || false,
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 				metadataSource: req.body.metadataSource || "",
+				streamButtonPlatform: req.body.streamButtonPlatform || "",
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
 
