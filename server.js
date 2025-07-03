@@ -117,7 +117,12 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig/configure", (req, res) => {
-		res.redirect("/configure");
+		try {
+			res.redirect(`/configure?data=${req.params.userConfig}`);
+		} catch (error) {
+			// If parsing fails, serve the default configure page
+			res.redirect("/configure");
+		}
 	});
 
 	app.get("/manifest.json", async (req, res) => {

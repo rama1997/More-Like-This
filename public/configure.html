@@ -9,7 +9,7 @@
 	<body>
 		<div class="container">
 			<div class="addon-logo">
-				<img src="https://i.imgur.com/DHKJ7dT.png" alt="More Like This Addon Logo" />
+				<img src="https://i.imgur.com/DHKJ7dT.png" alt="More Like This Addon Logo" referrerpolicy="no-referrer" />
 			</div>
 
 			<h1>More Like This</h1>
@@ -146,27 +146,29 @@
 
 				<div class="button-group">
 					<button type="submit" id="installBtn" class="install-button">Install</button>
-					<button type="submit" id="copyManifestBtn" class="copy-manifest-button">Copy Manifest URL</button>
+					<button type="submit" id="copyManifestBtn" class="copy-manifest-button">Copy Manifest</button>
 				</div>
 			</form>
 
 			<div class="footer">To report issues or make suggestions, please visit the project page <a href="https://github.com/rama1997/More-Like-This">here</a>.</div>
 		</div>
 
-		<script src="catalogOrder.js"></script>
-
+		<!-- Parse existing user config  -->
 		<script>
-			const forCopyInput = document.getElementById("forCopy");
-			const installBtn = document.getElementById("installBtn");
-			const copyManifestBtn = document.getElementById("copyManifestBtn");
+			try {
+				const params = new URLSearchParams(window.location.search);
+				const configStr = params.get("data");
 
-			installBtn.addEventListener("click", function () {
-				forCopyInput.value = "false";
-			});
-
-			copyManifestBtn.addEventListener("click", function () {
-				forCopyInput.value = "true";
-			});
+				if (configStr) {
+					window.userConfig = JSON.parse(decodeURIComponent(configStr));
+				}
+			} catch (e) {
+				window.userConfig = {};
+			}
 		</script>
+
+		<script src="catalogOrder.js"></script>
+		<script src="installButtons.js"></script>
+		<script src="loadUserConfig.js"></script>
 	</body>
 </html>
