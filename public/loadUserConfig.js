@@ -57,9 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 
 			// Optional Settings
-			const tmdbOverCinemetaCheckbox = document.getElementById("tmdbOverCinemeta");
-			if (tmdbOverCinemetaCheckbox && config.useTmdbMeta) {
-				tmdbOverCinemetaCheckbox.checked = true;
+			const metadataSourceSelect = document.getElementById("metadataSource");
+			if (metadataSourceSelect && config.metadataSource) {
+				metadataSourceSelect.value = config.metadataSource;
 			}
 
 			const enableTitleSearchingCheckbox = document.getElementById("enableTitleSearching");

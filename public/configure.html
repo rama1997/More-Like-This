@@ -4,151 +4,165 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>More Like This Configuration</title>
-		<link rel="stylesheet" href="/styles.css" />
+		<link rel="stylesheet" href="styles.css" />
 	</head>
 	<body>
 		<div class="container">
-			<div class="addon-logo">
-				<img src="https://i.imgur.com/DHKJ7dT.png" alt="More Like This Addon Logo" referrerpolicy="no-referrer" />
+			<div class="header">
+				<div class="addon-logo">
+					<img src="https://i.imgur.com/DHKJ7dT.png" alt="More Like This Addon Logo" referrerpolicy="no-referrer" />
+				</div>
+				<h1>More Like This</h1>
+				<div class="subtitle">RECOMMENDATIONS</div>
 			</div>
 
-			<h1>More Like This</h1>
+			<div class="content">
+				<div class="instructions">
+					<p>
+						Find movie and TV show recommendations right inside Stremio! This addon gathers recommendation for any title from multiple sources and brings them straight to your Stremio library. <br /><br />
 
-			<div class="instructions">
-				<p>
-					Discover more of what you like with this Stremio addon! Get movie and TV show recommendations, gathered from multiple sources. <br /><br />
+						Getting started is easy — just add your own API keys for the recommendation sources you want to use. Need a key? Click the links under each input field to grab yours for free! You only need keys for the sources you want — for example, if you only want TMDB recommendations, you only need a TMDB key.<br /><br />
 
-					Getting started is easy — just add your own API keys for the recommendation sources you want to use. Need a key? Click the links under each input field to grab yours for free! You only need keys for the sources you want — for example, if you only want TMDB recommendations, you only need a TMDB key.<br /><br />
+						If you have any questions, please visit the project's <a href="https://github.com/rama1997/More-Like-This">GitHub page</a> for the full instructions and tips.
+					</p>
+				</div>
 
-					If you have any questions, please visit the project’s <a href="https://github.com/rama1997/More-Like-This">GitHub page</a> for the full instructions and tips.
-				</p>
+				<form action="/saveConfig" method="POST">
+					<div class="section-header">Recommendation Sources</div>
+
+					<div class="form-group">
+						<label for="tmdbApiKey">TMDB API Key</label>
+						<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" />
+						<p class="key-help">Get your free TMDB key <a href="https://www.themoviedb.org/settings/api" target="_blank">here</a></p>
+					</div>
+
+					<div class="form-group">
+						<label for="traktApiKey">Trakt API Key</label>
+						<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter Trakt API Key" />
+						<p class="key-help">Get your free Trakt key <a href="https://trakt.tv/oauth/applications" target="_blank">here</a></p>
+					</div>
+
+					<div class="form-group">
+						<label for="geminiApiKey">Gemini AI API Key</label>
+						<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter your Gemini AI key" />
+						<p class="key-help">Get your free Gemini AI key <a href="https://aistudio.google.com/app/apikey" target="_blank">here</a></p>
+					</div>
+
+					<div class="form-group">
+						<label for="tastediveApiKey">TasteDive API Key</label>
+						<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TasteDive API Key" />
+						<p class="key-help">Get your free TasteDive key <a href="https://tastedive.com/account/api_access" target="_blank">here</a></p>
+					</div>
+
+					<div class="toggle-group">
+						<div class="toggle-info">
+							<span class="toggle-label">Simkl Recommendations</span>
+							<div class="tooltip-container">
+								<div class="tooltip-icon">?</div>
+								<div class="tooltip-text">Simkl API does not require a key</div>
+							</div>
+						</div>
+						<label class="toggle">
+							<input type="checkbox" id="simkl" name="simkl" />
+							<span class="toggle-slider"></span>
+						</label>
+					</div>
+
+					<div class="section-header">Catalog Settings</div>
+
+					<div class="toggle-group">
+						<div class="toggle-info">
+							<span class="toggle-label">Combine Into One Catalog</span>
+							<div class="tooltip-container">
+								<div class="tooltip-icon">?</div>
+								<div class="tooltip-text">Combine recommendations from all sources into a single catalog, instead of showing them separately.</div>
+							</div>
+						</div>
+						<label class="toggle">
+							<input type="checkbox" id="combineCatalogs" name="combineCatalogs" />
+							<span class="toggle-slider"></span>
+						</label>
+					</div>
+
+					<div id="catalogOrderSection" class="catalog-order-section">
+						<div class="label-with-tooltip">
+							<label>Catalog Order</label>
+							<div class="tooltip-container">
+								<div class="tooltip-icon">?</div>
+								<div class="tooltip-text">Drag and drop to set the order of how recommendations catalog appears.</div>
+							</div>
+						</div>
+						<div class="catalog-order">
+							<div id="tmdb-catalog" class="catalog-item">
+								<span class="catalog-icon">≡</span>
+								<span class="catalog-name">TMDB</span>
+							</div>
+							<div id="trakt-catalog" class="catalog-item">
+								<span class="catalog-icon">≡</span>
+								<span class="catalog-name">Trakt</span>
+							</div>
+							<div id="simkl-catalog" class="catalog-item">
+								<span class="catalog-icon">≡</span>
+								<span class="catalog-name">Simkl</span>
+							</div>
+							<div id="gemini-catalog" class="catalog-item">
+								<span class="catalog-icon">≡</span>
+								<span class="catalog-name">Gemini AI</span>
+							</div>
+							<div id="tastedive-catalog" class="catalog-item">
+								<span class="catalog-icon">≡</span>
+								<span class="catalog-name">TasteDive</span>
+							</div>
+							<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,Simkl,Gemini AI,TasteDive" />
+						</div>
+					</div>
+
+					<div class="section-header">Optional Settings</div>
+
+					<div class="dropdown-group">
+						<div class="dropdown-info">
+							<span class="dropdown-label">Metadata Source</span>
+							<div class="tooltip-container">
+								<div class="tooltip-icon">?</div>
+								<div class="tooltip-text">By default, the addon gets metadata from Stremio's Cinemeta. Switch to TMDB to use TMDB's metadata (Requires a TMDB API key.)</div>
+							</div>
+						</div>
+						<div class="dropdown-container">
+							<select id="metadataSource" name="metadataSource">
+								<option value="cinemeta">Cinemeta (Default)</option>
+								<option value="tmdb">TMDB</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="toggle-group">
+						<div class="toggle-info">
+							<span class="toggle-label">Enable Manual Title Searching</span>
+							<div class="tooltip-container">
+								<div class="tooltip-icon">?</div>
+								<div class="tooltip-text">Enable to find recommendations based on movie or show titles too. (Note: Title-based searches may be less accurate than using the exact ID from Stremio.)</div>
+							</div>
+						</div>
+						<label class="toggle">
+							<input type="checkbox" id="enableTitleSearching" name="enableTitleSearching" checked />
+							<span class="toggle-slider"></span>
+						</label>
+					</div>
+
+					<div class="form-group">
+						<label for="rpdbApiKey">RPDB API Key</label>
+						<input type="text" id="rpdbApiKey" name="rpdbApiKey" placeholder="Enter your RPDB key" />
+						<p class="key-help">Get your RPDB key <a href="https://ratingposterdb.com/api-key/" target="_blank">here</a></p>
+					</div>
+
+					<input type="hidden" name="forCopy" id="forCopy" value="false" />
+
+					<div class="button-group">
+						<button type="submit" id="installBtn" class="install-button">Install</button>
+						<button type="submit" id="copyManifestBtn" class="copy-manifest-button">Copy Manifest</button>
+					</div>
+				</form>
 			</div>
-
-			<div class="section-header">Recommendation Sources</div>
-
-			<form action="/saveConfig" method="POST">
-				<div class="form-group">
-					<label for="tmdbApiKey">TMDB API Key </label>
-					<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" />
-					<p class="key-help">Get your free key <a href="https://www.themoviedb.org/settings/api" target="_blank">here</a></p>
-				</div>
-
-				<div class="form-group">
-					<label for="traktApiKey">Trakt API Key </label>
-					<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter Trakt API Key" />
-					<p class="key-help">Get your free key <a href="https://trakt.tv/oauth/applications" target="_blank">here</a></p>
-				</div>
-
-				<div class="form-group">
-					<label for="geminiApiKey">Gemini AI API Key</label>
-					<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter your Gemini AI key" />
-					<p class="key-help">Get your free key <a href="https://aistudio.google.com/app/apikey" target="_blank">here</a></p>
-				</div>
-
-				<div class="form-group">
-					<label for="tastediveApiKey">TasteDive API Key </label>
-					<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TasteDive API Key" />
-					<p class="key-help">Get your free key <a href="https://tastedive.com/account/api_access" target="_blank">here</a></p>
-				</div>
-
-				<div class="toggle-group">
-					<span>Simkl Recommendations</span>
-					<div class="tooltip-container">
-						<div class="tooltip-icon">?</div>
-						<div class="tooltip-text">Simkl API does not require a key</div>
-					</div>
-					<label for="simkl" class="toggle">
-						<input type="checkbox" id="simkl" name="simkl" />
-						<span class="toggle-slider"></span>
-					</label>
-				</div>
-
-				<div class="section-header">Catalog Settings</div>
-
-				<div class="toggle-group">
-					<span>Combine Into One Catalog</span>
-					<div class="tooltip-container">
-						<div class="tooltip-icon">?</div>
-						<div class="tooltip-text">Combine recommendations from all sources into a single catalog, instead of showing them separately.</div>
-					</div>
-					<label for="combineCatalogs" class="toggle">
-						<input type="checkbox" id="combineCatalogs" name="combineCatalogs" />
-						<span class="toggle-slider"></span>
-					</label>
-				</div>
-
-				<div id="catalogOrderSection" class="catalog-order-section" style="display: block">
-					<div class="label-with-tooltip">
-						<label>Catalog Order</label>
-						<div class="tooltip-container">
-							<div class="tooltip-icon">?</div>
-							<div class="tooltip-text">Drag and drop to set the order of how recommendations catalog appears.</div>
-						</div>
-					</div>
-					<div class="catalog-order">
-						<div id="tmdb-catalog" class="catalog-item">
-							<span class="catalog-icon">≡</span>
-							<span class="catalog-name">TMDB</span>
-						</div>
-						<div id="trakt-catalog" class="catalog-item">
-							<span class="catalog-icon">≡</span>
-							<span class="catalog-name">Trakt</span>
-						</div>
-						<div id="simkl-catalog" class="catalog-item">
-							<span class="catalog-icon">≡</span>
-							<span class="catalog-name">Simkl</span>
-						</div>
-						<div id="gemini-catalog" class="catalog-item">
-							<span class="catalog-icon">≡</span>
-							<span class="catalog-name">Gemini AI</span>
-						</div>
-						<div id="tastedive-catalog" class="catalog-item">
-							<span class="catalog-icon">≡</span>
-							<span class="catalog-name">TasteDive</span>
-						</div>
-						<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,Simkl,Gemini AI,TasteDive" />
-					</div>
-				</div>
-
-				<div class="section-header">Optional Settings</div>
-
-				<div class="toggle-group">
-					<span>Use TMDB over Cinemeta for metadata</span>
-					<div class="tooltip-container">
-						<div class="tooltip-icon">?</div>
-						<div class="tooltip-text">By default, the addon uses Stremio’s main addon, Cinemeta, for movie and series data. Enable this setting to prioritize TMDB instead. (Requires a TMDB API key.)</div>
-					</div>
-					<label for="tmdbOverCinemeta" class="toggle">
-						<input type="checkbox" id="tmdbOverCinemeta" name="tmdbOverCinemeta" />
-						<span class="toggle-slider"></span>
-					</label>
-				</div>
-
-				<div class="toggle-group">
-					<span>Enable Manual Title Searching</span>
-					<div class="tooltip-container">
-						<div class="tooltip-icon">?</div>
-						<div class="tooltip-text">Enable to find recommendations based on movie or show titles too. (Note: Title-based searches may be less accurate than using the exact ID from Stremio.)</div>
-					</div>
-					<label for="enableTitleSearching" class="toggle">
-						<input type="checkbox" id="enableTitleSearching" name="enableTitleSearching" checked />
-						<span class="toggle-slider"></span>
-					</label>
-				</div>
-
-				<div class="form-group">
-					<label for="rpdbApiKey">RPDB API Key</label>
-					<input type="text" id="rpdbApiKey" name="rpdbApiKey" placeholder="Enter your RPDB key" />
-					<p class="key-help">Get your key <a href="https://ratingposterdb.com/api-key/" target="_blank">here</a></p>
-				</div>
-
-				<input type="hidden" name="forCopy" id="forCopy" value="false" />
-
-				<div class="button-group">
-					<button type="submit" id="installBtn" class="install-button">Install</button>
-					<button type="submit" id="copyManifestBtn" class="copy-manifest-button">Copy Manifest</button>
-				</div>
-			</form>
 
 			<div class="footer">To report issues or make suggestions, please visit the project page <a href="https://github.com/rama1997/More-Like-This">here</a>.</div>
 		</div>

@@ -6,7 +6,7 @@ const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
 const logger = require("../utils/logger");
 
-async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitleSearching) {
+async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTitleSearching) {
 	// Retreive source data
 	let catalogSource = id.split("-")[1];
 	if (catalogSource === "combined") {
@@ -16,7 +16,8 @@ async function catalogHandler(type, id, extra, apiKeys, useTmdbMeta, enableTitle
 			}
 		}
 	}
-	const metaSource = { source: useTmdbMeta && apiKeys.tmdb.valid ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
+
+	const metaSource = { source: metadataSource === "tmdb" && apiKeys.tmdb.valid ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
 
 	// Parse search input
 	const searchParam = extra?.split("search=")[1];

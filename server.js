@@ -138,9 +138,9 @@ async function startServer() {
 	app.get("/:userConfig/catalog/:type/:id/:extra?.json", async (req, res) => {
 		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
 		const apiKeys = userConfig.apiKeys;
-		const useTmdbMeta = userConfig.useTmdbMeta;
+		const metadataSource = userConfig.metadataSource;
 		const enableTitleSearching = userConfig.enableTitleSearching;
-		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, useTmdbMeta, enableTitleSearching)) || [];
+		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, metadataSource, enableTitleSearching)) || [];
 		res.json(catalog);
 	});
 
@@ -167,7 +167,7 @@ async function startServer() {
 				apiKeys: validatedApiKeys,
 				combineCatalogs: req.body.combineCatalogs === "on" || false,
 				catalogOrder: req.body.catalogOrder.split(",") || null,
-				useTmdbMeta: req.body.tmdbOverCinemeta === "on" || false,
+				metadataSource: req.body.metadataSource || "",
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
 
