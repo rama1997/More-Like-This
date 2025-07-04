@@ -17,7 +17,7 @@
 # Features
 
 - Pulls recommendations from four different sources:
-  - **TMDB**
+  - **TMDB** (Including TMDB Collections)
   - **Trakt**
   - **Simkl**
   - **Gemini AI**
@@ -43,13 +43,21 @@ Links to obtain free API keys are available on the addon’s configuration page.
   Enable this option to merge all recommendations into a single catalog. Combined catalogs will display the most frequent recommendations first.
   (Note: Combined catalogs may load more slowly.)
 
-- **Set Catalog Order**:  
+- **Catalog Order**:  
   Drag and drop to reorder how catalogs are displayed.
 
-- **Use TMDB over Cinemeta for metadata**:  
-  By default, the addon uses Cinemeta (Stremio’s main addon) for movie and show data.
-  Enable this setting to use TMDB instead. (Requires a TMDB API key.)
+- **Metadata Source**:  
+  By default, the addon uses Cinemeta (Stremio’s main addon) for movie and show metadata.
+  Enable this setting to use TMDB as the metadata source instead. (Requires a TMDB API key.)
   Tip: TMDB is generally more reliable than Cinemeta.
+
+- **Stream Button Platform**:  
+  This addon adds two stream buttons for each movie/show, one for searching recommendations in the Stremio app and one for the Stremio Web App. Choose which button you'd like to display.
+
+- **Include TMDB Collections in Recommendation**:  
+  TMDB groups related movies (like sequels and film series) into 'collections.' These movies are not always included in TMDB’s default recommendations.
+  Enable this setting to add collection movies to the start of the TMDB recommendation list.
+  Tip: This is useful if you want all directly related movies shown, but it may clutter the catalog for films with many sequels or large franchises."
 
 - **Title-Based Searching**:  
   Enable this option to search by movie/show titles on top of IMDb IDs.
@@ -80,7 +88,7 @@ Here are some tips to get the best results:
 - Use TMDB over Cinemeta for more reliable metadata. (Requires a TMDB API key.)
 - Use the Stremio Addon Manager to move this addon to the top of the addon list. This ensures the catalog and stream button appear first.
   Note: Stremio recommends keeping Cinemeta at the top, so adjust with caution.
-- When manually searching by title, be precise and include both the year and type flags.
+- When manually searching by title, be precise and include both the year and type flags as shown above.
 
 # Known Issues/Limitation
 
