@@ -134,6 +134,61 @@ async function cleanMeta(rawMeta, imdbId) {
 	return meta;
 }
 
+async function fetchCollectionID(tmdbId, mediaType, apiKey) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}?language=en-US&api_key=${apiKey}`;
+
+		const response = await withTimeout(fetch(url), 5000, "TMDB collection id fetch timed out");
+		const json = await response.json();
+
+		const collectionID = json?.belongs_to_collection?.id;
+
+		return collectionID || null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
+async function fetchCollectionRecs(tmdbId, mediaType, apiKey) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		const collectionId = await fetchCollectionID(tmdbId, mediaType, apiKey);
+
+		if (collectionId) {
+			const url = `${TMDB_API_BASE_URL}/collection/${collectionId}?language=en-US&api_key=${apiKey}`;
+
+			const response = await withTimeout(fetch(url), 5000, "TMDB collection details fetch timed out");
+			const json = await response.json();
+
+			let collectionRecs = [];
+			const collectionParts = json?.parts;
+
+			if (collectionParts) {
+				collectionParts.forEach((part) => {
+					if (part.id !== tmdbId) {
+						const media = { id: part.id };
+						collectionRecs.push(media);
+					}
+				});
+				return collectionRecs;
+			}
+		}
+
+		return null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
 module.exports = {
 	validateAPIKey,
 	fetchSearchResult,
@@ -143,4 +198,5 @@ module.exports = {
 	getAPIEndpoint,
 	findByImdbId,
 	cleanMeta,
+	fetchCollectionRecs,
 };

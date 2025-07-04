@@ -6,7 +6,7 @@ const tastedive = require("../services/tastedive");
 const { titleToImdb } = require("./convertMetadata");
 const logger = require("../utils/logger");
 
-async function getTmdbRecs(searchImdb, searchType, apiKey, validKey) {
+async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdbCollection) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -20,12 +20,23 @@ async function getTmdbRecs(searchImdb, searchType, apiKey, validKey) {
 		return null;
 	}
 
-	const searchTmdb = searchedMedia[0]?.id;
+	const tmdbId = searchedMedia[0]?.id;
 
-	let recs = await tmdb.fetchRecommendations(searchTmdb, mediaTypeForAPI, apiKey);
+	let recs = [];
+	const baseRecs = (await tmdb.fetchRecommendations(tmdbId, mediaTypeForAPI, apiKey)) || [];
+
+	// Include TMDB collections into rec if enabled
+	if (includeTmdbCollection) {
+		const collectionRecs = (await tmdb.fetchCollectionRecs(tmdbId, mediaTypeForAPI, apiKey)) || [];
+		recs = [...collectionRecs, ...baseRecs];
+	} else {
+		recs = [...baseRecs];
+	}
+
 	if (!recs || recs.length === 0) {
 		return null;
 	}
+
 	recs = recs.filter((row) => row !== undefined);
 
 	// Get IMDB Id for all recs and add it's placement ranking
@@ -164,11 +175,11 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 	return recs;
 }
 
-async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys) {
+async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys, includeTmdbCollection) {
 	// Get recs from all sources
 	// prettier-ignore
 	const [tmdbRecs, traktRecs, simklRecs, geminiRecs, tastediveRecs] = await Promise.all([
-		getTmdbRecs(searchImdb, searchType, apiKeys.tmdb.key, apiKeys.tmdb.valid), 
+		getTmdbRecs(searchImdb, searchType, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection), 
 		getTraktRecs(searchImdb, searchType, apiKeys.trakt.key, apiKeys.trakt.valid), 
 		getSimklRecs(searchImdb, searchType, apiKeys.simkl.valid), 
 		getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid), 

@@ -140,7 +140,8 @@ async function startServer() {
 		const apiKeys = userConfig.apiKeys;
 		const metadataSource = userConfig.metadataSource;
 		const enableTitleSearching = userConfig.enableTitleSearching;
-		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, metadataSource, enableTitleSearching)) || [];
+		const includeTmdbCollection = userConfig.includeTmdbCollection;
+		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, apiKeys, metadataSource, enableTitleSearching, includeTmdbCollection)) || [];
 		res.json(catalog);
 	});
 
@@ -171,6 +172,7 @@ async function startServer() {
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 				metadataSource: req.body.metadataSource || "",
 				streamButtonPlatform: req.body.streamButtonPlatform || "",
+				includeTmdbCollection: req.body.includeTmdbCollection === "on" || false,
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
 

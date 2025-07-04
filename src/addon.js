@@ -6,8 +6,8 @@ const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
 const logger = require("../utils/logger");
 
-async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTitleSearching) {
-	// Retreive source data
+async function catalogHandler(type, id, extra, apiKeys, metadataSourceInput, enableTitleSearching, includeTmdbCollection) {
+	// Retreive and format source data. Used for cache and logging.
 	let catalogSource = id.split("-")[1];
 	if (catalogSource === "combined") {
 		for (let source in apiKeys) {
@@ -16,8 +16,11 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 			}
 		}
 	}
+	if (includeTmdbCollection && catalogSource.includes("tmdb")) {
+		catalogSource = catalogSource + "-collection";
+	}
 
-	const metaSource = { source: metadataSource === "tmdb" && apiKeys.tmdb.valid ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
+	const metadataSource = { source: metadataSourceInput === "tmdb" && apiKeys.tmdb.valid ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
 
 	// Parse search input
 	const searchParam = extra?.split("search=")[1];
@@ -54,7 +57,7 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 	let searchImdb;
 
 	if (searchKey.startsWith("tt")) {
-		const media = await IdToTitleYearType(searchKey, type, metaSource);
+		const media = await IdToTitleYearType(searchKey, type, metadataSource);
 		if (media) {
 			title = media.title;
 			year = media.year;
@@ -62,7 +65,7 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 
 		searchImdb = searchKey;
 	} else if (searchKey.startsWith("kitsu")) {
-		const kitsuMedia = await IdToTitleYearType(searchKey, type, metaSource);
+		const kitsuMedia = await IdToTitleYearType(searchKey, type, metadataSource);
 
 		// Return empty catalog for invalid kitsu id
 		if (!kitsuMedia) {
@@ -119,7 +122,7 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 		}
 
 		if (!title || !year) {
-			const media = await IdToTitleYearType(searchImdb, type, metaSource);
+			const media = await IdToTitleYearType(searchImdb, type, metadataSource);
 			if (media) {
 				title = media.title;
 				year = media.year;
@@ -136,9 +139,9 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 	let recs = [];
 	if (type === "movie") {
 		if (id === "mlt-combined-movie-rec") {
-			recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys);
+			recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
 		} else if (id === "mlt-tmdb-movie-rec") {
-			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid);
+			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
 		} else if (id === "mlt-trakt-movie-rec") {
 			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
 		} else if (id === "mlt-simkl-movie-rec") {
@@ -152,9 +155,9 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 		}
 	} else if (type === "series") {
 		if (id === "mlt-combined-series-rec") {
-			recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys);
+			recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
 		} else if (id == "mlt-tmdb-series-rec") {
-			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid);
+			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
 		} else if (id === "mlt-simkl-series-rec") {
 			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
 		} else if (id === "mlt-trakt-series-rec") {
@@ -176,7 +179,7 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSource, enableTi
 		logger.emptyCatalog(`${catalogSource.toUpperCase()}: No recs found`, { title, year, type, searchImdb });
 		return { metas: [] };
 	} else {
-		catalog = await catalogManager.createRecCatalog(recs, type, apiKeys.rpdb, metaSource);
+		catalog = await catalogManager.createRecCatalog(recs, type, apiKeys.rpdb, metadataSource);
 
 		if (!catalog) {
 			logger.emptyCatalog(`${catalogSource.toUpperCase()}: Catalog Creation Error`, { title, year, type, searchImdb });
