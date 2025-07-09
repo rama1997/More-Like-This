@@ -124,7 +124,7 @@ h1 {
 
 .form-group label {
 	display: block;
-	margin-bottom: 8px;
+	margin-bottom: 2px;
 	color: var(--text-primary);
 	font-weight: 500;
 	font-size: 0.95em;
@@ -152,7 +152,7 @@ h1 {
 }
 
 .key-help {
-	margin-top: 8px;
+	margin-bottom: 6px;
 	font-size: 0.85em;
 	color: var(--text-secondary);
 }
@@ -547,4 +547,67 @@ h1 {
 	outline: none;
 	border-color: var(--accent-purple);
 	box-shadow: 0 0 0 3px var(--shadow-light);
+}
+
+/* API Key Verification Styles */
+.input-with-verify {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.input-with-verify input {
+	flex: 1;
+}
+
+.verify-btn {
+	background: var(--accent-purple);
+	color: var(--text-primary);
+	border: none;
+	padding: 12px 16px;
+	border-radius: 8px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	white-space: nowrap;
+	transition: all 0.3s ease;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.verify-btn:hover {
+	background: var(--accent-hover);
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.verify-btn:disabled {
+	background: var(--border-color);
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.verify-btn.verifying {
+	background: #fbbf24;
+	color: var(--bg-primary);
+}
+
+.verify-btn.success {
+	background: #10b981;
+}
+
+.verify-status {
+	margin-top: 2px;
+	font-size: 0.85em;
+	min-height: 18px;
+	font-weight: 500;
+}
+
+.verify-status.success {
+	color: #10b981;
+}
+
+.verify-status.error {
+	color: #ef4444;
 }

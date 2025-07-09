@@ -32,26 +32,42 @@
 
 					<div class="form-group">
 						<label for="tmdbApiKey">TMDB API Key</label>
-						<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" />
 						<p class="key-help">Get your free TMDB key <a href="https://www.themoviedb.org/settings/api" target="_blank">here</a></p>
+						<div class="input-with-verify">
+							<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" />
+							<button type="button" class="verify-btn" onclick="verifyApiKey('tmdb')">Verify Key</button>
+						</div>
+						<div id="tmdb-verify-status" class="verify-status"></div>
 					</div>
 
 					<div class="form-group">
 						<label for="traktApiKey">Trakt API Key</label>
-						<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter Trakt API Key" />
 						<p class="key-help">Get your free Trakt key <a href="https://trakt.tv/oauth/applications" target="_blank">here</a></p>
+						<div class="input-with-verify">
+							<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter Trakt API Key" />
+							<button type="button" class="verify-btn" onclick="verifyApiKey('trakt')">Verify Key</button>
+						</div>
+						<div id="trakt-verify-status" class="verify-status"></div>
 					</div>
 
 					<div class="form-group">
-						<label for="geminiApiKey">Gemini AI API Key</label>
-						<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter your Gemini AI key" />
+						<label for="geminiApiKey">Gemini AI API Key </label>
 						<p class="key-help">Get your free Gemini AI key <a href="https://aistudio.google.com/app/apikey" target="_blank">here</a></p>
+						<div class="input-with-verify">
+							<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter your Gemini AI key" />
+							<button type="button" class="verify-btn" onclick="verifyApiKey('gemini')">Verify Key</button>
+						</div>
+						<div id="gemini-verify-status" class="verify-status"></div>
 					</div>
 
 					<div class="form-group">
 						<label for="tastediveApiKey">TasteDive API Key</label>
-						<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TasteDive API Key" />
 						<p class="key-help">Get your free TasteDive key <a href="https://tastedive.com/account/api_access" target="_blank">here</a></p>
+						<div class="input-with-verify">
+							<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TasteDive API Key" />
+							<button type="button" class="verify-btn" onclick="verifyApiKey('tastedive')">Verify Key</button>
+						</div>
+						<div id="tastedive-verify-status" class="verify-status"></div>
 					</div>
 
 					<div class="toggle-group">
@@ -157,7 +173,7 @@
 							<span class="toggle-label">Include TMDB Collections in Recommendation</span>
 							<div class="tooltip-container">
 								<div class="tooltip-icon">?</div>
-								<div class="tooltip-text">TMDB groups related movies—like sequels and series—into 'collections.' These movies are not always included in TMDB’s default recommendations. Enable this setting to add collection movies to the start of the TMDB recommendation list.</div>
+								<div class="tooltip-text">TMDB groups related movies—like sequels and series—into 'collections.' These movies are not always included in TMDB's default recommendations. Enable this setting to add collection movies to the start of the TMDB recommendation list.</div>
 							</div>
 						</div>
 						<label class="toggle">
@@ -182,8 +198,12 @@
 
 					<div class="form-group">
 						<label for="rpdbApiKey">RPDB API Key</label>
-						<input type="text" id="rpdbApiKey" name="rpdbApiKey" placeholder="Enter your RPDB key" />
 						<p class="key-help">Get your RPDB key <a href="https://ratingposterdb.com/api-key/" target="_blank">here</a></p>
+						<div class="input-with-verify">
+							<input type="text" id="rpdbApiKey" name="rpdbApiKey" placeholder="Enter your RPDB key" />
+							<button type="button" class="verify-btn" onclick="verifyApiKey('rpdb')">Verify Key</button>
+						</div>
+						<div id="rpdb-verify-status" class="verify-status"></div>
 					</div>
 
 					<input type="hidden" name="forCopy" id="forCopy" value="false" />
@@ -215,5 +235,6 @@
 		<script src="catalogOrder.js"></script>
 		<script src="installButtons.js"></script>
 		<script src="loadUserConfig.js"></script>
+		<script src="apiKeyVerification.js"></script>
 	</body>
 </html>

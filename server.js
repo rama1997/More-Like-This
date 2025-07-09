@@ -188,6 +188,21 @@ async function startServer() {
 		}
 	});
 
+	app.post("/verifyKey", async (req, res) => {
+		try {
+			const { source, key } = req.body;
+
+			if (!source || !key) {
+				return res.status(400).json({ valid: false, error: "Missing source or key" });
+			}
+
+			const result = await validateApiKeys({ [source]: key });
+			res.json(result[source]);
+		} catch (err) {
+			res.status(500).json({ valid: false, error: "Server error during validation" });
+		}
+	});
+
 	app.listen(PORT, () => {});
 }
 
