@@ -13,6 +13,7 @@ async function verifyApiKey(source) {
 	// Basic validation
 	if (!apiKey) {
 		status.textContent = "Please enter a key.";
+		status.classList.add("error");
 		return;
 	}
 

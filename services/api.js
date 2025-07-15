@@ -15,8 +15,6 @@ async function validateApiKeys(apiKeys) {
 		rpdb: rpdb.validateAPIKey,
 	};
 
-	console.log(apiKeys);
-
 	const results = {};
 
 	for (const [keyName, keyValue] of Object.entries(apiKeys)) {
