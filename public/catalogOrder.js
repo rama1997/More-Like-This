@@ -1,17 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 	const catalogOrder = document.querySelector(".catalog-order");
 	const catalogOrderInput = document.getElementById("catalogOrder");
-	const combineCatalogsCheckbox = document.getElementById("combineCatalogs");
-	const catalogOrderSection = document.getElementById("catalogOrderSection");
-
-	// Only show catalog order menu if the option to combine all catalogs is unchecked
-	combineCatalogsCheckbox.addEventListener("change", (e) => {
-		if (e.target.checked) {
-			catalogOrderSection.style.display = "none";
-		} else {
-			catalogOrderSection.style.display = "block";
-		}
-	});
 
 	function updateCatalogOrderInput() {
 		const items = [...catalogOrder.querySelectorAll(".catalog-name")];

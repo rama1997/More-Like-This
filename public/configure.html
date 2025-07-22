@@ -100,7 +100,7 @@
 						</label>
 					</div>
 
-					<div id="catalogOrderSection" class="catalog-order-section">
+					<div id="catalogOrderSection" class="catalog-order-section conditional-setting hidden" data-conditional="combineCatalogs" data-show-if="false">
 						<div class="label-with-tooltip">
 							<label>Catalog Order</label>
 							<div class="tooltip-container">
@@ -170,10 +170,10 @@
 
 					<div class="toggle-group">
 						<div class="toggle-info">
-							<span class="toggle-label">Include TMDB Collections in Recommendation</span>
+							<span class="toggle-label">Include TMDB Collections in TMDB Recommendation</span>
 							<div class="tooltip-container">
 								<div class="tooltip-icon">?</div>
-								<div class="tooltip-text">TMDB groups related movies—like sequels and series—into 'collections.' These movies are not always included in TMDB's default recommendations. Enable this setting to add collection movies to the start of the TMDB recommendation list.</div>
+								<div class="tooltip-text">TMDB groups related movies, like sequels and series, into 'collections.' These movies are not always included in TMDB's default recommendations. Enable to add collection movies to the start of the TMDB recommendation list.</div>
 							</div>
 						</div>
 						<label class="toggle">
@@ -232,6 +232,7 @@
 			}
 		</script>
 
+		<script src="conditionalSettings.js"></script>
 		<script src="catalogOrder.js"></script>
 		<script src="installButtons.js"></script>
 		<script src="loadUserConfig.js"></script>

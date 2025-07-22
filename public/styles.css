@@ -611,3 +611,19 @@ h1 {
 .verify-status.error {
 	color: #ef4444;
 }
+
+.conditional-setting {
+	overflow: hidden;
+	max-height: 0;
+	opacity: 0;
+	transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.conditional-setting.visible {
+	max-height: 500px;
+	opacity: 1;
+}
+
+.conditional-setting.hidden {
+	display: none !important;
+}
