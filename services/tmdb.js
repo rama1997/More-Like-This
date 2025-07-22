@@ -68,7 +68,7 @@ async function fetchImdbID(tmdbId, mediaType, apiKey) {
 	}
 }
 
-async function fetchMediaDetails(id, mediaType, apiKey) {
+async function fetchMediaDetails(id, mediaType, apiKey, language) {
 	if (!id || !mediaType) {
 		return null;
 	}
@@ -78,9 +78,9 @@ async function fetchMediaDetails(id, mediaType, apiKey) {
 
 		// Get details through different endpoints depending on what type of id is given. Either imdb id or tmdb id
 		if (id.toString().startsWith("tt")) {
-			url = `${TMDB_API_BASE_URL}/find/${id}?external_source=imdb_id&api_key=${apiKey}`;
+			url = `${TMDB_API_BASE_URL}/find/${id}?external_source=imdb_id&language=${language}&api_key=${apiKey}`;
 		} else {
-			url = `${TMDB_API_BASE_URL}/${mediaType}/${id}?language=en-US&api_key=${apiKey}`;
+			url = `${TMDB_API_BASE_URL}/${mediaType}/${id}?language=${language}&api_key=${apiKey}`;
 		}
 
 		const response = await withTimeout(fetch(url), 5000, "TMDB media details fetch timed out");

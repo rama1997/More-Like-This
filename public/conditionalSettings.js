@@ -3,24 +3,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	function updateVisibility(triggerId) {
 		const triggerEl = document.getElementById(triggerId);
-		const triggerValue = triggerEl.type === "checkbox" ? (triggerEl.checked ? "true" : "false") : triggerEl.value;
+		const triggerValue = triggerEl.type === "checkbox" ? (triggerEl.checked ? "true" : "false") : triggerEl.value.trim();
 
 		conditionalSections.forEach((section) => {
 			if (section.getAttribute("data-conditional") !== triggerId) return;
 
 			const showIfValue = section.getAttribute("data-show-if");
+			const isNotEmptyCondition = showIfValue === "not-empty";
 
-			if (triggerValue === showIfValue) {
+			const shouldShow = (isNotEmptyCondition && triggerValue !== "") || (!isNotEmptyCondition && triggerValue === showIfValue);
+
+			if (shouldShow) {
 				section.classList.remove("hidden");
-				// Force reflow to ensure animation plays
-				void section.offsetWidth;
+				void section.offsetWidth; // Force reflow to ensure animation plays
 				section.classList.add("visible");
 			} else {
 				section.classList.remove("visible");
 				// Wait for animation transition to finish before fully hiding
 				setTimeout(() => {
 					section.classList.add("hidden");
-				}, 300); // match the CSS transition duration
+				}, 300);
 			}
 		});
 	}

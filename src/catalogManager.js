@@ -47,6 +47,7 @@ async function createMeta(imdbId, type, rpdbApiKey, metaSource) {
 		meta = {
 			id: media.imdb_id,
 			name: media.title,
+			description: media.overview,
 			poster: poster,
 			backdrop: media.backdrop,
 			type: mediaType,

@@ -8,13 +8,14 @@ async function imdbToMeta(imdbId, type, metaSource) {
 	const source = metaSource.source;
 	const tmdbApiKey = metaSource.tmdbApiKey.key;
 	const validKey = metaSource.tmdbApiKey.valid;
+	const language = metaSource.language;
 
 	try {
 		// Get metadata from tmdb
 		if (source == "tmdb" && validKey) {
 			const mediaTypeForAPI = await tmdb.getAPIEndpoint(type);
 
-			const res = await tmdb.fetchMediaDetails(imdbId, mediaTypeForAPI, tmdbApiKey);
+			const res = await tmdb.fetchMediaDetails(imdbId, mediaTypeForAPI, tmdbApiKey, language);
 			if (!res || res.length === 0) {
 				return null;
 			}

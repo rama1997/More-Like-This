@@ -613,7 +613,6 @@ h1 {
 }
 
 .conditional-setting {
-	overflow: hidden;
 	max-height: 0;
 	opacity: 0;
 	transition: max-height 0.3s ease, opacity 0.3s ease;

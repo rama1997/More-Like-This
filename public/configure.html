@@ -40,6 +40,20 @@
 						<div id="tmdb-verify-status" class="verify-status"></div>
 					</div>
 
+					<div class="toggle-group conditional-setting hidden" data-conditional="tmdbApiKey" data-show-if="not-empty">
+						<div class="toggle-info">
+							<span class="toggle-label">Include TMDB Collections in TMDB Recommendation</span>
+							<div class="tooltip-container">
+								<div class="tooltip-icon">?</div>
+								<div class="tooltip-text">TMDB groups related movies, like sequels and series, into 'collections.' These movies are not always included in TMDB's default recommendations. Enable to add collection movies to the start of the TMDB recommendation list.</div>
+							</div>
+						</div>
+						<label class="toggle">
+							<input type="checkbox" id="includeTmdbCollection" name="includeTmdbCollection" />
+							<span class="toggle-slider"></span>
+						</label>
+					</div>
+
 					<div class="form-group">
 						<label for="traktApiKey">Trakt API Key</label>
 						<p class="key-help">Get your free Trakt key <a href="https://trakt.tv/oauth/applications" target="_blank">here</a></p>
@@ -146,7 +160,18 @@
 						<div class="dropdown-container">
 							<select id="metadataSource" name="metadataSource">
 								<option value="cinemeta">Cinemeta (Default)</option>
-								<option value="tmdb">TMDB</option>
+								<option value="tmdb">TMDB (Requires TMDB API Key)</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="dropdown-group conditional-setting hidden" data-conditional="metadataSource" data-show-if="tmdb">
+						<div class="dropdown-info">
+							<span class="dropdown-label">Language</span>
+						</div>
+						<div class="dropdown-container">
+							<select id="language" name="language">
+								<option value="en">English (Default)</option>
 							</select>
 						</div>
 					</div>
@@ -166,20 +191,6 @@
 								<option value="app">App</option>
 							</select>
 						</div>
-					</div>
-
-					<div class="toggle-group">
-						<div class="toggle-info">
-							<span class="toggle-label">Include TMDB Collections in TMDB Recommendation</span>
-							<div class="tooltip-container">
-								<div class="tooltip-icon">?</div>
-								<div class="tooltip-text">TMDB groups related movies, like sequels and series, into 'collections.' These movies are not always included in TMDB's default recommendations. Enable to add collection movies to the start of the TMDB recommendation list.</div>
-							</div>
-						</div>
-						<label class="toggle">
-							<input type="checkbox" id="includeTmdbCollection" name="includeTmdbCollection" />
-							<span class="toggle-slider"></span>
-						</label>
 					</div>
 
 					<div class="toggle-group">
@@ -232,10 +243,11 @@
 			}
 		</script>
 
+		<script src="populateLanguages.js"></script>
+		<script src="loadUserConfig.js"></script>
+		<script src="apiKeyVerification.js"></script>
 		<script src="conditionalSettings.js"></script>
 		<script src="catalogOrder.js"></script>
 		<script src="installButtons.js"></script>
-		<script src="loadUserConfig.js"></script>
-		<script src="apiKeyVerification.js"></script>
 	</body>
 </html>

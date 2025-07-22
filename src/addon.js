@@ -6,7 +6,14 @@ const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
 const logger = require("../utils/logger");
 
-async function catalogHandler(type, id, extra, apiKeys, metadataSourceInput, enableTitleSearching, includeTmdbCollection) {
+async function catalogHandler(type, id, extra, userConfig) {
+	// Get user config settings
+	const apiKeys = userConfig.apiKeys;
+	const metadataSourceInput = userConfig.metadataSource;
+	const enableTitleSearching = userConfig.enableTitleSearching;
+	const includeTmdbCollection = userConfig.includeTmdbCollection;
+	const language = userConfig.language;
+
 	// Retreive and format source data. Used for cache and logging.
 	let catalogSource = id.split("-")[1];
 	if (catalogSource === "combined") {
@@ -20,7 +27,16 @@ async function catalogHandler(type, id, extra, apiKeys, metadataSourceInput, ena
 		catalogSource = catalogSource + "-collection";
 	}
 
-	const metadataSource = { source: metadataSourceInput === "tmdb" && apiKeys.tmdb.valid ? "tmdb" : "cinemeta", tmdbApiKey: apiKeys.tmdb };
+	if (language) {
+		catalogSource = catalogSource + `-${language}`;
+	}
+
+	// Retreieve and format meta data source
+	const metadataSource = {
+		source: metadataSourceInput === "tmdb" && apiKeys.tmdb.valid ? "tmdb" : "cinemeta",
+		tmdbApiKey: apiKeys.tmdb,
+		language: language,
+	};
 
 	// Parse search input
 	const searchParam = extra?.split("search=")[1];

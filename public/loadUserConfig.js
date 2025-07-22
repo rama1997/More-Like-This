@@ -22,13 +22,11 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		// Combined Catalog
-		const combineCatalogsCheckbox = document.getElementById("combineCatalogs");
-		const catalogOrderSection = document.getElementById("catalogOrderSection");
-		if (combineCatalogsCheckbox) {
+		// Combine Catalog
+		const combineCatalogCheckbox = document.getElementById("combineCatalogs");
+		if (combineCatalogCheckbox) {
 			if (config.combineCatalogs) {
-				combineCatalogsCheckbox.checked = true;
-				catalogOrderSection.style.display = "none";
+				combineCatalogCheckbox.checked = true;
 			}
 		}
 
@@ -59,6 +57,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		const metadataSourceSelect = document.getElementById("metadataSource");
 		if (metadataSourceSelect && config.metadataSource) {
 			metadataSourceSelect.value = config.metadataSource;
+		}
+
+		const languageSelect = document.getElementById("language");
+		if (languageSelect && config.language) {
+			languageSelect.value = config.language;
 		}
 
 		const streamButtonPlatform = document.getElementById("streamButtonPlatform");
