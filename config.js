@@ -4,8 +4,7 @@ require("dotenv").config();
 const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
 
 // Server
-const PORT = process.env.PORT || 7000;
-const HOST = process.env.LOCAL === "true" ? `localhost:${PORT}` : "bbab4a35b833-more-like-this.baby-beamup.club";
+const PORT = process.env.PORT || 3000;
 
 // Cache Configs
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // Cache expiration time - 1 week
@@ -62,5 +61,4 @@ module.exports = {
 	MAX_CACHE_SIZE,
 	ENABLE_LOGGING,
 	PORT,
-	HOST,
 };

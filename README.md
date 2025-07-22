@@ -16,7 +16,7 @@
 
 # Features
 
-- Pulls recommendations from four different sources:
+- Pulls recommendations from several different sources:
   - **TMDB** (Including TMDB Collections)
   - **Trakt**
   - **Simkl**
@@ -35,6 +35,66 @@ Install the addon directly from:
 
 You’ll need API keys for the sources you wish to use. For example, if you want only TMDB recommendations, you only need a TMDB API key.
 Links to obtain free API keys are available on the addon’s configuration page.
+
+## Docker
+
+1. Build Docker Image
+
+```bash
+docker build -t more-like-this .
+```
+
+2. Run Docker Container
+
+```bash
+docker run -p 8080:3000 more-like-this
+```
+
+3. Access the addon's configure page at `localhost:8080`.
+
+4. You can also pull Docker image from Docker Hub
+
+```bash
+docker pull raymadev/more-like-this-stremio-addon
+```
+
+## Running Locally From Source
+
+1. Clone the project repository and set it as the current directory
+
+```bash
+git clone https://github.com/rama1997/More-Like-This.git
+```
+
+```bash
+cd More-Like-This
+```
+
+2. Create your local environment config by copying the environment example file:
+
+```bash
+cp .env.example .env
+```
+
+3. Open `.env` and set the following:
+
+```bash
+PORT=your_desired_port_number
+```
+
+4. Install project dependencies
+
+```bash
+npm install
+```
+
+5. Run project
+
+```bash
+npm start
+```
+
+6. Access the addon's configure page at `localhost:PORT`
 
 # Configuration
 

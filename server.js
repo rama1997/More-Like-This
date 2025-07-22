@@ -4,7 +4,7 @@ const { catalogHandler, streamHandler } = require("./src/addon");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { PORT, HOST } = require("./config");
+const { PORT } = require("./config");
 const { validateApiKeys } = require("./services/api");
 
 async function detectPlatform(user_agent, origin) {
@@ -178,10 +178,11 @@ async function startServer() {
 
 			const userConfig = encodeURIComponent(JSON.stringify(config));
 
+			const host = req.headers.host;
 			if (req.body.forCopy === "true") {
-				res.redirect(`http://${HOST}/${userConfig}/manifest.json`);
+				res.redirect(`http://${host}/${userConfig}/manifest.json`);
 			} else {
-				res.redirect(`stremio://${HOST}/${userConfig}/manifest.json`);
+				res.redirect(`stremio://${host}/${userConfig}/manifest.json`);
 			}
 		} catch (error) {
 			res.status(400).send("Error: Something went wrong. Please try again.");
