@@ -143,6 +143,9 @@ async function catalogHandler(type, id, extra, userConfig) {
 				title = media.title;
 				year = media.year;
 			}
+			if (!title || !year) {
+				return { metas: [] };
+			}
 		}
 	} else {
 		// Addon does not continue if an associated IMDB Id is not found for the search input
@@ -162,10 +165,12 @@ async function catalogHandler(type, id, extra, userConfig) {
 			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
 		} else if (id === "mlt-simkl-movie-rec") {
 			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
-		} else if (id === "mlt-tastedive-movie-rec") {
-			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid);
 		} else if (id === "mlt-gemini-movie-rec") {
 			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid);
+		} else if (id === "mlt-tastedive-movie-rec") {
+			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid);
+		} else if (id === "mlt-watchmode-movie-rec") {
+			recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
 		} else {
 			recs = [];
 		}
@@ -178,10 +183,12 @@ async function catalogHandler(type, id, extra, userConfig) {
 			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
 		} else if (id === "mlt-trakt-series-rec") {
 			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
-		} else if (id === "mlt-tastedive-series-rec") {
-			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid);
 		} else if (id === "mlt-gemini-series-rec") {
 			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid);
+		} else if (id === "mlt-tastedive-series-rec") {
+			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid);
+		} else if (id === "mlt-watchmode-series-rec") {
+			recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
 		} else {
 			recs = [];
 		}

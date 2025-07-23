@@ -156,6 +156,7 @@ async function startServer() {
 				simkl: req.body.simkl === "on" ? "default" : "",
 				tastedive: req.body.tastediveApiKey || "",
 				gemini: req.body.geminiApiKey || "",
+				watchmode: req.body.watchmodeApiKey || "",
 				rpdb: req.body.rpdbApiKey || "",
 			};
 

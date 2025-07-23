@@ -9,12 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			const geminiInput = document.getElementById("geminiApiKey");
 			const tastediveInput = document.getElementById("tastediveApiKey");
 			const rpdbInput = document.getElementById("rpdbApiKey");
+			const watchmodeInput = document.getElementById("watchmodeApiKey");
 
 			if (tmdbInput) tmdbInput.value = config.apiKeys.tmdb?.key || "";
 			if (traktInput) traktInput.value = config.apiKeys.trakt?.key || "";
 			if (geminiInput) geminiInput.value = config.apiKeys.gemini?.key || "";
 			if (tastediveInput) tastediveInput.value = config.apiKeys.tastedive?.key || "";
 			if (rpdbInput) rpdbInput.value = config.apiKeys.rpdb?.key || "";
+			if (watchmodeInput) watchmodeInput.value = config.apiKeys.watchmode?.key || "";
 
 			const simklCheckbox = document.getElementById("simkl");
 			if (simklCheckbox && config.apiKeys.simkl?.valid) {

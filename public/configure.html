@@ -84,6 +84,16 @@
 						<div id="tastedive-verify-status" class="verify-status"></div>
 					</div>
 
+					<div class="form-group">
+						<label for="watchmodeApiKey">Watchmode API Key</label>
+						<p class="key-help">Get your free Watchmode key <a href="https://api.watchmode.com/requestApiKey/" target="_blank">here</a></p>
+						<div class="input-with-verify">
+							<input type="text" id="watchmodeApiKey" name="watchmodeApiKey" placeholder="Enter Watchmode API Key" />
+							<button type="button" class="verify-btn" onclick="verifyApiKey('watchmode')">Verify Key</button>
+						</div>
+						<div id="watchmode-verify-status" class="verify-status"></div>
+					</div>
+
 					<div class="toggle-group">
 						<div class="toggle-info">
 							<span class="toggle-label">Simkl Recommendations</span>
@@ -143,7 +153,11 @@
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">TasteDive</span>
 							</div>
-							<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,Simkl,Gemini AI,TasteDive" />
+							<div id="watchmode-catalog" class="catalog-item">
+								<span class="catalog-icon">≡</span>
+								<span class="catalog-name">Watchmode</span>
+							</div>
+							<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,Simkl,Gemini AI,TasteDive,Watchmode" />
 						</div>
 					</div>
 

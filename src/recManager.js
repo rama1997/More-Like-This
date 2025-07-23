@@ -3,6 +3,7 @@ const trakt = require("../services/trakt");
 const simkl = require("../services/simkl");
 const gemini = require("../services/gemini");
 const tastedive = require("../services/tastedive");
+const watchmode = require("../services/watchmode");
 const { titleToImdb } = require("./convertMetadata");
 const logger = require("../utils/logger");
 
@@ -175,19 +176,63 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 	return recs;
 }
 
+async function getWatchmodeRecs(searchImdb, searchType, apiKey, validKey) {
+	if (!searchImdb || searchImdb === "" || !validKey) {
+		return null;
+	}
+
+	// Get recs based on the found media
+	let recs = await watchmode.fetchRecommendations(searchImdb, apiKey);
+	if (!recs || recs.length === 0) {
+		return null;
+	}
+	recs = recs.filter((row) => row !== undefined);
+
+	let movieRecs = [];
+	let seriesRecs = [];
+
+	for (let r of recs) {
+		const media = await watchmode.watchmodeToImdbId(r, apiKey);
+		if (media) {
+			if (media.type === "tv") {
+				seriesRecs.push(media.imdbId);
+			} else if (media.type === "movie") {
+				movieRecs.push(media.imdbId);
+			}
+		}
+	}
+
+	if (searchType === "movie") {
+		return await Promise.all(
+			movieRecs.map(async (id, index) => {
+				return { id: id, ranking: index + 1 };
+			}),
+		);
+	} else if (searchType === "series") {
+		return await Promise.all(
+			seriesRecs.map(async (id, index) => {
+				return { id: id, ranking: index + 1 };
+			}),
+		);
+	}
+
+	return null;
+}
+
 async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys, includeTmdbCollection) {
 	// Get recs from all sources
 	// prettier-ignore
-	const [tmdbRecs, traktRecs, simklRecs, geminiRecs, tastediveRecs] = await Promise.all([
+	const [tmdbRecs, traktRecs, simklRecs, geminiRecs, tastediveRecs, watchmodeRecs] = await Promise.all([
 		getTmdbRecs(searchImdb, searchType, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection), 
 		getTraktRecs(searchImdb, searchType, apiKeys.trakt.key, apiKeys.trakt.valid), 
 		getSimklRecs(searchImdb, searchType, apiKeys.simkl.valid), 
 		getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid), 
-		getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid)
+		getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid),
+		getWatchmodeRecs(searchImdb, searchType, apiKeys.watchmode.key, apiKeys.watchmode.valid,)
 	]);
 
 	// Merge recs into one array
-	const merged = [...(tmdbRecs || []), ...(traktRecs || []), ...(simklRecs || []), ...(geminiRecs || []), ...(tastediveRecs || [])];
+	const merged = [...(tmdbRecs || []), ...(traktRecs || []), ...(simklRecs || []), ...(geminiRecs || []), ...(tastediveRecs || []), ...(watchmodeRecs || [])];
 
 	if (merged.length === 0) {
 		logger.emptyCatalog("COMBINED: Empty catalog after merge", searchTitle);
@@ -228,5 +273,6 @@ module.exports = {
 	getSimklRecs,
 	getTastediveRecs,
 	getGeminiRecs,
+	getWatchmodeRecs,
 	getCombinedRecs,
 };

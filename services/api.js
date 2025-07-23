@@ -4,6 +4,7 @@ const simkl = require("../services/simkl");
 const gemini = require("../services/gemini");
 const rpdb = require("../services/rpdb");
 const tastedive = require("../services/tastedive");
+const watchmode = require("../services/watchmode");
 
 async function validateApiKeys(apiKeys) {
 	const validators = {
@@ -13,6 +14,7 @@ async function validateApiKeys(apiKeys) {
 		tastedive: tastedive.validateAPIKey,
 		gemini: gemini.validateAPIKey,
 		rpdb: rpdb.validateAPIKey,
+		watchmode: watchmode.validateAPIKey,
 	};
 
 	const results = {};

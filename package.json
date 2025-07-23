@@ -9,6 +9,7 @@
 	"dependencies": {
 		"@google/generative-ai": "^0.22.0",
 		"cors": "^2.8.5",
+		"csv-parser": "^3.2.0",
 		"dotenv": "^16.4.7",
 		"express": "^4.21.2",
 		"name-to-imdb": "^3.0.4",
