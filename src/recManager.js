@@ -83,7 +83,6 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 
 	// Get specific Trakt terminlogy for movie/series for API endpoints
 	const mediaTypeForAPI = await simkl.getAPIEndpoint(searchType);
-	const returnTypeCheck = mediaTypeForAPI === "movies" ? "movie" : "tv";
 
 	// Get recs based on the found media
 	let recs = await simkl.fetchRecommendations(searchImdb, mediaTypeForAPI);
@@ -91,18 +90,36 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 		return null;
 	}
 
-	recs = recs.filter((row) => row !== undefined && (row.type === returnTypeCheck || row.anime_type === returnTypeCheck));
+	recs = recs.filter((row) => row !== undefined);
 
-	// Get IMDB Id for all recs and add it's placement ranking
-	const recsImdbId = await Promise.all(
-		recs.map(async (rec, index) => {
-			const simklId = rec.ids.simkl;
-			const imdbId = await simkl.simklToImdbId(simklId, mediaTypeForAPI);
-			return { id: imdbId ?? null, ranking: index + 1 };
-		}),
-	);
+	let movieRecs = [];
+	let seriesRecs = [];
 
-	return recsImdbId;
+	for (let r of recs) {
+		if (r.type === "movie" || r.anime_type === "movie") {
+			movieRecs.push(r.ids.simkl);
+		} else if (r.type === "tv" || r.anime_type === "tv") {
+			seriesRecs.push(r.ids.simkl);
+		}
+	}
+
+	if (searchType === "movie") {
+		return await Promise.all(
+			movieRecs.map(async (id, index) => {
+				const imdbId = await simkl.simklToImdbId(id, mediaTypeForAPI);
+				return { id: imdbId, ranking: index + 1 };
+			}),
+		);
+	} else if (searchType === "series") {
+		return await Promise.all(
+			seriesRecs.map(async (id, index) => {
+				const imdbId = await simkl.simklToImdbId(id, mediaTypeForAPI);
+				return { id: imdbId, ranking: index + 1 };
+			}),
+		);
+	}
+
+	return null;
 }
 
 async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey) {
