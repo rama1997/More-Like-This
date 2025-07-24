@@ -25,9 +25,9 @@ async function getAPIEndpoint(mediaType) {
 	return mediaType === "movie" ? "movie" : "tv";
 }
 
-async function fetchSearchResult(title, year, mediaType, apiKey) {
+async function fetchSearchResult(title, year, mediaType, apiKey, language) {
 	try {
-		let url = `${TMDB_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}&include_adult=false&language=en-US&page=1&api_key=${apiKey}`;
+		let url = `${TMDB_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}&include_adult=false&language=${language}&page=1&api_key=${apiKey}`;
 
 		if (year && year !== "") {
 			url = url + `&year=${year}`;

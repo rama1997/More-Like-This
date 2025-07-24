@@ -122,7 +122,7 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 	return null;
 }
 
-async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey) {
+async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey, metadataSource) {
 	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -141,7 +141,7 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 	if (!foundMedia || foundMedia.length === 0) {
 		return null;
 	}
-	const foundMediaImdb = await titleToImdb(foundMedia.name, null, foundMedia.type);
+	const foundMediaImdb = await titleToImdb(foundMedia.name, null, foundMedia.type, metadataSource);
 	if (searchImdb && foundMediaImdb !== searchImdb) {
 		return null;
 	}
@@ -154,14 +154,14 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 	// Get IMDB Ids for all the rec titles and add it's placement ranking
 	let recs = await Promise.all(
 		recTitles.map(async (rec, index) => {
-			return { id: await titleToImdb(rec.name, null, searchType), ranking: index + 1 };
+			return { id: await titleToImdb(rec.name, null, searchType, metadataSource), ranking: index + 1 };
 		}),
 	);
 
 	return recs;
 }
 
-async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey) {
+async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey, metadataSource) {
 	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -172,10 +172,9 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 		return null;
 	}
 
-	// If recs were found, verify that it is for the proper search input by comparing Imdb Ids
-	// The first item of Gemini Recs is always the search input
+	// If recs were found, verify that the first item is the search input by comparing imdb id
 	const foundMedia = recTitles[0];
-	const foundMediaImdb = await titleToImdb(foundMedia?.title, foundMedia?.year, searchType);
+	const foundMediaImdb = await titleToImdb(foundMedia?.title, foundMedia?.year, searchType, metadataSource);
 	if (searchImdb && foundMediaImdb !== searchImdb) {
 		return null;
 	}
@@ -186,7 +185,7 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 			.slice(1)
 			.filter((row) => row[0] !== "") // Remove blank rows
 			.map(async (rec, index) => {
-				return { id: await titleToImdb(rec.title, rec.year, searchType), ranking: index + 1 };
+				return { id: await titleToImdb(rec.title, rec.year, searchType, metadataSource), ranking: index + 1 };
 			}),
 	);
 

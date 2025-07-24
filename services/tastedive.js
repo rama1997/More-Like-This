@@ -25,7 +25,7 @@ async function getAPIEndpoint(mediaType) {
 
 async function fetchRecs(title, year, mediaType, apiKey) {
 	try {
-		const cleanedTitle = title.replace(/[^a-zA-Z0-9 ]/g, "");
+		const cleanedTitle = title.replace(/[^\p{L}\p{N} ]/gu, "");
 
 		const searchInput = year ? encodeURI(cleanedTitle) : encodeURI(cleanedTitle);
 

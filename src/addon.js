@@ -2,8 +2,6 @@ const { parseSearchKey } = require("../utils/parser");
 const { titleToImdb, IdToTitleYearType } = require("./convertMetadata");
 const catalogManager = require("./catalogManager");
 const recManager = require("./recManager");
-const tmdb = require("../services/tmdb");
-const trakt = require("../services/trakt");
 const logger = require("../utils/logger");
 
 async function catalogHandler(type, id, extra, userConfig) {
@@ -35,6 +33,7 @@ async function catalogHandler(type, id, extra, userConfig) {
 	const metadataSource = {
 		source: metadataSourceInput === "tmdb" && apiKeys.tmdb.valid ? "tmdb" : "cinemeta",
 		tmdbApiKey: apiKeys.tmdb,
+		traktApiKey: apiKeys.trakt,
 		language: language,
 	};
 
@@ -67,7 +66,7 @@ async function catalogHandler(type, id, extra, userConfig) {
 		return { metas: cachedRecsCatalog };
 	}
 
-	// Convert search input to IMDB id or title/year for source API search
+	// Convert search input to IMDB Id, title, and year
 	let title;
 	let year;
 	let searchImdb;
@@ -92,41 +91,11 @@ async function catalogHandler(type, id, extra, userConfig) {
 		title = kitsuMedia.title;
 		year = kitsuMedia.year;
 
-		searchImdb = await titleToImdb(kitsuMedia.title, kitsuMedia.year, kitsuMedia.type);
+		searchImdb = await titleToImdb(kitsuMedia.title, kitsuMedia.year, kitsuMedia.type, metadataSource);
 	} else {
 		title = searchKey;
 		year = searchYear;
-		searchImdb = await titleToImdb(searchKey, searchYear, type);
-	}
-
-	// If IMDB id not found, try Tmdb search if API key is provided
-	if (!searchImdb && apiKeys.tmdb.valid) {
-		const mediaTypeForTmdb = await tmdb.getAPIEndpoint(type);
-
-		// Search TMDB's search results for a title + year and fetch the top result
-		const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForTmdb, apiKeys.tmdb.key);
-		if (searchResults && searchResults.length !== 0) {
-			const foundMedia = searchResults[0];
-
-			// If the IMDB Id's media does not match catalog type, skip the catalog
-			const mediaType = foundMedia.release_date ? "movie" : "series";
-			if (mediaType !== type) {
-				return { metas: [] };
-			}
-
-			searchImdb = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdb, apiKeys.tmdb.key);
-		}
-	}
-
-	// If IMDB id still not found, try Trakt search if API key is provided
-	if (!searchImdb && apiKeys.trakt.valid) {
-		const mediaTypeForTrakt = await trakt.getAPIEndpoint(type);
-
-		const searchResults = await trakt.fetchSearchResult(title, mediaTypeForTrakt, apiKeys.trakt.key);
-		if (searchResults && searchResults.length !== 0) {
-			const foundMedia = searchResults[0][mediaTypeForTrakt];
-			searchImdb = foundMedia?.ids?.imdb;
-		}
+		searchImdb = await titleToImdb(searchKey, searchYear, type, metadataSource);
 	}
 
 	if (searchImdb) {
@@ -166,9 +135,9 @@ async function catalogHandler(type, id, extra, userConfig) {
 		} else if (id === "mlt-simkl-movie-rec") {
 			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
 		} else if (id === "mlt-gemini-movie-rec") {
-			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid);
+			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
 		} else if (id === "mlt-tastedive-movie-rec") {
-			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid);
+			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
 		} else if (id === "mlt-watchmode-movie-rec") {
 			recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
 		} else {
@@ -184,9 +153,9 @@ async function catalogHandler(type, id, extra, userConfig) {
 		} else if (id === "mlt-trakt-series-rec") {
 			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
 		} else if (id === "mlt-gemini-series-rec") {
-			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid);
+			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
 		} else if (id === "mlt-tastedive-series-rec") {
-			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid);
+			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
 		} else if (id === "mlt-watchmode-series-rec") {
 			recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
 		} else {

@@ -45,7 +45,9 @@ async function getGeminiRecs(title, year, mediaType, apiKey) {
 			systemInstruction: await getGeminiSystemInstructions(mediaType),
 		});
 
-		const prompt = await getGeminiPrompt(title, year, mediaType);
+		const cleanedTitle = title.replace(/[^\p{L}\p{N} ]/gu, "");
+
+		const prompt = await getGeminiPrompt(cleanedTitle, year, mediaType);
 		const result = await model.generateContent(prompt);
 
 		return await parseGeminiReturn(result.response.text());

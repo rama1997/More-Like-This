@@ -20,12 +20,12 @@ async function saveCache(key, year, mediaType, source, catalog) {
 	await cache.setCache(cacheKey, catalog);
 }
 
-async function createMeta(imdbId, type, rpdbApiKey, metaSource) {
+async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	const apiKey = rpdbApiKey.key;
 	const validKey = rpdbApiKey.valid;
 
 	const mediaType = type === "movie" ? "movie" : "series";
-	const media = await imdbToMeta(imdbId, mediaType, metaSource);
+	const media = await imdbToMeta(imdbId, mediaType, metadataSource);
 
 	let meta = {};
 	if (media) {
@@ -64,10 +64,10 @@ async function createMeta(imdbId, type, rpdbApiKey, metaSource) {
  * @param {array} recs - an array of IMDB Ids
  * @param {string} mediaType - Media type of catalog. Either "movie" or "series"
  * @param {object} rpdbApiKey - Contains API Key and valid flag
- * @param {object} metaSource - Indicate what source to use to obtain meta data
+ * @param {object} metadataSource - Indicate what source to use to obtain meta data
  * @returns {array} - Stremio Catalog
  */
-async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
+async function createRecCatalog(recs, mediaType, rpdbApiKey, metadataSource) {
 	if (!recs || recs.length === 0) {
 		return null;
 	}
@@ -76,7 +76,7 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey, metaSource) {
 		recs
 			.filter((row) => row != null)
 			.map(async (rec) => {
-				const meta = await createMeta(rec.id, mediaType, rpdbApiKey, metaSource);
+				const meta = await createMeta(rec.id, mediaType, rpdbApiKey, metadataSource);
 				if (!meta || Object.keys(meta).length === 0) {
 					return null;
 				}
