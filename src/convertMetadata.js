@@ -35,11 +35,6 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 	}
 }
 
-async function kitsuToMeta(kitsuId) {
-	const meta = await kitsu.convertKitsuId(kitsuId);
-	return meta ? meta : null;
-}
-
 async function titleToImdb(title, year, type, metadataSource) {
 	if (!title) {
 		return null;
@@ -113,7 +108,7 @@ async function IdToTitleYearType(id, searchType, metadataSource) {
 		return { title: media.title, year: media.year, type: media.type };
 	} else if (id.startsWith("kitsu")) {
 		// Kitsu Id
-		const media = await kitsuToMeta(id);
+		const media = await kitsu.convertKitsuId(id);
 		if (!media || media.type !== searchType) {
 			return null;
 		}
@@ -124,6 +119,5 @@ async function IdToTitleYearType(id, searchType, metadataSource) {
 module.exports = {
 	imdbToMeta,
 	titleToImdb,
-	kitsuToMeta,
 	IdToTitleYearType,
 };

@@ -25,8 +25,14 @@ async function convertKitsuId(id) {
 
 		const year = json?.data?.attributes?.startDate.split("-")[0] || null;
 
-		// Kitsu contains a subtype called "specials", but they are considered as movies in most other platforms
-		const type = json?.data?.attributes?.subtype === "TV" ? "series" : "movie";
+		// Kitsu contains many types of media beyond just tv and movies. Might be inconsistent with media type from other APIs
+		let type;
+		let kitsuType = json?.data?.attributes?.subtype;
+		if (kitsuType === "TV" || kitsuType == "ONA" || kitsuType == "OVA") {
+			type = "series";
+		} else {
+			type = "movie";
+		}
 
 		return { title, year, type };
 	} catch (error) {
