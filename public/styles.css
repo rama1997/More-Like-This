@@ -276,6 +276,7 @@ h1 {
 
 .catalog-order-section {
 	margin-top: 20px;
+	margin-bottom: 20px;
 	transition: opacity 0.3s ease, max-height 0.3s ease;
 }
 
@@ -619,7 +620,7 @@ h1 {
 }
 
 .conditional-setting.visible {
-	max-height: 500px;
+	max-height: 600px;
 	opacity: 1;
 }
 
