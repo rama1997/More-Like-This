@@ -20,6 +20,7 @@
   - **TMDB** (Including TMDB Collections)
   - **Trakt**
   - **Simkl**
+  - **Watchmode**
   - **Gemini AI**
   - **Tastedive**
 - Find recommendations by searching for:
@@ -110,6 +111,9 @@ npm start
   By default, the addon uses Cinemeta (Stremio’s main addon) for movie and show metadata.
   Enable this setting to use TMDB as the metadata source instead. (Requires a TMDB API key.)
   Tip: TMDB is generally more reliable than Cinemeta.
+
+- **Language**:  
+  Select the language used for posters, metadata, and search queries. Only available when using TMDB as the metadata source.
 
 - **Stream Button Platform**:  
   This addon adds two stream buttons for each movie/show, one for searching recommendations in the Stremio app and one for the Stremio Web App. Choose which button you'd like to display.
