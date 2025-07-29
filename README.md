@@ -28,6 +28,7 @@
   - **Kitsu ID**
   - **Movie/TV Show Title**
 - Supports **RPDB** posters
+- Multi Language Support
 
 # Installation
 
