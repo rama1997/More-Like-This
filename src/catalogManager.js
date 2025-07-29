@@ -1,6 +1,6 @@
 const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
-const { imdbToMeta } = require("./convertMetadata");
+const { imdbToMeta } = require("./metadataManager");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {
@@ -20,7 +20,7 @@ async function saveCache(key, year, mediaType, source, catalog) {
 	await cache.setCache(cacheKey, catalog);
 }
 
-async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
+async function createMetaPreview(imdbId, type, rpdbApiKey, metadataSource) {
 	const apiKey = rpdbApiKey.key;
 	const validKey = rpdbApiKey.valid;
 
@@ -45,14 +45,11 @@ async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
 		}
 
 		meta = {
-			id: media.imdb_id,
+			id: metadataSource.source === "tmdb" ? "mlt-" + media.imdb_id : media.imdb_id,
+			//id: media.imdb_id,
 			name: media.title,
-			description: media.overview,
 			poster: poster,
-			backdrop: media.backdrop,
 			type: mediaType,
-			year: media.year,
-			genres: media.genres,
 		};
 	}
 
@@ -76,7 +73,7 @@ async function createRecCatalog(recs, mediaType, rpdbApiKey, metadataSource) {
 		recs
 			.filter((row) => row != null)
 			.map(async (rec) => {
-				const meta = await createMeta(rec.id, mediaType, rpdbApiKey, metadataSource);
+				const meta = await createMetaPreview(rec.id, mediaType, rpdbApiKey, metadataSource);
 				if (!meta || Object.keys(meta).length === 0) {
 					return null;
 				}

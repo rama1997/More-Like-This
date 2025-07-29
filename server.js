@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { catalogHandler, streamHandler } = require("./src/addon");
+const { catalogHandler, streamHandler, metaHandler } = require("./src/addon");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -73,7 +73,15 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 	const manifest = {
 		id: "community.morelikethis",
 		version: "0.0.1",
-		resources: ["catalog", "stream"],
+		resources: [
+			"catalog",
+			"stream",
+			{
+				name: "meta",
+				types: ["movie", "series"],
+				idPrefixes: ["mlt-"],
+			},
+		],
 		types: ["movie", "series"],
 		name: "More Like This",
 		description: "Shows recommendations from various sources",
@@ -137,7 +145,16 @@ async function startServer() {
 
 	app.get("/:userConfig/catalog/:type/:id/:extra?.json", async (req, res) => {
 		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
-		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, userConfig)) || [];
+
+		// Retreieve and format meta data source
+		const metadataSource = {
+			source: userConfig.metadataSource === "tmdb" && userConfig.apiKeys.tmdb.valid ? "tmdb" : "cinemeta",
+			tmdbApiKey: userConfig.apiKeys.tmdb,
+			traktApiKey: userConfig.apiKeys.trakt,
+			language: userConfig.language,
+		};
+
+		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, userConfig, metadataSource)) || [];
 		res.json(catalog);
 	});
 
@@ -146,6 +163,21 @@ async function startServer() {
 		const platform = userConfig.streamButtonPlatform;
 		const streams = await streamHandler(req.params.type, req.params.id, platform);
 		res.json(streams);
+	});
+
+	app.get("/:userConfig/meta/:type/:id.json", async (req, res) => {
+		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
+
+		// Retreieve and format meta data source
+		const metadataSource = {
+			source: userConfig.metadataSource === "tmdb" && userConfig.apiKeys.tmdb.valid ? "tmdb" : "cinemeta",
+			tmdbApiKey: userConfig.apiKeys.tmdb,
+			traktApiKey: userConfig.apiKeys.trakt,
+			language: userConfig.language,
+		};
+
+		const meta = await metaHandler(req.params.type, req.params.id, userConfig.apiKeys.rpdb, metadataSource);
+		res.json(meta);
 	});
 
 	app.post("/saveConfig", async (req, res) => {
@@ -162,13 +194,14 @@ async function startServer() {
 
 			const validatedApiKeys = await validateApiKeys(apikeys);
 
+			const metadataSource = req.body.metadataSource || null;
 			// Get user config
 			const config = {
 				apiKeys: validatedApiKeys,
 				combineCatalogs: req.body.combineCatalogs === "on" || false,
 				catalogOrder: req.body.catalogOrder.split(",") || null,
-				metadataSource: req.body.metadataSource || null,
-				language: req.body.language || null,
+				metadataSource: metadataSource,
+				language: metadataSource === "tmdb" ? req.body.language || "en" : "en",
 				streamButtonPlatform: req.body.streamButtonPlatform || "",
 				includeTmdbCollection: req.body.includeTmdbCollection === "on" || false,
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,

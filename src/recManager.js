@@ -4,7 +4,7 @@ const simkl = require("../services/simkl");
 const gemini = require("../services/gemini");
 const tastedive = require("../services/tastedive");
 const watchmode = require("../services/watchmode");
-const { titleToImdb } = require("./convertMetadata");
+const { titleToImdb } = require("./metadataManager");
 const logger = require("../utils/logger");
 
 async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdbCollection) {
@@ -21,7 +21,7 @@ async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdb
 		return null;
 	}
 
-	const tmdbId = searchedMedia[0]?.id;
+	const tmdbId = searchedMedia.id;
 
 	let recs = [];
 	const baseRecs = (await tmdb.fetchRecommendations(tmdbId, mediaTypeForAPI, apiKey)) || [];

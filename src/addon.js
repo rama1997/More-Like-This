@@ -1,13 +1,12 @@
 const { parseSearchKey } = require("../utils/parser");
-const { titleToImdb, IdToTitleYearType } = require("./convertMetadata");
+const { titleToImdb, IdToTitleYearType, createMeta } = require("./metadataManager");
 const catalogManager = require("./catalogManager");
 const recManager = require("./recManager");
 const logger = require("../utils/logger");
 
-async function catalogHandler(type, id, extra, userConfig) {
+async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	// Get user config settings
 	const apiKeys = userConfig.apiKeys;
-	const metadataSourceInput = userConfig.metadataSource;
 	const enableTitleSearching = userConfig.enableTitleSearching;
 	const includeTmdbCollection = userConfig.includeTmdbCollection;
 	const language = userConfig.language;
@@ -25,17 +24,13 @@ async function catalogHandler(type, id, extra, userConfig) {
 		catalogSource = catalogSource + "-collection";
 	}
 
+	if (metadataSource?.source) {
+		catalogSource = catalogSource + `-${metadataSource.source}`;
+	}
+
 	if (language) {
 		catalogSource = catalogSource + `-${language}`;
 	}
-
-	// Retreieve and format meta data source
-	const metadataSource = {
-		source: metadataSourceInput === "tmdb" && apiKeys.tmdb.valid ? "tmdb" : "cinemeta",
-		tmdbApiKey: apiKeys.tmdb,
-		traktApiKey: apiKeys.trakt,
-		language: language,
-	};
 
 	// Parse search input
 	const searchParam = extra?.split("search=")[1];
@@ -228,7 +223,14 @@ async function streamHandler(type, id, platform) {
 	});
 }
 
+async function metaHandler(type, id, rpdbApiKey, metadataSource) {
+	const imdbId = id.split("-")[1];
+	const meta = await createMeta(imdbId, type, rpdbApiKey, metadataSource);
+	return { meta: meta };
+}
+
 module.exports = {
 	catalogHandler,
 	streamHandler,
+	metaHandler,
 };

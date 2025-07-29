@@ -83,7 +83,7 @@ async function fetchRecommendations(imdbID, mediaType, apiKey) {
 	}
 }
 
-async function fetchMediaDetails(id, mediaType, apiKey) {
+async function fetchMetadata(id, mediaType, apiKey) {
 	const adjustedMediaType = mediaType === "movie" ? "movies" : "shows";
 
 	try {
@@ -115,6 +115,6 @@ module.exports = {
 	validateAPIKey,
 	fetchSearchResult,
 	fetchRecommendations,
-	fetchMediaDetails,
+	fetchMetadata,
 	getAPIEndpoint,
 };

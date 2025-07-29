@@ -11,18 +11,14 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 
 	try {
 		// Get metadata from tmdb
-		if (source == "tmdb" && validTMDBKey) {
+		if (source === "tmdb" && validTMDBKey) {
 			const tmdbApiKey = metadataSource.tmdbApiKey.key;
 			const language = metadataSource.language;
 			const mediaTypeForAPI = await tmdb.getAPIEndpoint(type);
 
-			const res = await tmdb.fetchMediaDetails(imdbId, mediaTypeForAPI, tmdbApiKey, language);
-			if (res && res.length !== 0) {
-				const media = mediaTypeForAPI === "movie" ? res.movie_results?.[0] : res.tv_results?.[0];
-				if (media) {
-					const tmdbMeta = await tmdb.cleanMeta(media, imdbId);
-					if (tmdbMeta) return tmdbMeta;
-				}
+			const tmdbMeta = await tmdb.fetchFullMetadata(imdbId, mediaTypeForAPI, tmdbApiKey, language);
+			if (tmdbMeta) {
+				return tmdbMeta;
 			}
 		}
 
@@ -116,8 +112,60 @@ async function IdToTitleYearType(id, searchType, metadataSource) {
 	}
 }
 
+async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
+	const apiKey = rpdbApiKey.key;
+	const validKey = rpdbApiKey.valid;
+
+	const mediaType = type === "movie" ? "movie" : "series";
+	const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
+
+	let meta = {};
+	if (rawMeta) {
+		let poster = "";
+		if (validKey) {
+			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
+		}
+
+		// If RPDB is not used or fails to provide a poster, then use default poster
+		if (poster === "") {
+			poster = rawMeta.poster ? rawMeta.poster : "";
+		}
+
+		// Remove media if there is no poster. Mostly for visual improvements for the catalogs
+		if (poster === "") {
+			return null;
+		}
+
+		// Get Genres
+		let genres = [];
+		if (rawMeta.genres) {
+			for (let g of rawMeta.genres) {
+				genres.push(g.name);
+			}
+		}
+
+		meta = {
+			id: rawMeta.imdb_id,
+			name: rawMeta.title,
+			description: rawMeta.description,
+			poster: poster,
+			backdrop: rawMeta.backdrop,
+			type: mediaType,
+			year: rawMeta.year,
+			genres: genres,
+			runtime: rawMeta.runtime || "",
+			cast: rawMeta.cast,
+			director: rawMeta.director,
+			videos: rawMeta.videos,
+		};
+	}
+
+	return meta;
+}
+
 module.exports = {
 	imdbToMeta,
 	titleToImdb,
 	IdToTitleYearType,
+	createMeta,
 };
