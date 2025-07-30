@@ -4,6 +4,7 @@ const tmdb = require("../services/tmdb");
 const trakt = require("../services/trakt");
 const cinemeta = require("../services/cinemeta");
 const logger = require("../utils/logger");
+const rpdb = require("../services/rpdb");
 
 async function imdbToMeta(imdbId, type, metadataSource) {
 	const source = metadataSource.source;
