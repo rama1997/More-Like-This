@@ -182,23 +182,28 @@ async function startServer() {
 
 	app.post("/saveConfig", async (req, res) => {
 		try {
-			const apikeys = {
-				tmdb: req.body.tmdbApiKey || "",
-				trakt: req.body.traktApiKey || "",
-				simkl: req.body.simkl === "on" ? "default" : "",
-				tastedive: req.body.tastediveApiKey || "",
-				gemini: req.body.geminiApiKey || "",
-				watchmode: req.body.watchmodeApiKey || "",
-				rpdb: req.body.rpdbApiKey || "",
-			};
+			// Build API Keys object
+			const sources = ["tmdb", "trakt", "tastedive", "gemini", "watchmode", "rpdb"];
+			const apiKeys = {};
 
-			const validatedApiKeys = await validateApiKeys(apikeys);
+			for (const source of sources) {
+				const key = req.body[`${source}ApiKey`];
+				apiKeys[source] = {
+					key: key || "",
+					valid: Boolean(key),
+				};
+			}
+
+			// Handle special case: simkl toggle checkbox
+			apiKeys.simkl = {
+				valid: req.body.simkl === "on",
+			};
 
 			const metadataSource = req.body.metadataSource || null;
 
 			// Get user config
 			const config = {
-				apiKeys: validatedApiKeys,
+				apiKeys: apiKeys,
 				combineCatalogs: req.body.combineCatalogs === "on" || false,
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 				metadataSource: metadataSource,

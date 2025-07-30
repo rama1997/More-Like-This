@@ -36,6 +36,7 @@
 						<div class="input-with-verify">
 							<input type="text" id="tmdbApiKey" name="tmdbApiKey" placeholder="Enter TMDB API Key" />
 							<button type="button" class="verify-btn" onclick="verifyApiKey('tmdb')">Verify Key</button>
+							<input type="hidden" name="validatedTmdbApiKey" id="validatedTmdbApiKey" />
 						</div>
 						<div id="tmdb-verify-status" class="verify-status"></div>
 					</div>
@@ -60,6 +61,7 @@
 						<div class="input-with-verify">
 							<input type="text" id="traktApiKey" name="traktApiKey" placeholder="Enter Trakt API Key" />
 							<button type="button" class="verify-btn" onclick="verifyApiKey('trakt')">Verify Key</button>
+							<input type="hidden" name="validatedTraktApiKey" id="validatedTraktApiKey" />
 						</div>
 						<div id="trakt-verify-status" class="verify-status"></div>
 					</div>
@@ -70,6 +72,7 @@
 						<div class="input-with-verify">
 							<input type="text" id="geminiApiKey" name="geminiApiKey" placeholder="Enter your Gemini AI key" />
 							<button type="button" class="verify-btn" onclick="verifyApiKey('gemini')">Verify Key</button>
+							<input type="hidden" name="validatedGeminiApiKey" id="validatedGeminiApiKey" />
 						</div>
 						<div id="gemini-verify-status" class="verify-status"></div>
 					</div>
@@ -80,6 +83,7 @@
 						<div class="input-with-verify">
 							<input type="text" id="tastediveApiKey" name="tastediveApiKey" placeholder="Enter TasteDive API Key" />
 							<button type="button" class="verify-btn" onclick="verifyApiKey('tastedive')">Verify Key</button>
+							<input type="hidden" name="validatedTastediveApiKey" id="validatedTastediveApiKey" />
 						</div>
 						<div id="tastedive-verify-status" class="verify-status"></div>
 					</div>
@@ -90,6 +94,7 @@
 						<div class="input-with-verify">
 							<input type="text" id="watchmodeApiKey" name="watchmodeApiKey" placeholder="Enter Watchmode API Key" />
 							<button type="button" class="verify-btn" onclick="verifyApiKey('watchmode')">Verify Key</button>
+							<input type="hidden" name="validatedWatchmodeApiKey" id="validatedWatchmodeApiKey" />
 						</div>
 						<div id="watchmode-verify-status" class="verify-status"></div>
 					</div>
@@ -227,6 +232,7 @@
 						<div class="input-with-verify">
 							<input type="text" id="rpdbApiKey" name="rpdbApiKey" placeholder="Enter your RPDB key" />
 							<button type="button" class="verify-btn" onclick="verifyApiKey('rpdb')">Verify Key</button>
+							<input type="hidden" name="validatedRpdbApiKey" id="validatedRpdbApiKey" />
 						</div>
 						<div id="rpdb-verify-status" class="verify-status"></div>
 					</div>
@@ -262,6 +268,6 @@
 		<script src="apiKeyVerification.js"></script>
 		<script src="conditionalSettings.js"></script>
 		<script src="catalogOrder.js"></script>
-		<script src="installButtons.js"></script>
+		<script src="formSubmission.js"></script>
 	</body>
 </html>
