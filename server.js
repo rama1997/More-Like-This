@@ -195,6 +195,7 @@ async function startServer() {
 			const validatedApiKeys = await validateApiKeys(apikeys);
 
 			const metadataSource = req.body.metadataSource || null;
+
 			// Get user config
 			const config = {
 				apiKeys: validatedApiKeys,

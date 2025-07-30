@@ -9,7 +9,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	const apiKeys = userConfig.apiKeys;
 	const enableTitleSearching = userConfig.enableTitleSearching;
 	const includeTmdbCollection = userConfig.includeTmdbCollection;
-	const language = userConfig.language;
+	const language = userConfig.language || "en";
 
 	// Retreive and format source data. Used for cache and logging.
 	let catalogSource = id.split("-")[1];
@@ -120,43 +120,48 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 
 	// Get rec depending on catalog
 	let recs = [];
-	if (type === "movie") {
-		if (id === "mlt-combined-movie-rec") {
-			recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
-		} else if (id === "mlt-tmdb-movie-rec") {
-			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
-		} else if (id === "mlt-trakt-movie-rec") {
-			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
-		} else if (id === "mlt-simkl-movie-rec") {
-			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
-		} else if (id === "mlt-gemini-movie-rec") {
-			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
-		} else if (id === "mlt-tastedive-movie-rec") {
-			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
-		} else if (id === "mlt-watchmode-movie-rec") {
-			recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
+	try {
+		if (type === "movie") {
+			if (id === "mlt-combined-movie-rec") {
+				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
+			} else if (id === "mlt-tmdb-movie-rec") {
+				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
+			} else if (id === "mlt-trakt-movie-rec") {
+				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
+			} else if (id === "mlt-simkl-movie-rec") {
+				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
+			} else if (id === "mlt-gemini-movie-rec") {
+				recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
+			} else if (id === "mlt-tastedive-movie-rec") {
+				recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
+			} else if (id === "mlt-watchmode-movie-rec") {
+				recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
+			} else {
+				recs = [];
+			}
+		} else if (type === "series") {
+			if (id === "mlt-combined-series-rec") {
+				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
+			} else if (id == "mlt-tmdb-series-rec") {
+				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
+			} else if (id === "mlt-simkl-series-rec") {
+				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
+			} else if (id === "mlt-trakt-series-rec") {
+				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
+			} else if (id === "mlt-gemini-series-rec") {
+				recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
+			} else if (id === "mlt-tastedive-series-rec") {
+				recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
+			} else if (id === "mlt-watchmode-series-rec") {
+				recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
+			} else {
+				recs = [];
+			}
 		} else {
 			recs = [];
 		}
-	} else if (type === "series") {
-		if (id === "mlt-combined-series-rec") {
-			recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
-		} else if (id == "mlt-tmdb-series-rec") {
-			recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
-		} else if (id === "mlt-simkl-series-rec") {
-			recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
-		} else if (id === "mlt-trakt-series-rec") {
-			recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
-		} else if (id === "mlt-gemini-series-rec") {
-			recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
-		} else if (id === "mlt-tastedive-series-rec") {
-			recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
-		} else if (id === "mlt-watchmode-series-rec") {
-			recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
-		} else {
-			recs = [];
-		}
-	} else {
+	} catch (error) {
+		logger.error(error.message, null);
 		recs = [];
 	}
 
