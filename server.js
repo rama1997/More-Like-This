@@ -72,7 +72,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.0.1",
+		version: "0.3.2",
 		resources: [
 			"catalog",
 			"stream",
@@ -219,6 +219,9 @@ async function startServer() {
 			if (req.body.forCopy === "true") {
 				res.redirect(`http://${host}/${userConfig}/manifest.json`);
 			} else {
+				if (host === `bbab4a35b833-more-like-this`) {
+					host = host + `.baby-beamup.club`;
+				}
 				res.redirect(`stremio://${host}/${userConfig}/manifest.json`);
 			}
 		} catch (error) {
