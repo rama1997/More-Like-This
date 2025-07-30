@@ -215,12 +215,12 @@ async function startServer() {
 
 			const userConfig = encodeURIComponent(JSON.stringify(config));
 
-			const host = req.headers.host;
+			let host = req.headers.host;
 			if (req.body.forCopy === "true") {
 				res.redirect(`http://${host}/${userConfig}/manifest.json`);
 			} else {
-				if (host === `bbab4a35b833-more-like-this`) {
-					host = host + `.baby-beamup.club`;
+				if (host === "bbab4a35b833-more-like-this") {
+					host = host + ".baby-beamup.club";
 				}
 				res.redirect(`stremio://${host}/${userConfig}/manifest.json`);
 			}
