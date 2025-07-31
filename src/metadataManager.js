@@ -5,6 +5,17 @@ const trakt = require("../services/trakt");
 const cinemeta = require("../services/cinemeta");
 const logger = require("../utils/logger");
 const rpdb = require("../services/rpdb");
+const cache = require("../utils/cache");
+
+async function checkCache(imdbId, source, language, rpdb) {
+	const cacheKey = await cache.createMetaCacheKey(imdbId, source, language, rpdb);
+	return await cache.getCache(cacheKey);
+}
+
+async function saveCache(imdbId, source, language, rpdb, meta) {
+	const cacheKey = await cache.createMetaCacheKey(imdbId, source, language, rpdb);
+	await cache.setCache(cacheKey, meta);
+}
 
 async function imdbToMeta(imdbId, type, metadataSource) {
 	const source = metadataSource.source;
@@ -21,13 +32,15 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 			if (tmdbMeta) {
 				return tmdbMeta;
 			}
+		} else {
+			// Default/Backup to Cinemeta
+			const rawMeta = await cinemeta.fetchMetadata(imdbId, type);
+			const cinemetaMeta = await cinemeta.cleanMeta(rawMeta);
+			return cinemetaMeta;
 		}
-
-		// Default/Backup to Cinemeta
-		const rawMeta = await cinemeta.fetchMetadata(imdbId, type);
-		const cinemetaMeta = await cinemeta.cleanMeta(rawMeta);
-		return cinemetaMeta;
+		return null;
 	} catch (error) {
+		logger.error(error.message, "imdbToMeta");
 		return null;
 	}
 }
@@ -113,9 +126,19 @@ async function IdToTitleYearType(id, searchType, metadataSource) {
 	}
 }
 
-async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
+async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	const apiKey = rpdbApiKey.key;
-	const validKey = rpdbApiKey.valid;
+	const validRpdbKey = rpdbApiKey.valid;
+
+	// Check cache for meta
+	const source = metadataSource.source;
+	const language = metadataSource.language;
+	const cachedMeta = await checkCache(imdbId, source, language, validRpdbKey);
+	if (cachedMeta) {
+		// Remove addon prefix id
+		cachedMeta.id = imdbId;
+		return cachedMeta;
+	}
 
 	const mediaType = type === "movie" ? "movie" : "series";
 	const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
@@ -123,7 +146,7 @@ async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	let meta = {};
 	if (rawMeta) {
 		let poster = "";
-		if (validKey) {
+		if (validRpdbKey) {
 			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
 		}
 
@@ -146,7 +169,7 @@ async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
 		}
 
 		meta = {
-			id: rawMeta.imdb_id,
+			id: imdbId,
 			name: rawMeta.title,
 			description: rawMeta.description,
 			poster: poster,
@@ -159,7 +182,12 @@ async function createMeta(imdbId, type, rpdbApiKey, metadataSource) {
 			director: rawMeta.director,
 			videos: rawMeta.videos,
 		};
+	} else {
+		return null;
 	}
+
+	// Same meta to cache
+	await saveCache(imdbId, source, language, validRpdbKey, meta);
 
 	return meta;
 }
@@ -168,5 +196,6 @@ module.exports = {
 	imdbToMeta,
 	titleToImdb,
 	IdToTitleYearType,
-	createMeta,
+	generateMeta,
+	checkCache,
 };

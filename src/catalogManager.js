@@ -1,13 +1,13 @@
 const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
-const { imdbToMeta } = require("./metadataManager");
+const { imdbToMeta, generateMeta } = require("./metadataManager");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {
 		return null;
 	}
 
-	const cacheKey = await cache.createCacheKey(key, year, mediaType, source);
+	const cacheKey = await cache.createCatalogCacheKey(key, year, mediaType, source);
 	return await cache.getCache(cacheKey);
 }
 
@@ -16,42 +16,15 @@ async function saveCache(key, year, mediaType, source, catalog) {
 		return null;
 	}
 
-	const cacheKey = await cache.createCacheKey(key, year, mediaType, source);
+	const cacheKey = await cache.createCatalogCacheKey(key, year, mediaType, source);
 	await cache.setCache(cacheKey, catalog);
 }
 
 async function createMetaPreview(imdbId, type, rpdbApiKey, metadataSource) {
-	const apiKey = rpdbApiKey.key;
-	const validKey = rpdbApiKey.valid;
+	let meta = await generateMeta(imdbId, type, rpdbApiKey, metadataSource);
 
-	const mediaType = type === "movie" ? "movie" : "series";
-	const media = await imdbToMeta(imdbId, mediaType, metadataSource);
-
-	let meta = {};
-	if (media) {
-		let poster = "";
-		if (validKey) {
-			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
-		}
-
-		// If RPDB is not used or fails to provide a poster, then use default poster
-		if (poster === "") {
-			poster = media.poster ? media.poster : "";
-		}
-
-		// Remove media if there is no poster. Mostly for visual improvements for the catalogs
-		if (poster === "") {
-			return null;
-		}
-
-		meta = {
-			id: metadataSource.source === "tmdb" ? "mlt-" + media.imdb_id : media.imdb_id,
-			//id: media.imdb_id,
-			name: media.title,
-			poster: poster,
-			type: mediaType,
-		};
-	}
+	// Set custom addon id so that Stremio can call this addon's meta handler
+	meta.id = metadataSource.source === "tmdb" ? "mlt-" + meta.id : meta.id;
 
 	return meta;
 }

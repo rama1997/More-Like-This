@@ -21,7 +21,7 @@ async function getCache(key) {
 		// If the entry exists and has not expired, return it
 		if (entry && !expired) {
 			logger.cache("RETRIEVED CACHE", key);
-			return entry.recs;
+			return entry.data;
 		} else {
 			// Otherwise, remove the expired entry and return null
 			cache.delete(key); // Remove expired entry
@@ -35,9 +35,9 @@ async function getCache(key) {
 /**
  * Stores data in the cache.
  * @param {string} key - The cache key.
- * @param {array} recs - The recommendations catalog.
+ * @param {array} data - Data to save to cache
  */
-async function setCache(key, recs) {
+async function setCache(key, data) {
 	if (!key) {
 		return;
 	}
@@ -48,7 +48,7 @@ async function setCache(key, recs) {
 		cache.delete(oldestKey); // Remove oldest entry
 	}
 
-	cache.set(key, { lastUpdated: Date.now(), recs });
+	cache.set(key, { lastUpdated: Date.now(), data: data });
 	logger.cache("SAVE CACHE", key);
 }
 
@@ -60,7 +60,7 @@ async function setCache(key, recs) {
  * @param {string} source - The recommendation source.
  * @returns {string|null} - The generated cache key.
  */
-async function createCacheKey(searchTitle, searchYear, searchType, source) {
+async function createCatalogCacheKey(searchTitle, searchYear, searchType, source) {
 	if (!searchTitle || searchTitle === "") {
 		return null;
 	}
@@ -71,12 +71,25 @@ async function createCacheKey(searchTitle, searchYear, searchType, source) {
 	const cacheYear = searchYear || "any";
 	const cacheType = searchType || "any";
 
-	return `${cacheSearchKey.toLowerCase()}_${cacheYear}_${cacheType}_${source}`;
+	return `catalog:${cacheSearchKey.toLowerCase()}_${cacheYear}_${cacheType}_${source}`;
+}
+
+/**
+ * Creates a cache key based on search parameters.
+ * @param {string} imdbId - ImdbId
+ * @param {string} source - Metadata source
+ * @param {string} language - Language
+ * @param {bool} rpdb - If rpdb was used
+ * @returns {string|null} - The generated cache key.
+ */
+async function createMetaCacheKey(imdbId, source, language, rpdb) {
+	return `meta:${imdbId}_${source}_${language}` + (rpdb ? "_rpdb" : "");
 }
 
 module.exports = {
 	cache,
 	getCache,
 	setCache,
-	createCacheKey,
+	createCatalogCacheKey,
+	createMetaCacheKey,
 };

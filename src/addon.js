@@ -1,5 +1,5 @@
 const { parseSearchKey } = require("../utils/parser");
-const { titleToImdb, IdToTitleYearType, createMeta } = require("./metadataManager");
+const metadataManager = require("./metadataManager");
 const catalogManager = require("./catalogManager");
 const recManager = require("./recManager");
 const logger = require("../utils/logger");
@@ -67,7 +67,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	let searchImdb;
 
 	if (searchKey.startsWith("tt")) {
-		const media = await IdToTitleYearType(searchKey, type, metadataSource);
+		const media = await metadataManager.IdToTitleYearType(searchKey, type, metadataSource);
 		if (media) {
 			title = media.title;
 			year = media.year;
@@ -75,7 +75,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 
 		searchImdb = searchKey;
 	} else if (searchKey.startsWith("kitsu")) {
-		const kitsuMedia = await IdToTitleYearType(searchKey, type, metadataSource);
+		const kitsuMedia = await metadataManager.IdToTitleYearType(searchKey, type, metadataSource);
 
 		// Return empty catalog for invalid kitsu id
 		if (!kitsuMedia) {
@@ -86,11 +86,11 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 		title = kitsuMedia.title;
 		year = kitsuMedia.year;
 
-		searchImdb = await titleToImdb(kitsuMedia.title, kitsuMedia.year, kitsuMedia.type, metadataSource);
+		searchImdb = await metadataManager.titleToImdb(kitsuMedia.title, kitsuMedia.year, kitsuMedia.type, metadataSource);
 	} else {
 		title = searchKey;
 		year = searchYear;
-		searchImdb = await titleToImdb(searchKey, searchYear, type, metadataSource);
+		searchImdb = await metadataManager.titleToImdb(searchKey, searchYear, type, metadataSource);
 	}
 
 	if (searchImdb) {
@@ -102,7 +102,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 		}
 
 		if (!title || !year) {
-			const media = await IdToTitleYearType(searchImdb, type, metadataSource);
+			const media = await metadataManager.IdToTitleYearType(searchImdb, type, metadataSource);
 			if (media) {
 				title = media.title;
 				year = media.year;
@@ -230,7 +230,7 @@ async function streamHandler(type, id, platform) {
 
 async function metaHandler(type, id, rpdbApiKey, metadataSource) {
 	const imdbId = id.split("-")[1];
-	const meta = await createMeta(imdbId, type, rpdbApiKey, metadataSource);
+	const meta = await metadataManager.generateMeta(imdbId, type, rpdbApiKey, metadataSource);
 	return { meta: meta };
 }
 
