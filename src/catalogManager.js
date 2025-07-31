@@ -24,7 +24,7 @@ async function createMetaPreview(imdbId, type, rpdbApiKey, metadataSource) {
 	let meta = await generateMeta(imdbId, type, rpdbApiKey, metadataSource);
 
 	// Set custom addon id so that Stremio can call this addon's meta handler
-	meta.id = metadataSource.source === "tmdb" ? "mlt-" + meta.id : meta.id;
+	meta.id = metadataSource.source === "tmdb" ? "mlt-" + imdbId : imdbId;
 
 	return meta;
 }
