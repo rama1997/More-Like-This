@@ -150,7 +150,6 @@ After searching, recommendations will appear in the addon’s catalogs.
 
 Here are some tips to get the best results:
 
-- Use TMDB over Cinemeta for more reliable metadata. (Requires a TMDB API key.)
 - Use the Stremio Addon Manager to move this addon to the top of the addon list. This ensures the catalog and stream button appear first.
   Note: Stremio recommends keeping Cinemeta at the top, so adjust with caution.
 - When manually searching by title, be precise and include both the year and type flags as shown above.
@@ -159,9 +158,8 @@ Here are some tips to get the best results:
 
 This addon is still a work in progress. While it works well in many scenarios, some limitations exist:
 
-- Not supported on Android or Smart TVs.
-- Not supported on Stremio 5
+- Stream button not supported on Smart TVs or Stremio 5 Beta. Manually searching should still yield recommendations catalogs.
 - Kitsu ID searches may be inaccurate, especially for niche or very specific titles.
 - New releases, unreleased titles, and obscure international content may yield strange or no results.
 - Not compatible with other Stremio addons that generate custom catalogs and IDs. This addon is optimized for IMDb IDs, as used by Cinemeta.
-- As of April 2025, TasteDive’s API returns inaccurate results due to API changes. It now returns recommendations that includes another unrelated media titles.
+- As of April 2025, TasteDive’s API may return poor results due to API changes. It now returns recommendations that includes another unrelated media titles.

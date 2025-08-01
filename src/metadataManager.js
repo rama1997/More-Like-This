@@ -35,7 +35,7 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 		} else {
 			// Default/Backup to Cinemeta
 			const rawMeta = await cinemeta.fetchMetadata(imdbId, type);
-			const cinemetaMeta = await cinemeta.cleanMeta(rawMeta);
+			const cinemetaMeta = await cinemeta.adjustMeta(rawMeta);
 			return cinemetaMeta;
 		}
 		return null;
@@ -144,47 +144,52 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
 
 	let meta = {};
-	if (rawMeta) {
-		let poster = "";
-		if (validRpdbKey) {
-			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
-		}
 
-		// If RPDB is not used or fails to provide a poster, then use default poster
-		if (poster === "") {
-			poster = rawMeta.poster ? rawMeta.poster : "";
-		}
+	if (source === "tmdb") {
+		if (rawMeta) {
+			let poster = "";
+			if (validRpdbKey) {
+				poster = await rpdb.getRPDBPoster(imdbId, apiKey);
+			}
 
-		// Remove media if there is no poster. Mostly for visual improvements for the catalogs
-		if (poster === "") {
+			// If RPDB is not used or fails to provide a poster, then use default poster
+			if (poster === "") {
+				poster = rawMeta.poster ? rawMeta.poster : "";
+			}
+
+			// Remove media if there is no poster. Mostly for visual improvements for the catalogs
+			if (poster === "") {
+				return null;
+			}
+
+			// Get Genres
+			let genres = [];
+			if (rawMeta.genres) {
+				for (let g of rawMeta.genres) {
+					genres.push(g.name);
+				}
+			}
+
+			meta = {
+				id: imdbId,
+				name: rawMeta.title,
+				description: rawMeta.description,
+				poster: poster,
+				background: rawMeta.backdrop,
+				type: mediaType,
+				year: rawMeta.year,
+				released: rawMeta.release_date ? new Date(rawMeta.release_date).toISOString() : new Date(rawMeta.first_air_date).toISOString(),
+				genres: genres,
+				runtime: rawMeta.runtime || "",
+				cast: rawMeta.cast,
+				director: rawMeta.director,
+				videos: rawMeta.videos,
+			};
+		} else {
 			return null;
 		}
-
-		// Get Genres
-		let genres = [];
-		if (rawMeta.genres) {
-			for (let g of rawMeta.genres) {
-				genres.push(g.name);
-			}
-		}
-
-		meta = {
-			id: imdbId,
-			name: rawMeta.title,
-			description: rawMeta.description,
-			poster: poster,
-			background: rawMeta.backdrop,
-			type: mediaType,
-			year: rawMeta.year,
-			released: rawMeta.release_date ? new Date(rawMeta.release_date).toISOString() : new Date(rawMeta.first_air_date).toISOString(),
-			genres: genres,
-			runtime: rawMeta.runtime || "",
-			cast: rawMeta.cast,
-			director: rawMeta.director,
-			videos: rawMeta.videos,
-		};
-	} else {
-		return null;
+	} else if (source === "cinemeta") {
+		meta = rawMeta;
 	}
 
 	// Same meta to cache

@@ -32,7 +32,7 @@ async function fetchMetadata(imdbId, type) {
 	}
 }
 
-async function cleanMeta(rawMeta) {
+async function adjustMeta(rawMeta) {
 	let meta = rawMeta;
 
 	// Remove media that are not released yet
@@ -45,6 +45,7 @@ async function cleanMeta(rawMeta) {
 	if (currentYear < year || year === 0) {
 		return null;
 	}
+
 	meta.year = meta.releaseInfo;
 	meta.backdrop = meta.background;
 	meta.title = meta.title ? meta.title : meta.name;
@@ -54,5 +55,5 @@ async function cleanMeta(rawMeta) {
 
 module.exports = {
 	fetchMetadata,
-	cleanMeta,
+	adjustMeta,
 };

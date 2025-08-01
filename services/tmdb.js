@@ -210,8 +210,12 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 
 	let backdrop_path = meta.backdrop_path || meta.background;
 
+	// Even if set to another language, set title to it's original title for better stream results
+	// let title = meta.original_title || meta.original_name || meta.title;
+
 	// Append new metadata
 	meta.imdb_id = imdbId;
+	//meta.title = title;
 	meta.description = description;
 	meta.poster = meta.poster_path ? `https://image.tmdb.org/t/p/original${meta.poster_path}` : null;
 	meta.backdrop = backdrop_path ? `https://image.tmdb.org/t/p/original${backdrop_path}` : null;
