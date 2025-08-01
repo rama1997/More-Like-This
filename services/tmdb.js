@@ -206,6 +206,8 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 				}
 			}
 		}
+
+		meta.videos = videos;
 	}
 
 	let backdrop_path = meta.backdrop_path || meta.background;
@@ -225,7 +227,6 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	meta.cast = cast;
 	meta.director = director;
 	meta.runtime = runtime;
-	meta.videos = videos;
 
 	return meta;
 }
