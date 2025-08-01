@@ -1,6 +1,5 @@
-const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
-const { imdbToMeta, generateMeta } = require("./metadataManager");
+const { generateMeta } = require("./metadataManager");
 
 async function checkCache(key, year, mediaType, source) {
 	if (key == null || key === "") {

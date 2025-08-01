@@ -195,7 +195,7 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 					let episodeMeta = {
 						id: `${imdbId}:${i}:${e.episode_number ?? "?"}`,
 						title: e.name ?? "",
-						released: e.air_date ?? null,
+						released: e.air_date ? new Date(e.air_date).toISOString() : null,
 						season: i,
 						episode: e.episode_number ?? null,
 						overview: e.overview ?? "",
