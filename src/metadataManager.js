@@ -183,8 +183,11 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 				runtime: rawMeta.runtime || "",
 				cast: rawMeta.cast,
 				director: rawMeta.director,
-				videos: rawMeta.videos,
 			};
+
+			if (type === "series") {
+				meta.videos = rawMeta.videos;
+			}
 		} else {
 			return null;
 		}
