@@ -170,6 +170,10 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 				}
 			}
 
+			// Get released
+			let releaseDate = rawMeta.release_date || rawMeta.first_air_date;
+			let released = releaseDate && !isNaN(new Date(releaseDate)) ? new Date(releaseDate).toISOString() : null;
+
 			meta = {
 				id: imdbId,
 				name: rawMeta.title,
@@ -178,7 +182,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 				background: rawMeta.backdrop,
 				type: mediaType,
 				year: rawMeta.year,
-				released: rawMeta.release_date ? new Date(rawMeta.release_date).toISOString() : new Date(rawMeta.first_air_date).toISOString(),
+				released: released,
 				genres: genres,
 				runtime: rawMeta.runtime || "",
 				cast: rawMeta.cast,
