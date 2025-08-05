@@ -159,6 +159,7 @@ Here are some tips to get the best results:
 This addon is still a work in progress. While it works well in many scenarios, some limitations exist:
 
 - Stream button not supported on Smart TVs or Stremio 5 Beta. Manually searching should still yield recommendations catalogs.
+- TMDB metadata may not show up properly with the current stable Android app, but does work with the new beta version on Android
 - Kitsu ID searches may be inaccurate, especially for niche or very specific titles.
 - New releases, unreleased titles, and obscure international content may yield strange or no results.
 - Not compatible with other Stremio addons that generate custom catalogs and IDs. This addon is optimized for IMDb IDs, as used by Cinemeta.

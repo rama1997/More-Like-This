@@ -1,7 +1,31 @@
 const logger = require("./logger");
 const { CACHE_TTL, MAX_CACHE_SIZE } = require("../config");
 
-const cache = new Map();
+const catalogCache = new Map();
+const idCache = new Map();
+
+const locks = new Map();
+
+async function withLock(key, fn) {
+	if (!key) return;
+
+	// If there's already a pending lock, wait for it
+	while (locks.has(key)) {
+		await locks.get(key);
+	}
+
+	// Create a new lock
+	let resolve;
+	const lockPromise = new Promise((res) => (resolve = res));
+	locks.set(key, lockPromise);
+
+	try {
+		await fn(); // Run the code that uses the cache
+	} finally {
+		locks.delete(key);
+		resolve(); // Unlock
+	}
+}
 
 /**
  * Retrieves data from the cache.
@@ -11,6 +35,14 @@ const cache = new Map();
 async function getCache(key) {
 	if (!key) {
 		return null;
+	}
+
+	// Determine which cache
+	let cache = {};
+	if (key.startsWith("catalog")) {
+		cache = catalogCache;
+	} else if (key.startsWith("id")) {
+		cache = idCache;
 	}
 
 	if (cache.has(key)) {
@@ -42,14 +74,25 @@ async function setCache(key, data) {
 		return;
 	}
 
-	// If cache size exceeds max limit, remove the oldest entry
-	if (cache.size >= MAX_CACHE_SIZE) {
-		const oldestKey = cache.keys().next().value; // Get the first inserted key
-		cache.delete(oldestKey); // Remove oldest entry
-	}
+	// Call with lock so that async calls don't overwrite each other
+	await withLock(key, async () => {
+		// Determine which cache
+		let cache = {};
+		if (key.startsWith("catalog")) {
+			cache = catalogCache;
+		} else if (key.startsWith("id")) {
+			cache = idCache;
+		}
 
-	cache.set(key, { lastUpdated: Date.now(), data: data });
-	logger.cache("SAVE CACHE", key);
+		// If cache size exceeds max limit, remove the oldest entry
+		if (cache.size >= MAX_CACHE_SIZE) {
+			const oldestKey = cache.keys().next().value; // Get the first inserted key
+			cache.delete(oldestKey); // Remove oldest entry
+		}
+
+		cache.set(key, { lastUpdated: Date.now(), data: data });
+		logger.cache("SAVE CACHE", key);
+	});
 }
 
 /**
@@ -82,14 +125,13 @@ async function createCatalogCacheKey(searchTitle, searchYear, searchType, source
  * @param {bool} rpdb - If rpdb was used
  * @returns {string|null} - The generated cache key.
  */
-async function createMetaCacheKey(imdbId, source, language, rpdb) {
-	return `meta:${imdbId}_${source}_${language}` + (rpdb ? "_rpdb" : "");
+async function createIdCacheKey(imdbId) {
+	return `id:${imdbId}`;
 }
 
 module.exports = {
-	cache,
 	getCache,
 	setCache,
 	createCatalogCacheKey,
-	createMetaCacheKey,
+	createIdCacheKey,
 };

@@ -7,14 +7,14 @@ const logger = require("../utils/logger");
 const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
 
-async function checkCache(imdbId, source, language, rpdb) {
-	const cacheKey = await cache.createMetaCacheKey(imdbId, source, language, rpdb);
+async function checkCache(imdbId) {
+	const cacheKey = await cache.createIdCacheKey(imdbId);
 	return await cache.getCache(cacheKey);
 }
 
-async function saveCache(imdbId, source, language, rpdb, meta) {
-	const cacheKey = await cache.createMetaCacheKey(imdbId, source, language, rpdb);
-	await cache.setCache(cacheKey, meta);
+async function saveCache(imdbId, data) {
+	const cacheKey = await cache.createIdCacheKey(imdbId);
+	await cache.setCache(cacheKey, data);
 }
 
 async function imdbToMeta(imdbId, type, metadataSource) {
@@ -40,7 +40,7 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 		}
 		return null;
 	} catch (error) {
-		logger.error(error.message, "imdbToMeta");
+		logger.error(error.message, "Error converting IMDB Id to metadata");
 		return null;
 	}
 }
@@ -133,10 +133,19 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	// Check cache for meta
 	const source = metadataSource.source;
 	const language = metadataSource.language;
-	const cachedMeta = await checkCache(imdbId, source, language, validRpdbKey);
+	const cachedData = await checkCache(imdbId);
+	const cachedMeta = cachedData?.meta?.[source]?.[language];
 	if (cachedMeta) {
-		// Remove addon prefix id
-		cachedMeta.id = imdbId;
+		cachedMeta.id = imdbId; // Remove addon prefix id
+
+		// Get RPDB Poster
+		let rpdbPoster;
+		if (validRpdbKey) {
+			rpdbPoster = await rpdb.getRPDBPoster(imdbId, apiKey);
+		}
+
+		cachedMeta.poster = rpdbPoster || cachedMeta.basePoster;
+
 		return cachedMeta;
 	}
 
@@ -147,18 +156,21 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 
 	if (source === "tmdb") {
 		if (rawMeta) {
-			let poster = "";
+			// Get RPDB poster
+			let poster = null;
 			if (validRpdbKey) {
 				poster = await rpdb.getRPDBPoster(imdbId, apiKey);
 			}
 
+			let basePoster = rawMeta.poster;
+
 			// If RPDB is not used or fails to provide a poster, then use default poster
-			if (poster === "") {
-				poster = rawMeta.poster ? rawMeta.poster : "";
+			if (!poster) {
+				poster = basePoster;
 			}
 
 			// Remove media if there is no poster. Mostly for visual improvements for the catalogs
-			if (poster === "") {
+			if (!poster) {
 				return null;
 			}
 
@@ -179,6 +191,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 				name: rawMeta.title,
 				description: rawMeta.description,
 				poster: poster,
+				basePoster: basePoster,
 				background: rawMeta.backdrop,
 				type: mediaType,
 				year: rawMeta.year,
@@ -199,16 +212,26 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 		meta = rawMeta;
 	}
 
-	// Same meta to cache
-	await saveCache(imdbId, source, language, validRpdbKey, meta);
+	// Same meta to cache. If base cache doesn't exist, create it with proper structure
+	let dataToCache = cachedData;
+	if (!dataToCache) {
+		dataToCache = {
+			meta: {
+				cinemeta: {},
+				tmdb: {},
+			},
+			recs: {},
+		};
+	}
+	dataToCache.meta[source][language] = meta;
+
+	await saveCache(imdbId, dataToCache);
 
 	return meta;
 }
 
 module.exports = {
-	imdbToMeta,
 	titleToImdb,
 	IdToTitleYearType,
 	generateMeta,
-	checkCache,
 };

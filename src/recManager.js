@@ -6,10 +6,28 @@ const tastedive = require("../services/tastedive");
 const watchmode = require("../services/watchmode");
 const { titleToImdb } = require("./metadataManager");
 const logger = require("../utils/logger");
+const cache = require("../utils/cache");
+
+async function checkCache(imdbId) {
+	const cacheKey = await cache.createIdCacheKey(imdbId);
+	return await cache.getCache(cacheKey);
+}
+
+async function saveCache(imdbId, data) {
+	const cacheKey = await cache.createIdCacheKey(imdbId);
+	await cache.setCache(cacheKey, data);
+}
 
 async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdbCollection) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
+	}
+
+	// Check cache for recs
+	const cachedData = await checkCache(searchImdb);
+	const cachedRecs = cachedData?.recs?.["tmdb"];
+	if (cachedRecs) {
+		return cachedRecs;
 	}
 
 	// Get specific terminlogy for type for API endpoints
@@ -47,12 +65,34 @@ async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdb
 		}),
 	);
 
+	// Same recs to cache. If base cache doesn't exist, create it with proper structure
+	let dataToCache = cachedData;
+	if (!dataToCache) {
+		dataToCache = {
+			meta: {
+				cinemeta: {},
+				tmdb: {},
+			},
+			recs: {},
+		};
+	}
+	dataToCache.recs["tmdb"] = recsImdbId;
+
+	await saveCache(searchImdb, dataToCache);
+
 	return recsImdbId;
 }
 
 async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
+	}
+
+	// Check cache for recs
+	const cachedData = await checkCache(searchImdb);
+	const cachedRecs = cachedData?.recs?.["trakt"];
+	if (cachedRecs) {
+		return cachedRecs;
 	}
 
 	// Get specific Trakt terminlogy for movie/series for API endpoints
@@ -73,12 +113,32 @@ async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
 		}),
 	);
 
+	// Same recs to cache. If base cache doesn't exist, create it with proper structure
+	let dataToCache = cachedData;
+	if (!dataToCache) {
+		dataToCache = {
+			meta: {
+				cinemeta: {},
+				tmdb: {},
+			},
+			recs: {},
+		};
+	}
+	dataToCache.recs["trakt"] = recsImdbId;
+
 	return recsImdbId;
 }
 
 async function getSimklRecs(searchImdb, searchType, validKey) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
+	}
+
+	// Check cache for recs
+	const cachedData = await checkCache(searchImdb);
+	const cachedRecs = cachedData?.recs?.["simkl"];
+	if (cachedRecs) {
+		return cachedRecs;
 	}
 
 	// Get specific Trakt terminlogy for movie/series for API endpoints
@@ -103,15 +163,16 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 		}
 	}
 
+	let recsImdbId = null;
 	if (searchType === "movie") {
-		return await Promise.all(
+		recsImdbId = await Promise.all(
 			movieRecs.map(async (id, index) => {
 				const imdbId = await simkl.simklToImdbId(id, mediaTypeForAPI);
 				return { id: imdbId, ranking: index + 1 };
 			}),
 		);
 	} else if (searchType === "series") {
-		return await Promise.all(
+		recsImdbId = await Promise.all(
 			seriesRecs.map(async (id, index) => {
 				const imdbId = await simkl.simklToImdbId(id, mediaTypeForAPI);
 				return { id: imdbId, ranking: index + 1 };
@@ -119,12 +180,32 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 		);
 	}
 
-	return null;
+	// Same recs to cache. If base cache doesn't exist, create it with proper structure
+	let dataToCache = cachedData;
+	if (!dataToCache) {
+		dataToCache = {
+			meta: {
+				cinemeta: {},
+				tmdb: {},
+			},
+			recs: {},
+		};
+	}
+	dataToCache.recs["simkl"] = recsImdbId;
+
+	return recsImdbId;
 }
 
 async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey, metadataSource) {
 	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
+	}
+
+	// Check cache for recs
+	const cachedData = await checkCache(searchImdb);
+	const cachedRecs = cachedData?.recs?.["tastedive"];
+	if (cachedRecs) {
+		return cachedRecs;
 	}
 
 	// Get specific terminlogy for movie/series for API endpoints
@@ -158,12 +239,32 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 		}),
 	);
 
+	// Same recs to cache. If base cache doesn't exist, create it with proper structure
+	let dataToCache = cachedData;
+	if (!dataToCache) {
+		dataToCache = {
+			meta: {
+				cinemeta: {},
+				tmdb: {},
+			},
+			recs: {},
+		};
+	}
+	dataToCache.recs["tastedive"] = recs;
+
 	return recs;
 }
 
 async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey, metadataSource) {
 	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
+	}
+
+	// Check cache for recs
+	const cachedData = await checkCache(searchImdb);
+	const cachedRecs = cachedData?.recs?.["gemini"];
+	if (cachedRecs) {
+		return cachedRecs;
 	}
 
 	// Get recs from Gemini - Gemini returns rec's title and year as a string
@@ -189,12 +290,32 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 			}),
 	);
 
+	// Same recs to cache. If base cache doesn't exist, create it with proper structure
+	let dataToCache = cachedData;
+	if (!dataToCache) {
+		dataToCache = {
+			meta: {
+				cinemeta: {},
+				tmdb: {},
+			},
+			recs: {},
+		};
+	}
+	dataToCache.recs["gemini"] = recs;
+
 	return recs;
 }
 
 async function getWatchmodeRecs(searchImdb, searchType, apiKey, validKey) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
+	}
+
+	// Check cache for recs
+	const cachedData = await checkCache(searchImdb);
+	const cachedRecs = cachedData?.recs?.["watchmode"];
+	if (cachedRecs) {
+		return cachedRecs;
 	}
 
 	// Get recs based on the found media
@@ -218,21 +339,35 @@ async function getWatchmodeRecs(searchImdb, searchType, apiKey, validKey) {
 		}
 	}
 
+	let recsImdbId = null;
 	if (searchType === "movie") {
-		return await Promise.all(
+		recsImdbId = await Promise.all(
 			movieRecs.map(async (id, index) => {
 				return { id: id, ranking: index + 1 };
 			}),
 		);
 	} else if (searchType === "series") {
-		return await Promise.all(
+		recsImdbId = await Promise.all(
 			seriesRecs.map(async (id, index) => {
 				return { id: id, ranking: index + 1 };
 			}),
 		);
 	}
 
-	return null;
+	// Same recs to cache. If base cache doesn't exist, create it with proper structure
+	let dataToCache = cachedData;
+	if (!dataToCache) {
+		dataToCache = {
+			meta: {
+				cinemeta: {},
+				tmdb: {},
+			},
+			recs: {},
+		};
+	}
+	dataToCache.recs["watchmode"] = recsImdbId;
+
+	return recsImdbId;
 }
 
 async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys, includeTmdbCollection) {

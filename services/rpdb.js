@@ -22,10 +22,10 @@ async function getRPDBPoster(mediaId, apiKey) {
 		const url = `${RPDB_API_BASE_URL}/${apiKey}/imdb/poster-default/${mediaId}.jpg`;
 
 		const response = await withTimeout(fetch(url), 5000, "RPDB poster timed out");
-		return response.status === 200 ? response.url : "";
+		return response.status === 200 ? response.url : null;
 	} catch (error) {
 		logger.error(error.message, null);
-		return "";
+		return null;
 	}
 }
 

@@ -15,6 +15,9 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	let catalogSource = id.split("-")[1];
 	if (catalogSource === "combined") {
 		for (let source in apiKeys) {
+			if (source === "rpdb") {
+				continue;
+			}
 			if (apiKeys[source].valid) {
 				catalogSource = catalogSource + `-${source}`;
 			}
@@ -26,6 +29,10 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 
 	if (metadataSource?.source) {
 		catalogSource = catalogSource + `-${metadataSource.source}`;
+	}
+
+	if (apiKeys.rpdb.valid) {
+		catalogSource = catalogSource + "-rpdb";
 	}
 
 	if (language) {
