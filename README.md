@@ -4,6 +4,10 @@
 
 # More Like This
 
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/rama1997/More-Like-This)
+![License](https://img.shields.io/github/license/rama1997/More-Like-This)
+
 **More Like This** is a Stremio addon that fetches similar movie and TV show recommendations from multiple sources, all in one place.
 
 <p align="center">
@@ -146,7 +150,7 @@ Examples:
 
 After searching, recommendations will appear in the addon’s catalogs.
 
-# Tips
+## Tips
 
 Here are some tips to get the best results:
 
@@ -154,7 +158,7 @@ Here are some tips to get the best results:
   Note: Stremio recommends keeping Cinemeta at the top, so adjust with caution.
 - When manually searching by title, be precise and include both the year and type flags as shown above.
 
-# Known Issues/Limitation
+## Known Issues/Limitation
 
 This addon is still a work in progress. While it works well in many scenarios, some limitations exist:
 
