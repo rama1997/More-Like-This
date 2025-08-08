@@ -1,6 +1,6 @@
 {
 	"name": "more-like-this",
-	"version": "0.3.7",
+	"version": "0.4.0",
 	"description": "Shows recommendations for searched media",
 	"author": "rama1997",
 	"license": "ISC",
@@ -12,6 +12,7 @@
 		"csv-parser": "^3.2.0",
 		"dotenv": "^16.4.7",
 		"express": "^4.21.2",
+		"ioredis": "^5.7.0",
 		"name-to-imdb": "^3.0.4",
 		"needle": "^3.3.1",
 		"stremio-addon-sdk": "^1.6.10"

@@ -7,31 +7,6 @@ const path = require("path");
 const { PORT } = require("./config");
 const { validateApiKeys } = require("./services/api");
 
-async function detectPlatform(user_agent, origin) {
-	let stremio_origin;
-	let platform;
-
-	if (user_agent) {
-		if (user_agent.includes("Tizen") || user_agent.includes("SMART-TV") || user_agent.includes("tv")) {
-			platform = "tv";
-		} else if (user_agent.includes("Macintosh")) {
-			platform = "mac";
-		} else if (user_agent.includes("Windows")) {
-			platform = "windows";
-		}
-	}
-
-	if (origin) {
-		if (origin.includes("web")) {
-			stremio_origin = "web";
-		} else {
-			stremio_origin = "app";
-		}
-	}
-
-	return { stremio_origin, platform };
-}
-
 async function generateManifest(apiKeys, combine, catalog_order) {
 	let catalogs = [];
 	const types = ["movie", "series"];
@@ -72,7 +47,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.3.7",
+		version: "0.4.0",
 		resources: [
 			"catalog",
 			"stream",

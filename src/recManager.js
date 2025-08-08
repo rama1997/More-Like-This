@@ -8,13 +8,13 @@ const { titleToImdb } = require("./metadataManager");
 const logger = require("../utils/logger");
 const cache = require("../utils/cache");
 
-async function checkCache(imdbId) {
-	const cacheKey = await cache.createIdCacheKey(imdbId);
+async function checkCache(imdbId, recSource) {
+	const cacheKey = await cache.createRecCacheKey(imdbId, recSource);
 	return await cache.getCache(cacheKey);
 }
 
-async function saveCache(imdbId, data) {
-	const cacheKey = await cache.createIdCacheKey(imdbId);
+async function saveCache(imdbId, recSource, data) {
+	const cacheKey = await cache.createRecCacheKey(imdbId, recSource);
 	await cache.setCache(cacheKey, data);
 }
 
@@ -23,9 +23,10 @@ async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdb
 		return null;
 	}
 
+	const source = includeTmdbCollection ? "tmdb+collection" : "tmdb";
+
 	// Check cache for recs
-	const cachedData = await checkCache(searchImdb);
-	const cachedRecs = cachedData?.recs?.["tmdb"];
+	const cachedRecs = await checkCache(searchImdb, source);
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -65,20 +66,7 @@ async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdb
 		}),
 	);
 
-	// Same recs to cache. If base cache doesn't exist, create it with proper structure
-	let dataToCache = cachedData;
-	if (!dataToCache) {
-		dataToCache = {
-			meta: {
-				cinemeta: {},
-				tmdb: {},
-			},
-			recs: {},
-		};
-	}
-	dataToCache.recs["tmdb"] = recsImdbId;
-
-	await saveCache(searchImdb, dataToCache);
+	await saveCache(searchImdb, source, recsImdbId);
 
 	return recsImdbId;
 }
@@ -89,8 +77,7 @@ async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
 	}
 
 	// Check cache for recs
-	const cachedData = await checkCache(searchImdb);
-	const cachedRecs = cachedData?.recs?.["trakt"];
+	const cachedRecs = await checkCache(searchImdb, "trakt");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -113,18 +100,7 @@ async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
 		}),
 	);
 
-	// Same recs to cache. If base cache doesn't exist, create it with proper structure
-	let dataToCache = cachedData;
-	if (!dataToCache) {
-		dataToCache = {
-			meta: {
-				cinemeta: {},
-				tmdb: {},
-			},
-			recs: {},
-		};
-	}
-	dataToCache.recs["trakt"] = recsImdbId;
+	await saveCache(searchImdb, "trakt", recsImdbId);
 
 	return recsImdbId;
 }
@@ -135,8 +111,7 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 	}
 
 	// Check cache for recs
-	const cachedData = await checkCache(searchImdb);
-	const cachedRecs = cachedData?.recs?.["simkl"];
+	const cachedRecs = await checkCache(searchImdb, "simkl");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -180,18 +155,7 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 		);
 	}
 
-	// Same recs to cache. If base cache doesn't exist, create it with proper structure
-	let dataToCache = cachedData;
-	if (!dataToCache) {
-		dataToCache = {
-			meta: {
-				cinemeta: {},
-				tmdb: {},
-			},
-			recs: {},
-		};
-	}
-	dataToCache.recs["simkl"] = recsImdbId;
+	await saveCache(searchImdb, "simkl", recsImdbId);
 
 	return recsImdbId;
 }
@@ -202,8 +166,7 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 	}
 
 	// Check cache for recs
-	const cachedData = await checkCache(searchImdb);
-	const cachedRecs = cachedData?.recs?.["tastedive"];
+	const cachedRecs = await checkCache(searchImdb, "tastedive");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -239,18 +202,7 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 		}),
 	);
 
-	// Same recs to cache. If base cache doesn't exist, create it with proper structure
-	let dataToCache = cachedData;
-	if (!dataToCache) {
-		dataToCache = {
-			meta: {
-				cinemeta: {},
-				tmdb: {},
-			},
-			recs: {},
-		};
-	}
-	dataToCache.recs["tastedive"] = recs;
+	await saveCache(searchImdb, "tastedive", recs);
 
 	return recs;
 }
@@ -261,8 +213,7 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 	}
 
 	// Check cache for recs
-	const cachedData = await checkCache(searchImdb);
-	const cachedRecs = cachedData?.recs?.["gemini"];
+	const cachedRecs = await checkCache(searchImdb, "gemini");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -290,18 +241,7 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 			}),
 	);
 
-	// Same recs to cache. If base cache doesn't exist, create it with proper structure
-	let dataToCache = cachedData;
-	if (!dataToCache) {
-		dataToCache = {
-			meta: {
-				cinemeta: {},
-				tmdb: {},
-			},
-			recs: {},
-		};
-	}
-	dataToCache.recs["gemini"] = recs;
+	await saveCache(searchImdb, "gemini", recs);
 
 	return recs;
 }
@@ -312,8 +252,7 @@ async function getWatchmodeRecs(searchImdb, searchType, apiKey, validKey) {
 	}
 
 	// Check cache for recs
-	const cachedData = await checkCache(searchImdb);
-	const cachedRecs = cachedData?.recs?.["watchmode"];
+	const cachedRecs = await checkCache(searchImdb, "watchmode");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -354,18 +293,7 @@ async function getWatchmodeRecs(searchImdb, searchType, apiKey, validKey) {
 		);
 	}
 
-	// Same recs to cache. If base cache doesn't exist, create it with proper structure
-	let dataToCache = cachedData;
-	if (!dataToCache) {
-		dataToCache = {
-			meta: {
-				cinemeta: {},
-				tmdb: {},
-			},
-			recs: {},
-		};
-	}
-	dataToCache.recs["watchmode"] = recsImdbId;
+	await saveCache(searchImdb, "watchmode", recsImdbId);
 
 	return recsImdbId;
 }

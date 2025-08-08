@@ -56,7 +56,7 @@ docker build -t more-like-this .
 docker run -p 8080:3000 more-like-this
 ```
 
-3. Access the addon's configure page at `localhost:8080`.
+3. Access the addon's configure page at `localhost:8080`. Adjust addon via `.env` file. See below for environment variables.
 
 4. You can also pull Docker image from Docker Hub
 
@@ -85,7 +85,7 @@ cp .env.example .env
 3. Open `.env` and set the following:
 
 ```bash
-PORT=your_desired_port_number
+PORT=
 ```
 
 4. Install project dependencies
@@ -100,7 +100,17 @@ npm install
 npm start
 ```
 
-6. Access the addon's configure page at `localhost:PORT`
+6. Access the addon's configure page at `localhost:PORT`. Adjust addon via `.env` file. See below for environment variables.
+
+## Environment Variables
+
+| Variable   | Description                     |
+| ---------- | ------------------------------- |
+| PORT       | Desired port that addon runs on |
+| REDIS_URL  | Redis URL                       |
+| REDIS_HOST | Redis host                      |
+| REDIS_PORT | Redis port                      |
+| REDIS_DB   | Redis database index            |
 
 # Configuration
 

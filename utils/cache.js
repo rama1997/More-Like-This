@@ -1,9 +1,25 @@
 const logger = require("./logger");
-const { CACHE_TTL, MAX_CACHE_SIZE } = require("../config");
+const { CACHE_TTL, REDIS_HOST, REDIS_PORT, REDIS_DB, MAX_CACHE_SIZE, REDIS_URL } = require("../config");
+const Redis = require("ioredis");
 
-const catalogCache = new Map();
-const idCache = new Map();
+let redisCache = null;
+let useRedis = false;
+const localCache = new Map();
 
+if (REDIS_HOST && REDIS_PORT && REDIS_DB) {
+	redisCache = new Redis({
+		host: REDIS_HOST,
+		port: parseInt(REDIS_PORT),
+		db: parseInt(REDIS_DB),
+	});
+
+	useRedis = true;
+} else if (REDIS_URL) {
+	redisCache = new Redis(REDIS_URL);
+	useRedis = true;
+}
+
+// Lock map to prevent race conditions
 const locks = new Map();
 
 async function withLock(key, fn) {
@@ -33,66 +49,66 @@ async function withLock(key, fn) {
  * @returns {any|null} - Cached data or null if expired/not found.
  */
 async function getCache(key) {
-	if (!key) {
+	if (!key) return null;
+
+	try {
+		if (useRedis && redisCache) {
+			const cached = await redisCache.get(key);
+			if (cached) {
+				logger.cache("RETRIEVED CACHE", key);
+				return JSON.parse(cached);
+			}
+		} else {
+			if (localCache.has(key)) {
+				const cached = localCache.get(key);
+
+				const expired = Date.now() - cached.lastUpdated > CACHE_TTL;
+
+				if (cached && !expired) {
+					logger.cache("RETRIEVED CACHE", key);
+					return cached.data;
+				} else {
+					localCache.delete(key);
+					return null;
+				}
+			}
+		}
+		return null;
+	} catch (err) {
+		logger.error("Error reading from cache:", err);
 		return null;
 	}
-
-	// Determine which cache
-	let cache = {};
-	if (key.startsWith("catalog")) {
-		cache = catalogCache;
-	} else if (key.startsWith("id")) {
-		cache = idCache;
-	}
-
-	if (cache.has(key)) {
-		const entry = cache.get(key);
-
-		const expired = Date.now() - entry.lastUpdated > CACHE_TTL;
-
-		// If the entry exists and has not expired, return it
-		if (entry && !expired) {
-			logger.cache("RETRIEVED CACHE", key);
-			return entry.data;
-		} else {
-			// Otherwise, remove the expired entry and return null
-			cache.delete(key); // Remove expired entry
-			return null;
-		}
-	}
-
-	return null;
 }
 
 /**
  * Stores data in the cache.
  * @param {string} key - The cache key.
- * @param {array} data - Data to save to cache
+ * @param {array} data - Data to cache.
  */
 async function setCache(key, data) {
-	if (!key) {
-		return;
+	if (!key) return;
+
+	try {
+		if (useRedis && redisCache) {
+			await redisCache.set(key, JSON.stringify(data), "EX", Math.floor(CACHE_TTL));
+			logger.cache("SAVE CACHE", key);
+		} else {
+			// If cache size exceeds max limit, remove the oldest entry
+			if (localCache.size >= MAX_CACHE_SIZE) {
+				const oldestKey = localCache.keys().next().value; // Get the first inserted key
+				localCache.delete(oldestKey); // Remove oldest entry
+			}
+
+			localCache.set(key, { lastUpdated: Date.now(), data: data });
+			logger.cache("SAVE CACHE", key);
+		}
+	} catch (err) {
+		logger.error("Error writing to cache:", err);
 	}
+}
 
-	// Call with lock so that async calls don't overwrite each other
-	await withLock(key, async () => {
-		// Determine which cache
-		let cache = {};
-		if (key.startsWith("catalog")) {
-			cache = catalogCache;
-		} else if (key.startsWith("id")) {
-			cache = idCache;
-		}
-
-		// If cache size exceeds max limit, remove the oldest entry
-		if (cache.size >= MAX_CACHE_SIZE) {
-			const oldestKey = cache.keys().next().value; // Get the first inserted key
-			cache.delete(oldestKey); // Remove oldest entry
-		}
-
-		cache.set(key, { lastUpdated: Date.now(), data: data });
-		logger.cache("SAVE CACHE", key);
-	});
+async function deleteCache(key) {
+	await redisCache.del(key);
 }
 
 /**
@@ -120,18 +136,21 @@ async function createCatalogCacheKey(searchTitle, searchYear, searchType, source
 /**
  * Creates a cache key based on search parameters.
  * @param {string} imdbId - ImdbId
- * @param {string} source - Metadata source
- * @param {string} language - Language
- * @param {bool} rpdb - If rpdb was used
- * @returns {string|null} - The generated cache key.
+ * @returns {string} - The generated cache key.
  */
-async function createIdCacheKey(imdbId) {
-	return `id:${imdbId}`;
+async function createMetaCacheKey(imdbId, metaSource, language) {
+	return `meta:${imdbId}:${metaSource}:${language}`;
+}
+
+async function createRecCacheKey(imdbId, recSource) {
+	return `recs:${imdbId}:${recSource}`;
 }
 
 module.exports = {
 	getCache,
 	setCache,
+	deleteCache,
 	createCatalogCacheKey,
-	createIdCacheKey,
+	createMetaCacheKey,
+	createRecCacheKey,
 };

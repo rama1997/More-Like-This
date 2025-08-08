@@ -7,13 +7,13 @@ const logger = require("../utils/logger");
 const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
 
-async function checkCache(imdbId) {
-	const cacheKey = await cache.createIdCacheKey(imdbId);
+async function checkCache(imdbId, metaSource, language) {
+	const cacheKey = await cache.createMetaCacheKey(imdbId, metaSource, language);
 	return await cache.getCache(cacheKey);
 }
 
-async function saveCache(imdbId, data) {
-	const cacheKey = await cache.createIdCacheKey(imdbId);
+async function saveCache(imdbId, metaSource, language, data) {
+	const cacheKey = await cache.createMetaCacheKey(imdbId, metaSource, language);
 	await cache.setCache(cacheKey, data);
 }
 
@@ -133,8 +133,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	// Check cache for meta
 	const source = metadataSource.source;
 	const language = metadataSource.language;
-	const cachedData = await checkCache(imdbId);
-	const cachedMeta = cachedData?.meta?.[source]?.[language];
+	const cachedMeta = await checkCache(imdbId, source, language);
 	if (cachedMeta) {
 		cachedMeta.id = imdbId; // Remove addon prefix id
 
@@ -212,20 +211,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 		meta = rawMeta;
 	}
 
-	// Same meta to cache. If base cache doesn't exist, create it with proper structure
-	let dataToCache = cachedData;
-	if (!dataToCache) {
-		dataToCache = {
-			meta: {
-				cinemeta: {},
-				tmdb: {},
-			},
-			recs: {},
-		};
-	}
-	dataToCache.meta[source][language] = meta;
-
-	await saveCache(imdbId, dataToCache);
+	await saveCache(imdbId, source, language, meta);
 
 	return meta;
 }
