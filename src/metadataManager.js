@@ -132,7 +132,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 
 	// Check cache for meta
 	const source = metadataSource.source;
-	const language = metadataSource.language;
+	const language = metadataSource.language || "en";
 	const cachedMeta = await checkCache(imdbId, source, language);
 	if (cachedMeta) {
 		cachedMeta.id = imdbId; // Remove addon prefix id

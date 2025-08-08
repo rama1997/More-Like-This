@@ -44,6 +44,20 @@ Links to obtain free API keys are available on the addon’s configuration page.
 
 ## Docker
 
+You can use a prebuilt images from Docker Hub:
+
+```bash
+docker pull raymadev/more-like-this-stremio-addon
+```
+
+Or clone this repo:
+
+```bash
+git clone https://github.com/rama1997/More-Like-This.git
+```
+
+### Docker CLI
+
 1. Build Docker Image
 
 ```bash
@@ -56,13 +70,23 @@ docker build -t more-like-this .
 docker run -p 8080:3000 more-like-this
 ```
 
-3. Access the addon's configure page at `localhost:8080`. Adjust addon via `.env` file. See below for environment variables.
-
-4. You can also pull Docker image from Docker Hub
+Can adjust addon via a `.env` file. See below for environment variables.
 
 ```bash
-docker pull raymadev/more-like-this-stremio-addon
+docker run -p 8080:3000 --env-file .env more-like-this
 ```
+
+3. Access the addon's configure page at `localhost:8080`.
+
+### Docker Compose
+
+1. Run following command
+
+```bash
+docker compose up -d
+```
+
+2. Can adjust addon via a `.env` file. See below for environment variables.
 
 ## Running Locally From Source
 
@@ -82,11 +106,7 @@ cd More-Like-This
 cp .env.example .env
 ```
 
-3. Open `.env` and set the following:
-
-```bash
-PORT=
-```
+3. Open `.env` and set desired variables. See below for environment variables.
 
 4. Install project dependencies
 
@@ -104,9 +124,9 @@ npm start
 
 ## Environment Variables
 
-| Variable   | Description                     |
-| ---------- | ------------------------------- |
-| PORT       | Desired port that addon runs on |
+| Variable   | Description                     | Default |
+| ---------- | ------------------------------- | ------- |
+| PORT       | Desired port that addon runs on | `8080`  |
 | REDIS_URL  | Redis URL                       |
 | REDIS_HOST | Redis host                      |
 | REDIS_PORT | Redis port                      |
