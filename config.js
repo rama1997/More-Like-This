@@ -4,7 +4,7 @@ require("dotenv").config();
 const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
 
 // Server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 // Cache Configs
 const CACHE_TTL = 7 * 24 * 60 * 60; // Cache expiration time - 1 week

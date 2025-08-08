@@ -124,13 +124,13 @@ npm start
 
 ## Environment Variables
 
-| Variable   | Description                     | Default |
-| ---------- | ------------------------------- | ------- |
-| PORT       | Desired port that addon runs on | `8080`  |
-| REDIS_URL  | Redis URL                       |
-| REDIS_HOST | Redis host                      |
-| REDIS_PORT | Redis port                      |
-| REDIS_DB   | Redis database index            |
+| Variable   | Description                        | Default |
+| ---------- | ---------------------------------- | ------- |
+| PORT       | Desired port that addon listens on | `8080`  |
+| REDIS_URL  | Redis URL                          |
+| REDIS_HOST | Redis host                         |
+| REDIS_PORT | Redis port                         |
+| REDIS_DB   | Redis database index               |
 
 # Configuration
 
