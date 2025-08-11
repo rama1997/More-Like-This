@@ -1,21 +1,21 @@
 const cache = require("../utils/cache");
 const { generateMeta } = require("./metadataManager");
 
-async function checkCache(key, year, mediaType, source) {
-	if (key == null || key === "") {
+async function checkCache(imdbId, year, mediaType, source) {
+	if (imdbId == null || imdbId === "") {
 		return null;
 	}
 
-	const cacheKey = await cache.createCatalogCacheKey(key, year, mediaType, source);
+	const cacheKey = await cache.createCatalogCacheKey(imdbId, year, mediaType, source);
 	return await cache.getCache(cacheKey);
 }
 
-async function saveCache(key, year, mediaType, source, catalog) {
-	if (key == null || key === "") {
+async function saveCache(imdbId, year, mediaType, source, catalog) {
+	if (imdbId == null || imdbId === "") {
 		return null;
 	}
 
-	const cacheKey = await cache.createCatalogCacheKey(key, year, mediaType, source);
+	const cacheKey = await cache.createCatalogCacheKey(imdbId, year, mediaType, source);
 	await cache.setCache(cacheKey, catalog);
 }
 

@@ -62,12 +62,6 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 		return { metas: [] };
 	}
 
-	// Check cache for search input
-	let cachedRecsCatalog = await catalogManager.checkCache(searchKey, searchYear, type, catalogSource);
-	if (cachedRecsCatalog) {
-		return { metas: cachedRecsCatalog };
-	}
-
 	// Convert search input to IMDB Id, title, and year
 	let title;
 	let year;
@@ -102,9 +96,8 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 
 	if (searchImdb) {
 		// Check cache for IMDB id
-		cachedRecsCatalog = await catalogManager.checkCache(searchImdb, null, type, catalogSource);
+		let cachedRecsCatalog = await catalogManager.checkCache(searchImdb, null, type, catalogSource);
 		if (cachedRecsCatalog) {
-			await catalogManager.saveCache(searchKey, searchYear, type, catalogSource, cachedRecsCatalog); // Save catalog to cache for search input
 			return { metas: cachedRecsCatalog };
 		}
 
@@ -186,10 +179,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 		}
 
 		// Save to cache
-		await catalogManager.saveCache(searchKey, searchYear, type, catalogSource, catalog);
-		if (searchImdb && searchKey !== searchImdb) {
-			await catalogManager.saveCache(searchImdb, null, type, catalogSource, catalog);
-		}
+		await catalogManager.saveCache(searchImdb, null, type, catalogSource, catalog);
 
 		return { metas: catalog };
 	}

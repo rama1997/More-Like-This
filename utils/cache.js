@@ -113,22 +113,22 @@ async function deleteCache(key) {
 
 /**
  * Creates a cache key based on search parameters.
- * @param {string} searchTitle - The search title.
- * @param {string} searchYear - The search year.
- * @param {string} searchType - The media type (movie/series).
+ * @param {string} imdbId - The search title.
+ * @param {string} year - The search year.
+ * @param {string} type - The media type (movie/series).
  * @param {string} source - The recommendation source.
  * @returns {string|null} - The generated cache key.
  */
-async function createCatalogCacheKey(searchTitle, searchYear, searchType, source) {
-	if (!searchTitle || searchTitle === "") {
+async function createCatalogCacheKey(imdbId, year, type, source) {
+	if (!imdbId || imdbId === "") {
 		return null;
 	}
 
-	const cacheSearchKey = searchTitle.trim().replace(/\s+/g, "_");
+	const cacheSearchKey = imdbId.trim().replace(/\s+/g, "_");
 
 	// If year/type is missing, set it to "any"
-	const cacheYear = searchYear || "any";
-	const cacheType = searchType || "any";
+	const cacheYear = year || "any";
+	const cacheType = type || "any";
 
 	return `catalog:${cacheSearchKey.toLowerCase()}_${cacheYear}_${cacheType}_${source}`;
 }
