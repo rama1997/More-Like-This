@@ -124,13 +124,17 @@ npm start
 
 ## Environment Variables
 
-| Variable   | Description                        | Default |
-| ---------- | ---------------------------------- | ------- |
-| PORT       | Desired port that addon listens on | `8080`  |
-| REDIS_URL  | Redis URL                          |
-| REDIS_HOST | Redis host                         |
-| REDIS_PORT | Redis port                         |
-| REDIS_DB   | Redis database index               |
+| Variable          | Description                                 | Default           |
+| ----------------- | ------------------------------------------- | ----------------- |
+| ENABLE_LOGGING    | Enable logging for dev                      | `false`           |
+| PORT              | Desired port that addon listens on          | `8080`            |
+| CACHE_TTL         | Cache TTL (seconds)                         | `259200` (3 Days) |
+| CACHE_MAX_SIZE    | Max size of cache                           | `5000`            |
+| GEMINI_MAX_RESULT | Max number of Gemini AI returns per catalog | `30`              |
+| REDIS_URL         | Redis URL                                   |
+| REDIS_HOST        | Redis host                                  |
+| REDIS_PORT        | Redis port                                  |
+| REDIS_DB          | Redis database index                        |
 
 # Configuration
 

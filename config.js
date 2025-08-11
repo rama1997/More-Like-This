@@ -7,8 +7,8 @@ const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
 const PORT = process.env.PORT || 8080;
 
 // Cache Configs
-const CACHE_TTL = 7 * 24 * 60 * 60; // Cache expiration time - 1 week
-const MAX_CACHE_SIZE = 5000;
+const CACHE_TTL = process.env.CACHE_TTL || 3 * 24 * 60 * 60; // Cache expiration time - 1 week
+const MAX_CACHE_SIZE = process.env.CACHE_MAX_SIZE || 5000;
 const REDIS_URL = process.env.REDIS_URL || null;
 const REDIS_HOST = process.env.REDIS_HOST || null;
 const REDIS_PORT = process.env.REDIS_PORT || null;
@@ -16,7 +16,7 @@ const REDIS_DB = process.env.REDIS_DB || null;
 
 // Gemini Configs
 const GEMINI_MODEL = "gemini-2.0-flash";
-const GEMINI_REC_LIMIT = 30;
+const GEMINI_REC_LIMIT = process.env.GEMINI_MAX_RESULT || 30;
 
 async function getGeminiSystemInstructions(searchType) {
 	const mediaType = searchType === "movie" ? "movie" : "tv show";
