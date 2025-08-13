@@ -147,66 +147,63 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 
 	const mediaType = type === "movie" ? "movie" : "series";
 	const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
+	if (!rawMeta) return null;
+
+	// Get RPDB poster
+	let poster = null;
+	if (validRpdbKey) {
+		poster = await rpdb.getRPDBPoster(imdbId, apiKey);
+	}
+
+	let basePoster = rawMeta.poster;
+
+	// If RPDB is not used or fails to provide a poster, then use default poster
+	if (!poster) {
+		poster = basePoster;
+	}
+
+	// Remove media if there is no poster. Mostly for visual improvements for the catalogs
+	if (!poster) {
+		return null;
+	}
 
 	let meta = {};
-
 	if (source === "tmdb") {
-		if (rawMeta) {
-			// Get RPDB poster
-			let poster = null;
-			if (validRpdbKey) {
-				poster = await rpdb.getRPDBPoster(imdbId, apiKey);
+		// Get Genres
+		let genres = [];
+		if (rawMeta.genres) {
+			for (let g of rawMeta.genres) {
+				genres.push(g.name);
 			}
+		}
 
-			let basePoster = rawMeta.poster;
+		// Get released
+		let releaseDate = rawMeta.release_date || rawMeta.first_air_date;
+		let released = releaseDate && !isNaN(new Date(releaseDate)) ? new Date(releaseDate).toISOString() : null;
 
-			// If RPDB is not used or fails to provide a poster, then use default poster
-			if (!poster) {
-				poster = basePoster;
-			}
+		meta = {
+			id: imdbId,
+			name: rawMeta.title,
+			description: rawMeta.description,
+			poster: poster,
+			basePoster: basePoster,
+			background: rawMeta.backdrop,
+			type: mediaType,
+			year: rawMeta.year,
+			released: released,
+			genres: genres,
+			runtime: rawMeta.runtime || "",
+			cast: rawMeta.cast,
+			director: rawMeta.director,
+			trailers: rawMeta.trailer,
+		};
 
-			// Remove media if there is no poster. Mostly for visual improvements for the catalogs
-			if (!poster) {
-				return null;
-			}
-
-			// Get Genres
-			let genres = [];
-			if (rawMeta.genres) {
-				for (let g of rawMeta.genres) {
-					genres.push(g.name);
-				}
-			}
-
-			// Get released
-			let releaseDate = rawMeta.release_date || rawMeta.first_air_date;
-			let released = releaseDate && !isNaN(new Date(releaseDate)) ? new Date(releaseDate).toISOString() : null;
-
-			meta = {
-				id: imdbId,
-				name: rawMeta.title,
-				description: rawMeta.description,
-				poster: poster,
-				basePoster: basePoster,
-				background: rawMeta.backdrop,
-				type: mediaType,
-				year: rawMeta.year,
-				released: released,
-				genres: genres,
-				runtime: rawMeta.runtime || "",
-				cast: rawMeta.cast,
-				director: rawMeta.director,
-				trailers: rawMeta.trailer,
-			};
-
-			if (type === "series") {
-				meta.videos = rawMeta.videos;
-			}
-		} else {
-			return null;
+		if (type === "series") {
+			meta.videos = rawMeta.videos;
 		}
 	} else if (source === "cinemeta") {
 		meta = rawMeta;
+		meta.poster = poster; // Get RPDB poster if found
 	}
 
 	await saveCache(imdbId, source, language, meta);
