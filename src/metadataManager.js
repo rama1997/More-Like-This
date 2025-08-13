@@ -29,14 +29,11 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 			const mediaTypeForAPI = await tmdb.getAPIEndpoint(type);
 
 			const tmdbMeta = await tmdb.fetchFullMetadata(imdbId, mediaTypeForAPI, tmdbApiKey, language);
-			if (tmdbMeta) {
-				return tmdbMeta;
-			}
+			if (tmdbMeta) return tmdbMeta;
 		} else {
 			// Default/Backup to Cinemeta
-			const rawMeta = await cinemeta.fetchMetadata(imdbId, type);
-			const cinemetaMeta = await cinemeta.adjustMeta(rawMeta);
-			return cinemetaMeta;
+			const cinemetaMeta = await cinemeta.fetchFullMetadata(imdbId, type);
+			if (cinemetaMeta) return cinemetaMeta;
 		}
 		return null;
 	} catch (error) {

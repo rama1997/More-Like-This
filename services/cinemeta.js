@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 const { withTimeout } = require("../utils/timeout");
 const logger = require("../utils/logger");
 
-async function fetchMetadata(imdbId, type) {
+async function fetchBaseMetadata(imdbId, type) {
 	if (!imdbId) {
 		return null;
 	}
@@ -32,7 +32,7 @@ async function fetchMetadata(imdbId, type) {
 	}
 }
 
-async function adjustMeta(rawMeta) {
+async function adjustMetadata(rawMeta) {
 	let meta = rawMeta;
 
 	// Remove media that are not released yet
@@ -53,7 +53,18 @@ async function adjustMeta(rawMeta) {
 	return meta;
 }
 
+async function fetchFullMetadata(imdbId, type) {
+	let meta = await fetchBaseMetadata(imdbId, type);
+
+	// Adjust metadata for addon usage
+	if (meta) {
+		meta = await adjustMetadata(meta);
+		return meta;
+	}
+
+	return null;
+}
+
 module.exports = {
-	fetchMetadata,
-	adjustMeta,
+	fetchFullMetadata,
 };
