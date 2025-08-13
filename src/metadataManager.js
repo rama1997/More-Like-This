@@ -196,6 +196,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 				runtime: rawMeta.runtime || "",
 				cast: rawMeta.cast,
 				director: rawMeta.director,
+				trailers: rawMeta.trailer,
 			};
 
 			if (type === "series") {

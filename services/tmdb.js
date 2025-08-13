@@ -101,6 +101,99 @@ async function fetchTvSeasonDetails(tmdbId, season, apiKey, language) {
 	}
 }
 
+async function fetchCollectionID(tmdbId, mediaType, apiKey) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}?language=en-US&api_key=${apiKey}`;
+
+		const response = await withTimeout(fetch(url), 5000, "TMDB collection id fetch timed out");
+		const json = await response.json();
+
+		const collectionID = json?.belongs_to_collection?.id;
+
+		return collectionID || null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
+async function fetchCollectionRecs(tmdbId, mediaType, apiKey) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		const collectionId = await fetchCollectionID(tmdbId, mediaType, apiKey);
+
+		if (collectionId) {
+			const url = `${TMDB_API_BASE_URL}/collection/${collectionId}?language=en-US&api_key=${apiKey}`;
+
+			const response = await withTimeout(fetch(url), 5000, "TMDB collection details fetch timed out");
+			const json = await response.json();
+
+			let collectionRecs = [];
+			const collectionParts = json?.parts;
+
+			if (collectionParts) {
+				collectionParts.forEach((part) => {
+					if (part.id !== tmdbId) {
+						const media = { id: part.id };
+						collectionRecs.push(media);
+					}
+				});
+				return collectionRecs;
+			}
+		}
+
+		return null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
+async function fetchCredits(tmdbId, mediaType, apiKey, language) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		let url;
+		if (mediaType === "movie") {
+			url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/credits?language=${language}&api_key=${apiKey}`;
+		} else {
+			url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/aggregate_credits?language=${language}&api_key=${apiKey}`;
+		}
+
+		const response = await withTimeout(fetch(url), 5000, `TMDB credits fetch timed out for ${tmdbId}`);
+		const json = await response.json();
+
+		return json ? json : null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
+async function fetchCastDirectors(tmdbId, mediaType, apiKey, language) {
+	const credits = await fetchCredits(tmdbId, mediaType, apiKey, language);
+
+	if (credits) {
+		const cast = [credits?.cast?.[0]?.name, credits?.cast?.[1]?.name, credits?.cast?.[2]?.name];
+		const director = credits?.crew?.filter((c) => c.job === "Director")[0]?.name || null;
+		return {
+			cast: cast,
+			director: director ? [director] : null,
+		};
+	}
+
+	return null;
+}
+
 async function fetchBaseMetadata(id, mediaType, apiKey, language) {
 	if (!id || !mediaType) {
 		return null;
@@ -208,6 +301,16 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 		}
 	}
 
+	// Get trailer
+	const trailers = await fetchTrailer(tmdbId, mediaType, apiKey, language);
+	let trailer = {};
+	if (trailers) {
+		trailer.source = trailers[0].key;
+		trailer.type = "Trailer";
+		trailer.url = `https://www.youtube.com/watch?v=${trailers[0].key}`;
+		trailer.ytId = trailers[0].key;
+	}
+
 	let backdrop_path = meta.backdrop_path || meta.background;
 
 	// Append new metadata
@@ -222,101 +325,34 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	meta.director = director;
 	meta.runtime = runtime;
 	meta.videos = videos;
+	meta.trailer = [trailer];
 
 	return meta;
 }
 
-async function fetchCollectionID(tmdbId, mediaType, apiKey) {
+async function fetchTrailer(tmdbId, mediaType, apiKey, language) {
 	if (!tmdbId || !mediaType) {
 		return null;
 	}
 
 	try {
-		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}?language=en-US&api_key=${apiKey}`;
+		let url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/videos?language=${language}&api_key=${apiKey}`;
 
-		const response = await withTimeout(fetch(url), 5000, "TMDB collection id fetch timed out");
+		const response = await withTimeout(fetch(url), 5000, `TMDB trailer fetch timed out for ${tmdbId}`);
 		const json = await response.json();
 
-		const collectionID = json?.belongs_to_collection?.id;
+		const videos = json?.results ?? null;
 
-		return collectionID || null;
-	} catch (error) {
-		logger.error(error.message, null);
-		return null;
-	}
-}
-
-async function fetchCollectionRecs(tmdbId, mediaType, apiKey) {
-	if (!tmdbId || !mediaType) {
-		return null;
-	}
-
-	try {
-		const collectionId = await fetchCollectionID(tmdbId, mediaType, apiKey);
-
-		if (collectionId) {
-			const url = `${TMDB_API_BASE_URL}/collection/${collectionId}?language=en-US&api_key=${apiKey}`;
-
-			const response = await withTimeout(fetch(url), 5000, "TMDB collection details fetch timed out");
-			const json = await response.json();
-
-			let collectionRecs = [];
-			const collectionParts = json?.parts;
-
-			if (collectionParts) {
-				collectionParts.forEach((part) => {
-					if (part.id !== tmdbId) {
-						const media = { id: part.id };
-						collectionRecs.push(media);
-					}
-				});
-				return collectionRecs;
-			}
+		let trailers = null;
+		if (videos) {
+			trailers = videos.filter((v) => v.type === "Trailer" && v.site === "YouTube");
 		}
 
-		return null;
+		return trailers.length > 0 ? trailers : null;
 	} catch (error) {
 		logger.error(error.message, null);
 		return null;
 	}
-}
-
-async function fetchCredits(tmdbId, mediaType, apiKey, language) {
-	if (!tmdbId || !mediaType) {
-		return null;
-	}
-
-	try {
-		let url;
-		if (mediaType === "movie") {
-			url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/credits?language=${language}&api_key=${apiKey}`;
-		} else {
-			url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/aggregate_credits?language=${language}&api_key=${apiKey}`;
-		}
-
-		const response = await withTimeout(fetch(url), 5000, `TMDB credits fetch timed out for ${tmdbId}`);
-		const json = await response.json();
-
-		return json ? json : null;
-	} catch (error) {
-		logger.error(error.message, null);
-		return null;
-	}
-}
-
-async function fetchCastDirectors(tmdbId, mediaType, apiKey, language) {
-	const credits = await fetchCredits(tmdbId, mediaType, apiKey, language);
-
-	if (credits) {
-		const cast = [credits?.cast?.[0]?.name, credits?.cast?.[1]?.name, credits?.cast?.[2]?.name];
-		const director = credits?.crew?.filter((c) => c.job === "Director")[0]?.name || null;
-		return {
-			cast: cast,
-			director: director ? [director] : null,
-		};
-	}
-
-	return null;
 }
 
 module.exports = {
