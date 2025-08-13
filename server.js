@@ -4,8 +4,19 @@ const { catalogHandler, streamHandler, metaHandler } = require("./src/addon");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { PORT } = require("./config");
+const { PORT, ENCRYPTION_KEY_INPUT } = require("./config");
 const { validateApiKeys } = require("./services/api");
+const { encryptData, decryptData } = require("./utils/encryption");
+
+async function loadUserConfig(config) {
+	let userConfig = JSON.parse(decodeURIComponent(config));
+
+	if (ENCRYPTION_KEY_INPUT) {
+		userConfig = await decryptData(userConfig);
+	}
+
+	return userConfig;
+}
 
 async function generateManifest(apiKeys, combine, catalog_order) {
 	let catalogs = [];
@@ -47,7 +58,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.4.2",
+		version: "0.5.0",
 		resources: [
 			"catalog",
 			"stream",
@@ -99,9 +110,11 @@ async function startServer() {
 		res.sendFile(path.join(__dirname, "public", "configure.html"));
 	});
 
-	app.get("/:userConfig/configure", (req, res) => {
+	app.get("/:userConfig/configure", async (req, res) => {
 		try {
-			res.redirect(`/configure?data=${req.params.userConfig}`);
+			let userConfig = await loadUserConfig(req.params.userConfig);
+			userConfig = encodeURIComponent(JSON.stringify(userConfig));
+			res.redirect(`/configure?data=${userConfig}`);
 		} catch (error) {
 			// If parsing fails, serve the default configure page
 			res.redirect("/configure");
@@ -113,13 +126,14 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig/manifest.json", async (req, res) => {
-		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
+		const userConfig = await loadUserConfig(req.params.userConfig);
+
 		manifest = await generateManifest(userConfig.apiKeys, userConfig.combineCatalogs, userConfig.catalogOrder);
 		res.json(manifest);
 	});
 
 	app.get("/:userConfig/catalog/:type/:id/:extra?.json", async (req, res) => {
-		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
+		const userConfig = await loadUserConfig(req.params.userConfig);
 
 		// Retreieve and format meta data source
 		const metadataSource = {
@@ -134,14 +148,14 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig/stream/:type/:id.json", async (req, res) => {
-		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
+		const userConfig = await loadUserConfig(req.params.userConfig);
 		const platform = userConfig.streamButtonPlatform;
 		const streams = await streamHandler(req.params.type, req.params.id, platform);
 		res.json(streams);
 	});
 
 	app.get("/:userConfig/meta/:type/:id.json", async (req, res) => {
-		const userConfig = JSON.parse(decodeURIComponent(req.params.userConfig));
+		const userConfig = await loadUserConfig(req.params.userConfig);
 
 		// Retreieve and format meta data source
 		const metadataSource = {
@@ -188,7 +202,13 @@ async function startServer() {
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
 
-			const userConfig = encodeURIComponent(JSON.stringify(config));
+			let userConfig;
+			if (ENCRYPTION_KEY_INPUT) {
+				const encryptedObject = await encryptData(config);
+				userConfig = encodeURIComponent(JSON.stringify(encryptedObject));
+			} else {
+				userConfig = encodeURIComponent(JSON.stringify(config));
+			}
 
 			let host = req.headers.host;
 			if (req.body.forCopy === "true") {

@@ -2,12 +2,13 @@
 require("dotenv").config();
 
 const ENABLE_LOGGING = process.env.ENABLE_LOGGING === "true" || false;
+const ENCRYPTION_KEY_INPUT = process.env.ENCRYPTION_KEY || null;
 
 // Server
 const PORT = process.env.PORT || 8080;
 
 // Cache Configs
-const CACHE_TTL = process.env.CACHE_TTL || 3 * 24 * 60 * 60; // Cache expiration time - 1 week
+const CACHE_TTL = process.env.CACHE_TTL || 3 * 24 * 60 * 60; // Cache expiration time - 3 days
 const MAX_CACHE_SIZE = process.env.CACHE_MAX_SIZE || 5000;
 const REDIS_URL = process.env.REDIS_URL || null;
 const REDIS_HOST = process.env.REDIS_HOST || null;
@@ -61,6 +62,7 @@ module.exports = {
 	GEMINI_MODEL,
 	getGeminiPrompt,
 	getGeminiSystemInstructions,
+	ENCRYPTION_KEY_INPUT,
 	CACHE_TTL,
 	MAX_CACHE_SIZE,
 	ENABLE_LOGGING,
