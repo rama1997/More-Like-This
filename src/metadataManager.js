@@ -130,20 +130,20 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	// Check cache for meta
 	const source = metadataSource.source;
 	const language = metadataSource.language || "en";
-	const cachedMeta = await checkCache(imdbId, source, language);
-	if (cachedMeta) {
-		cachedMeta.id = imdbId; // Remove addon prefix id
+	// const cachedMeta = await checkCache(imdbId, source, language);
+	// if (cachedMeta) {
+	// 	cachedMeta.id = imdbId; // Remove addon prefix id
 
-		// Get RPDB Poster
-		let rpdbPoster;
-		if (validRpdbKey) {
-			rpdbPoster = await rpdb.getRPDBPoster(imdbId, apiKey);
-		}
+	// 	// Get RPDB Poster
+	// 	let rpdbPoster;
+	// 	if (validRpdbKey) {
+	// 		rpdbPoster = await rpdb.getRPDBPoster(imdbId, apiKey);
+	// 	}
 
-		cachedMeta.poster = rpdbPoster || cachedMeta.basePoster;
+	// 	cachedMeta.poster = rpdbPoster || cachedMeta.basePoster;
 
-		return cachedMeta;
-	}
+	// 	return cachedMeta;
+	// }
 
 	const mediaType = type === "movie" ? "movie" : "series";
 	const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
@@ -206,7 +206,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 		meta.poster = poster; // Get RPDB poster if found
 	}
 
-	await saveCache(imdbId, source, language, meta);
+	// await saveCache(imdbId, source, language, meta);
 
 	return meta;
 }

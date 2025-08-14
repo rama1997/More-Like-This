@@ -120,7 +120,7 @@ npm install
 npm start
 ```
 
-6. Access the addon's configure page at `localhost:PORT`. Adjust addon via `.env` file. See below for environment variables.
+6. Access the addon's configure page at `localhost:PORT`.
 
 ## Environment Variables
 
@@ -200,5 +200,5 @@ This addon is still a work in progress. While it works well in many scenarios, s
 - TMDB metadata may not show up properly with the current stable Android app, but does work with the new beta version on Android
 - Kitsu ID searches may be inaccurate, especially for niche or very specific titles.
 - New releases, unreleased titles, and obscure international content may yield strange or no results.
-- Not compatible with other Stremio addons that generate custom catalogs and IDs. This addon is optimized for IMDb IDs, as used by Cinemeta.
+- Not compatible with other Stremio addons that generate custom catalogs and IDs.
 - As of April 2025, TasteDive’s API may return poor results due to API changes. It now returns recommendations that includes another unrelated media titles.
