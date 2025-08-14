@@ -4,6 +4,7 @@ const { catalogHandler, streamHandler, metaHandler } = require("./src/addon");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const logger = require("./utils/logger");
 const { PORT, ENCRYPTION_KEY_INPUT } = require("./config");
 const { validateApiKeys } = require("./services/api");
 const { encryptData, decryptData } = require("./utils/encryption");
@@ -12,7 +13,30 @@ async function loadUserConfig(config) {
 	let userConfig = JSON.parse(decodeURIComponent(config));
 
 	if (ENCRYPTION_KEY_INPUT) {
-		userConfig = await decryptData(userConfig);
+		try {
+			userConfig = await decryptData(userConfig);
+		} catch (err) {
+			logger.error("Decryption Failed", err);
+			const defaultConfig = {
+				apiKeys: {
+					tmdb: { key: "", valid: false },
+					trakt: { key: "", valid: false },
+					gemini: { key: "", valid: false },
+					watchmode: { key: "", valid: false },
+					simkl: { key: "", valid: false },
+					tastedive: { key: "", valid: false },
+					rpdb: { key: "", valid: false },
+				},
+				combineCatalogs: false,
+				catalogOrder: ["TMDB", "Trakt", "Simkl", "Gemini AI", "TasteDive", "Watchmode"],
+				metadataSource: "cinemeta",
+				language: "en",
+				streamButtonPlatform: "both",
+				includeTmdbCollection: false,
+				enableTitleSearching: false,
+			};
+			return defaultConfig;
+		}
 	}
 
 	return userConfig;
@@ -201,6 +225,8 @@ async function startServer() {
 				includeTmdbCollection: req.body.includeTmdbCollection === "on" || false,
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
+
+			console.log(config);
 
 			let userConfig;
 			if (ENCRYPTION_KEY_INPUT) {
