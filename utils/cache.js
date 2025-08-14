@@ -6,16 +6,16 @@ let redisCache = null;
 let useRedis = false;
 const localCache = new Map();
 
-if (REDIS_HOST && REDIS_PORT && REDIS_DB) {
+if (REDIS_URL) {
+	redisCache = new Redis(REDIS_URL);
+	useRedis = true;
+} else if (REDIS_HOST && REDIS_PORT && REDIS_DB) {
 	redisCache = new Redis({
 		host: REDIS_HOST,
 		port: parseInt(REDIS_PORT),
 		db: parseInt(REDIS_DB),
 	});
 
-	useRedis = true;
-} else if (REDIS_URL) {
-	redisCache = new Redis(REDIS_URL);
 	useRedis = true;
 }
 
