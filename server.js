@@ -226,8 +226,6 @@ async function startServer() {
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
 
-			console.log(config);
-
 			let userConfig;
 			if (ENCRYPTION_KEY_INPUT) {
 				const encryptedObject = await encryptData(config);
