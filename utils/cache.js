@@ -52,13 +52,8 @@ async function getCache(key) {
 	if (!key) return null;
 
 	try {
-		if (useRedis && redisCache) {
-			const cached = await redisCache.get(key);
-			if (cached) {
-				logger.cache("RETRIEVED CACHE", key);
-				return JSON.parse(cached);
-			}
-		} else {
+		// Use local cache for meta or if Redis is not set up
+		if (key.startsWith("meta") || !useRedis || !redisCache) {
 			if (localCache.has(key)) {
 				const cached = localCache.get(key);
 
@@ -71,6 +66,12 @@ async function getCache(key) {
 					localCache.delete(key);
 					return null;
 				}
+			}
+		} else if (useRedis && redisCache) {
+			const cached = await redisCache.get(key);
+			if (cached) {
+				logger.cache("RETRIEVED CACHE", key);
+				return JSON.parse(cached);
 			}
 		}
 		return null;
@@ -89,10 +90,8 @@ async function setCache(key, data) {
 	if (!key) return;
 
 	try {
-		if (useRedis && redisCache) {
-			await redisCache.set(key, JSON.stringify(data), "EX", Math.floor(CACHE_TTL));
-			logger.cache("SAVE CACHE", key);
-		} else {
+		// Use local cache for meta or if Redis is not set up
+		if (key.startsWith("meta") || !useRedis || !redisCache) {
 			// If cache size exceeds max limit, remove the oldest entry
 			if (localCache.size >= MAX_CACHE_SIZE) {
 				const oldestKey = localCache.keys().next().value; // Get the first inserted key
@@ -100,6 +99,9 @@ async function setCache(key, data) {
 			}
 
 			localCache.set(key, { lastUpdated: Date.now(), data: data });
+			logger.cache("SAVE CACHE", key);
+		} else if (useRedis && redisCache) {
+			await redisCache.set(key, JSON.stringify(data), "EX", Math.floor(CACHE_TTL));
 			logger.cache("SAVE CACHE", key);
 		}
 	} catch (err) {
