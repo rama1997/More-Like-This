@@ -1,4 +1,5 @@
 const cache = require("../utils/cache");
+const rpdb = require("../services/rpdb");
 const { generateMeta } = require("./metadataManager");
 
 async function checkCache(imdbId, year, mediaType, source) {
@@ -20,6 +21,15 @@ async function saveCache(imdbId, year, mediaType, source, catalog) {
 }
 
 async function createMetaPreview(imdbId, type, rpdbApiKey, metadataSource) {
+	// When using Cinemeta, can just return id and type for Cinemeta's metadata
+	if (metadataSource.source === "cinemeta") {
+		if (rpdbApiKey.valid) {
+			const rpdbPoster = await rpdb.getRPDBPoster(imdbId, rpdbApiKey.key);
+			return { id: imdbId, type: type, poster: rpdbPoster };
+		}
+		return { id: imdbId, type: type };
+	}
+
 	let meta = await generateMeta(imdbId, type, rpdbApiKey, metadataSource);
 
 	if (meta) {
