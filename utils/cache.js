@@ -19,30 +19,6 @@ if (REDIS_URL) {
 	useRedis = true;
 }
 
-// Lock map to prevent race conditions
-const locks = new Map();
-
-async function withLock(key, fn) {
-	if (!key) return;
-
-	// If there's already a pending lock, wait for it
-	while (locks.has(key)) {
-		await locks.get(key);
-	}
-
-	// Create a new lock
-	let resolve;
-	const lockPromise = new Promise((res) => (resolve = res));
-	locks.set(key, lockPromise);
-
-	try {
-		await fn(); // Run the code that uses the cache
-	} finally {
-		locks.delete(key);
-		resolve(); // Unlock
-	}
-}
-
 /**
  * Retrieves data from the cache.
  * @param {string} key - The cache key (e.g., search query).

@@ -202,3 +202,8 @@ This addon is still a work in progress. While it works well in many scenarios, s
 - New releases, unreleased titles, and obscure international content may yield strange or no results.
 - Not compatible with other Stremio addons that generate custom catalogs and IDs.
 - As of April 2025, TasteDive’s API may return poor results due to API changes. It now returns recommendations that includes another unrelated media titles.
+
+# Security
+
+- User Data Encryption: AES-256 GCM encryption + PBKDF2
+- API Keys: API keys are never stored

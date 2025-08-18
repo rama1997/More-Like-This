@@ -6,6 +6,7 @@ const cinemeta = require("../services/cinemeta");
 const logger = require("../utils/logger");
 const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
+const { withLock } = require("../utils/lock");
 
 async function checkCache(imdbId, metaSource, language) {
 	const cacheKey = await cache.createMetaCacheKey(imdbId, metaSource, language);
@@ -126,89 +127,91 @@ async function IdToTitleYearType(id, searchType, metadataSource) {
 async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	const apiKey = rpdbApiKey.key;
 	const validRpdbKey = rpdbApiKey.valid;
-
-	// Check cache for meta
 	const source = metadataSource.source;
 	const language = metadataSource.language || "en";
-	const cachedMeta = await checkCache(imdbId, source, language);
-	if (cachedMeta) {
-		cachedMeta.id = imdbId; // Remove addon prefix id
 
-		// Get RPDB Poster
-		let rpdbPoster;
-		if (validRpdbKey) {
-			rpdbPoster = await rpdb.getRPDBPoster(imdbId, apiKey);
-		}
+	// Check cache for meta with lock for each id to prevent cache stampede
+	return await withLock(imdbId + source + language, async () => {
+		const cachedMeta = await checkCache(imdbId, source, language);
+		if (cachedMeta) {
+			cachedMeta.id = imdbId; // Remove addon prefix id
 
-		cachedMeta.poster = rpdbPoster || cachedMeta.basePoster;
-
-		return cachedMeta;
-	}
-
-	const mediaType = type === "movie" ? "movie" : "series";
-	const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
-	if (!rawMeta) return null;
-
-	// Get RPDB poster
-	let poster = null;
-	if (validRpdbKey) {
-		poster = await rpdb.getRPDBPoster(imdbId, apiKey);
-	}
-
-	let basePoster = rawMeta.poster;
-
-	// If RPDB is not used or fails to provide a poster, then use default poster
-	if (!poster) {
-		poster = basePoster;
-	}
-
-	// Remove media if there is no poster. Mostly for visual improvements for the catalogs
-	if (!poster) {
-		return null;
-	}
-
-	let meta = {};
-	if (source === "tmdb") {
-		// Get Genres
-		let genres = [];
-		if (rawMeta.genres) {
-			for (let g of rawMeta.genres) {
-				genres.push(g.name);
+			// Get RPDB Poster
+			let rpdbPoster;
+			if (validRpdbKey) {
+				rpdbPoster = await rpdb.getRPDBPoster(imdbId, apiKey);
 			}
+
+			cachedMeta.poster = rpdbPoster || cachedMeta.basePoster;
+
+			return cachedMeta;
 		}
 
-		// Get released
-		let releaseDate = rawMeta.release_date || rawMeta.first_air_date;
-		let released = releaseDate && !isNaN(new Date(releaseDate)) ? new Date(releaseDate).toISOString() : null;
+		const mediaType = type === "movie" ? "movie" : "series";
+		const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
+		if (!rawMeta) return null;
 
-		meta = {
-			id: imdbId,
-			name: rawMeta.title,
-			description: rawMeta.description,
-			poster: poster,
-			basePoster: basePoster,
-			background: rawMeta.backdrop,
-			type: mediaType,
-			year: rawMeta.year,
-			released: released,
-			genres: genres,
-			runtime: rawMeta.runtime || "",
-			cast: rawMeta.cast,
-			director: rawMeta.director,
-			trailers: rawMeta.trailer,
-		};
-
-		if (type === "series") {
-			meta.videos = rawMeta.videos;
+		// Get RPDB poster
+		let poster = null;
+		if (validRpdbKey) {
+			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
 		}
-	} else if (source === "cinemeta") {
-		meta = rawMeta;
-		meta.poster = poster; // Get RPDB poster if found
-	}
 
-	await saveCache(imdbId, source, language, meta);
+		let basePoster = rawMeta.poster;
 
-	return meta;
+		// If RPDB is not used or fails to provide a poster, then use default poster
+		if (!poster) {
+			poster = basePoster;
+		}
+
+		// Remove media if there is no poster. Mostly for visual improvements for the catalogs
+		if (!poster) {
+			return null;
+		}
+
+		let meta = {};
+		if (source === "tmdb") {
+			// Get Genres
+			let genres = [];
+			if (rawMeta.genres) {
+				for (let g of rawMeta.genres) {
+					genres.push(g.name);
+				}
+			}
+
+			// Get released
+			let releaseDate = rawMeta.release_date || rawMeta.first_air_date;
+			let released = releaseDate && !isNaN(new Date(releaseDate)) ? new Date(releaseDate).toISOString() : null;
+
+			meta = {
+				id: imdbId,
+				name: rawMeta.title,
+				description: rawMeta.description,
+				poster: poster,
+				basePoster: basePoster,
+				background: rawMeta.backdrop,
+				type: mediaType,
+				year: rawMeta.year,
+				released: released,
+				genres: genres,
+				runtime: rawMeta.runtime || "",
+				cast: rawMeta.cast,
+				director: rawMeta.director,
+				trailers: rawMeta.trailer,
+			};
+
+			if (type === "series") {
+				meta.videos = rawMeta.videos;
+			}
+		} else if (source === "cinemeta") {
+			meta = rawMeta;
+			meta.poster = poster; // Get RPDB poster if found
+		}
+
+		await saveCache(imdbId, source, language, meta);
+
+		return meta;
+	});
 }
 
 module.exports = {
