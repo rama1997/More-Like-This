@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 8080;
 
 // Cache Configs
 const CACHE_TTL = process.env.CACHE_TTL || 3 * 24 * 60 * 60; // Cache expiration time - 3 days
-const MAX_CACHE_SIZE = process.env.CACHE_MAX_SIZE || 5000;
+const MAX_CACHE_SIZE = process.env.CACHE_MAX_SIZE || 3000;
 const REDIS_URL = process.env.REDIS_URL || null;
 const REDIS_HOST = process.env.REDIS_HOST || null;
 const REDIS_PORT = process.env.REDIS_PORT || null;
