@@ -58,7 +58,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 	} else {
 		catalog_order.forEach((rawSource) => {
 			const source = rawSource.toLowerCase().split(" ")[0];
-			if (apiKeys[source].valid) {
+			if (apiKeys?.[source]?.valid) {
 				catalogs.push({
 					type: "movie",
 					id: `mlt-${source}-movie-rec`,
@@ -69,10 +69,10 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 		});
 		catalog_order.forEach((rawSource) => {
 			const source = rawSource.toLowerCase().split(" ")[0];
-			if (apiKeys[source].valid) {
+			if (apiKeys?.[source]?.valid) {
 				catalogs.push({
 					type: "series",
-					id: `mlt-${source.toLowerCase().split(" ").join("-")}-series-rec`,
+					id: `mlt-${source}-series-rec`,
 					name: `${source} Recommendations`,
 					extra: [{ name: "search", isRequired: true }],
 				});
@@ -108,7 +108,6 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 async function startServer() {
 	const app = express();
-	let manifest = await generateManifest({}, true, []); // Default Manifest
 
 	// Middle Ware
 	app.use(
@@ -146,13 +145,15 @@ async function startServer() {
 	});
 
 	app.get("/manifest.json", async (req, res) => {
+		let manifest = await generateManifest({}, false, []); // Default Manifest
+
 		res.json(manifest);
 	});
 
 	app.get("/:userConfig/manifest.json", async (req, res) => {
 		const userConfig = await loadUserConfig(req.params.userConfig);
 
-		manifest = await generateManifest(userConfig.apiKeys, userConfig.combineCatalogs, userConfig.catalogOrder);
+		let manifest = await generateManifest(userConfig.apiKeys, userConfig.combineCatalogs, userConfig.catalogOrder);
 		res.json(manifest);
 	});
 
@@ -267,7 +268,3 @@ async function startServer() {
 }
 
 startServer();
-
-module.exports = {
-	generateManifest,
-};
