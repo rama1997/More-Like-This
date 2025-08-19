@@ -151,9 +151,14 @@ async function startServer() {
 	});
 
 	app.get("/:userConfig/manifest.json", async (req, res) => {
-		const userConfig = await loadUserConfig(req.params.userConfig);
-
-		let manifest = await generateManifest(userConfig.apiKeys, userConfig.combineCatalogs, userConfig.catalogOrder);
+		let manifest = "";
+		try {
+			const userConfig = await loadUserConfig(req.params.userConfig);
+			manifest = await generateManifest(userConfig.apiKeys, userConfig.combineCatalogs, userConfig.catalogOrder);
+		} catch (err) {
+			console.error("Loading manifest from user config failed", err);
+			manifest = await generateManifest({}, false, []); // Default Manifest
+		}
 		res.json(manifest);
 	});
 
