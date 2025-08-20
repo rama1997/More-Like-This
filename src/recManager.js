@@ -60,11 +60,15 @@ async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdb
 	recs = recs.filter((row) => row !== undefined);
 
 	// Get IMDB Id for all recs and add it's placement ranking
-	const recsImdbId = await Promise.all(
+	let recsImdbId = await Promise.all(
 		recs.map(async (rec, index) => {
-			return { id: await tmdb.fetchImdbID(rec.id, mediaTypeForAPI, apiKey), ranking: index + 1 };
+			const recId = await tmdb.fetchImdbID(rec.id, mediaTypeForAPI, apiKey);
+			const ranking = index + 1;
+			return recId ? { id: recId, ranking: ranking } : null;
 		}),
 	);
+
+	recsImdbId = recsImdbId.filter((row) => row != null);
 
 	await saveCache(searchImdb, source, recsImdbId);
 
