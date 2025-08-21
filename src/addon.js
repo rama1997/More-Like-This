@@ -122,37 +122,37 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	let recs = [];
 	try {
 		if (type === "movie") {
-			if (id === "mlt-combined-movie-rec") {
-				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
-			} else if (id === "mlt-tmdb-movie-rec") {
+			if (id.includes("combined")) {
+				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource);
+			} else if (id.includes("tmdb")) {
 				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
-			} else if (id === "mlt-trakt-movie-rec") {
+			} else if (id.includes("trakt")) {
 				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
-			} else if (id === "mlt-simkl-movie-rec") {
+			} else if (id.includes("simkl")) {
 				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
-			} else if (id === "mlt-gemini-movie-rec") {
+			} else if (id.includes("gemini")) {
 				recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
-			} else if (id === "mlt-tastedive-movie-rec") {
+			} else if (id.includes("tastedive")) {
 				recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
-			} else if (id === "mlt-watchmode-movie-rec") {
+			} else if (id.includes("watchmode")) {
 				recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
 			} else {
 				recs = [];
 			}
 		} else if (type === "series") {
-			if (id === "mlt-combined-series-rec") {
-				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection);
-			} else if (id == "mlt-tmdb-series-rec") {
+			if (id.includes("combined")) {
+				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource);
+			} else if (id.includes("tmdb")) {
 				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
-			} else if (id === "mlt-simkl-series-rec") {
-				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
-			} else if (id === "mlt-trakt-series-rec") {
+			} else if (id.includes("trakt")) {
 				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
-			} else if (id === "mlt-gemini-series-rec") {
+			} else if (id.includes("simkl")) {
+				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
+			} else if (id.includes("gemini")) {
 				recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
-			} else if (id === "mlt-tastedive-series-rec") {
+			} else if (id.includes("tastedive")) {
 				recs = await recManager.getTastediveRecs(title, year, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource);
-			} else if (id === "mlt-watchmode-series-rec") {
+			} else if (id.includes("watchmode")) {
 				recs = await recManager.getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid);
 			} else {
 				recs = [];
@@ -171,7 +171,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 		logger.emptyCatalog(`${catalogSource.toUpperCase()}: No recs found`, { title, year, type, searchImdb });
 		return { metas: [] };
 	} else {
-		catalog = await catalogManager.createRecCatalog(recs, type, apiKeys.rpdb, metadataSource);
+		catalog = await catalogManager.createRecCatalog(recs, type, apiKeys, metadataSource);
 
 		if (!catalog) {
 			logger.emptyCatalog(`${catalogSource.toUpperCase()}: Catalog Creation Error`, { title, year, type, searchImdb });
@@ -187,7 +187,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	return { metas: [] };
 }
 
-async function streamHandler(type, id, platform) {
+async function streamHandler(origin, type, id, platform) {
 	let searchKey;
 
 	// Parsing IMDB Id and Kitsu Ids
@@ -225,10 +225,15 @@ async function streamHandler(type, id, platform) {
 	});
 }
 
-async function metaHandler(type, id, rpdbApiKey, metadataSource) {
-	const imdbId = id.split("-")[1];
-	const meta = await metadataManager.generateMeta(imdbId, type, rpdbApiKey, metadataSource);
-	return { meta: meta };
+async function metaHandler(type, id, userConfig, metadataSource) {
+	const apiKeys = userConfig.apiKeys;
+	const includeTmdbCollection = userConfig.includeTmdbCollection;
+	const request = id.split("-")[1];
+	const imdbId = id.split("-")[2];
+	if (request === "meta") {
+		const meta = await metadataManager.generateMeta(imdbId, type, metadataSource);
+		return { meta: meta };
+	}
 }
 
 module.exports = {

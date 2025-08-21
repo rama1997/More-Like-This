@@ -82,7 +82,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.5.6",
+		version: "0.6.0",
 		resources: [
 			"catalog",
 			"stream",
@@ -180,7 +180,7 @@ async function startServer() {
 	app.get("/:userConfig/stream/:type/:id.json", async (req, res) => {
 		const userConfig = await loadUserConfig(req.params.userConfig);
 		const platform = userConfig.streamButtonPlatform;
-		const streams = await streamHandler(req.params.type, req.params.id, platform);
+		const streams = await streamHandler(req.headers["origin"], req.params.type, req.params.id, platform);
 		res.json(streams);
 	});
 
@@ -195,7 +195,7 @@ async function startServer() {
 			language: userConfig.language,
 		};
 
-		const meta = await metaHandler(req.params.type, req.params.id, userConfig.apiKeys.rpdb, metadataSource);
+		const meta = await metaHandler(req.params.type, req.params.id, userConfig, metadataSource);
 		res.json(meta);
 	});
 

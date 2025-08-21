@@ -27,9 +27,8 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 		if (source === "tmdb" && validTMDBKey) {
 			const tmdbApiKey = metadataSource.tmdbApiKey.key;
 			const language = metadataSource.language;
-			const mediaTypeForAPI = await tmdb.getAPIEndpoint(type);
 
-			const tmdbMeta = await tmdb.fetchFullMetadata(imdbId, mediaTypeForAPI, tmdbApiKey, language);
+			const tmdbMeta = await tmdb.fetchFullMetadata(imdbId, type, tmdbApiKey, language);
 			if (tmdbMeta) return tmdbMeta;
 		} else {
 			// Default/Backup to Cinemeta
@@ -70,17 +69,16 @@ async function titleToImdb(title, year, type, metadataSource) {
 		if (validTMDBKey) {
 			const tmdbApiKey = metadataSource.tmdbApiKey.key;
 			const language = metadataSource.language;
-			const mediaTypeForTmdb = await tmdb.getAPIEndpoint(type);
 
 			// Search TMDB's search results for a title + year and fetch the top result
-			const searchResults = await tmdb.fetchSearchResult(title, year, mediaTypeForTmdb, tmdbApiKey, language);
+			const searchResults = await tmdb.fetchSearchResult(title, year, type, tmdbApiKey, language);
 			if (searchResults && searchResults.length !== 0) {
 				const foundMedia = searchResults[0];
 
 				// If the IMDB Id's media does not match catalog type, skip the catalog
 				const mediaType = foundMedia.release_date ? "movie" : "series";
 				if (mediaType === type) {
-					const tmdbResult = await tmdb.fetchImdbID(foundMedia.id, mediaTypeForTmdb, tmdbApiKey);
+					const tmdbResult = await tmdb.fetchImdbID(foundMedia.id, type, tmdbApiKey);
 					if (tmdbResult) return tmdbResult;
 				}
 			}
@@ -90,9 +88,8 @@ async function titleToImdb(title, year, type, metadataSource) {
 		const validTraktKey = metadataSource.traktApiKey.valid;
 		if (validTraktKey) {
 			const traktApiKey = metadataSource.traktApiKey.key;
-			const mediaTypeForTrakt = await trakt.getAPIEndpoint(type);
 
-			const searchResults = await trakt.fetchSearchResult(title, mediaTypeForTrakt, traktApiKey);
+			const searchResults = await trakt.fetchSearchResult(title, type, traktApiKey);
 			if (searchResults && searchResults.length !== 0) {
 				const foundMedia = searchResults[0][mediaTypeForTrakt];
 				const traktResult = foundMedia?.ids?.imdb;
@@ -124,9 +121,42 @@ async function IdToTitleYearType(id, searchType, metadataSource) {
 	}
 }
 
-async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
-	const apiKey = rpdbApiKey.key;
-	const validRpdbKey = rpdbApiKey.valid;
+async function createMetaPreview(recs, type, apiKeys, metadataSource) {
+	const imdbId = recs.imdbId;
+	const tmdbId = recs.tmdbId;
+
+	const language = metadataSource.language;
+
+	// Get RPDB poster if valid API key provided
+	const rpdbApi = apiKeys.rpdb;
+	let rpdbPoster = null;
+	if (rpdbApi.valid) {
+		rpdbPoster = await rpdb.getRPDBPoster(imdbId, rpdbApi.key);
+	}
+
+	// Meta Previews just need id, type, and poster
+	if (metadataSource.source === "cinemeta") {
+		return rpdbPoster ? { id: imdbId, type: type, poster: rpdbPoster } : { id: imdbId, type: type };
+	} else if (metadataSource.source === "tmdb") {
+		if (rpdbPoster) {
+			return { id: "mlt-meta-" + imdbId, type: type, poster: rpdbPoster };
+		}
+
+		// Fetch TMDB poster
+		if (tmdbId) {
+			const defaultPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
+			return defaultPoster ? { id: "mlt-meta-" + imdbId, type: type, poster: defaultPoster } : null;
+		} else {
+			const res = await tmdb.findByImdbId(imdbId, type, apiKeys.tmdb.key, language);
+			const tmdbId = res?.id;
+			const defaultPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
+
+			return defaultPoster ? { id: "mlt-meta-" + imdbId, type: type, poster: defaultPoster } : null;
+		}
+	}
+}
+
+async function generateMeta(imdbId, type, metadataSource) {
 	const source = metadataSource.source;
 	const language = metadataSource.language || "en";
 
@@ -134,40 +164,13 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 	return await withLock(imdbId + source + language, async () => {
 		const cachedMeta = await checkCache(imdbId, source, language);
 		if (cachedMeta) {
-			cachedMeta.id = imdbId; // Remove addon prefix id
-
-			// Get RPDB Poster
-			let rpdbPoster;
-			if (validRpdbKey) {
-				rpdbPoster = await rpdb.getRPDBPoster(imdbId, apiKey);
-			}
-
-			cachedMeta.poster = rpdbPoster || cachedMeta.basePoster;
-
+			cachedMeta.id = imdbId; // Remove addon prefix id for better integration after returning metadata
 			return cachedMeta;
 		}
 
 		const mediaType = type === "movie" ? "movie" : "series";
 		const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
 		if (!rawMeta) return null;
-
-		// Get RPDB poster
-		let poster = null;
-		if (validRpdbKey) {
-			poster = await rpdb.getRPDBPoster(imdbId, apiKey);
-		}
-
-		let basePoster = rawMeta.poster;
-
-		// If RPDB is not used or fails to provide a poster, then use default poster
-		if (!poster) {
-			poster = basePoster;
-		}
-
-		// Remove media if there is no poster. Mostly for visual improvements for the catalogs
-		if (!poster) {
-			return null;
-		}
 
 		let meta = {};
 		if (source === "tmdb") {
@@ -187,8 +190,7 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 				id: imdbId,
 				name: rawMeta.title,
 				description: rawMeta.description,
-				poster: poster,
-				basePoster: basePoster,
+				poster: rawMeta.poster,
 				background: rawMeta.backdrop,
 				type: mediaType,
 				year: rawMeta.year,
@@ -205,7 +207,6 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 			}
 		} else if (source === "cinemeta") {
 			meta = rawMeta;
-			meta.poster = poster; // Get RPDB poster if found
 		}
 
 		await saveCache(imdbId, source, language, meta);
@@ -217,5 +218,6 @@ async function generateMeta(imdbId, type, rpdbApiKey, metadataSource) {
 module.exports = {
 	titleToImdb,
 	IdToTitleYearType,
+	createMetaPreview,
 	generateMeta,
 };

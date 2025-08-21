@@ -27,7 +27,8 @@ async function getAPIEndpoint(mediaType) {
 
 async function fetchSearchResult(title, year, mediaType, apiKey, language) {
 	try {
-		let url = `${TMDB_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}&include_adult=false&language=${language}&page=1&api_key=${apiKey}`;
+		const type = await getAPIEndpoint(mediaType);
+		let url = `${TMDB_API_BASE_URL}/search/${type}?query=${encodeURIComponent(title)}&include_adult=false&language=${language}&page=1&api_key=${apiKey}`;
 
 		if (year && year !== "") {
 			url = url + `&year=${year}`;
@@ -44,7 +45,8 @@ async function fetchSearchResult(title, year, mediaType, apiKey, language) {
 
 async function fetchRecommendations(tmdbId, mediaType, apiKey) {
 	try {
-		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/recommendations?language=en-US&page=1&api_key=${apiKey}`;
+		const type = await getAPIEndpoint(mediaType);
+		const url = `${TMDB_API_BASE_URL}/${type}/${tmdbId}/recommendations?language=en-US&page=1&api_key=${apiKey}`;
 
 		const response = await withTimeout(fetch(url), 5000, "TMDB fetch recs timed out");
 		const json = await response.json();
@@ -57,9 +59,10 @@ async function fetchRecommendations(tmdbId, mediaType, apiKey) {
 
 async function fetchImdbID(tmdbId, mediaType, apiKey) {
 	try {
-		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/external_ids?api_key=${apiKey}`;
+		const type = await getAPIEndpoint(mediaType);
+		const url = `${TMDB_API_BASE_URL}/${type}/${tmdbId}/external_ids?api_key=${apiKey}`;
 
-		const response = await withTimeout(fetch(url), 5000, "TMDB id fetch timed out");
+		const response = await withTimeout(fetch(url), 5000, "TMDB fetchImdbID fetch timed out");
 		const json = await response.json();
 		return json.imdb_id ? json.imdb_id : null;
 	} catch (error) {
@@ -127,7 +130,8 @@ async function fetchCollectionRecs(tmdbId, mediaType, apiKey) {
 	}
 
 	try {
-		const collectionId = await fetchCollectionID(tmdbId, mediaType, apiKey);
+		const type = await getAPIEndpoint(mediaType);
+		const collectionId = await fetchCollectionID(tmdbId, type, apiKey);
 
 		if (collectionId) {
 			const url = `${TMDB_API_BASE_URL}/collection/${collectionId}?language=en-US&api_key=${apiKey}`;
@@ -194,6 +198,57 @@ async function fetchCastDirectors(tmdbId, mediaType, apiKey, language) {
 	return null;
 }
 
+async function fetchTrailer(tmdbId, mediaType, apiKey, language) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		let url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/videos?language=${language}&api_key=${apiKey}`;
+
+		const response = await withTimeout(fetch(url), 5000, `TMDB trailer fetch timed out for ${tmdbId}`);
+		const json = await response.json();
+
+		const videos = json?.results ?? null;
+
+		let trailers = null;
+		if (videos) {
+			trailers = videos.filter((v) => v.type === "Trailer" && v.site === "YouTube");
+		}
+
+		return trailers.length > 0 ? trailers : null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
+async function fetchPoster(tmdbId, mediaType, apiKey, language) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		const type = await getAPIEndpoint(mediaType);
+		let url = `${TMDB_API_BASE_URL}/${type}/${tmdbId}/images?language=${language}&api_key=${apiKey}`;
+
+		const response = await withTimeout(fetch(url), 5000, `TMDB Poster fetch timed out for ${tmdbId}`);
+		const json = await response.json();
+
+		const posters = json?.posters;
+
+		if (posters && posters.length > 0) {
+			const firstPoster = posters[0].file_path;
+			return firstPoster ? `https://image.tmdb.org/t/p/original${firstPoster}` : null;
+		}
+
+		return null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
 async function fetchBaseMetadata(id, mediaType, apiKey, language) {
 	if (!id || !mediaType) {
 		return null;
@@ -230,11 +285,12 @@ async function fetchBaseMetadata(id, mediaType, apiKey, language) {
 }
 
 async function fetchFullMetadata(imdbId, mediaType, apiKey, language) {
-	let meta = await fetchBaseMetadata(imdbId, mediaType, apiKey, language);
+	const type = await getAPIEndpoint(mediaType);
+	let meta = await fetchBaseMetadata(imdbId, type, apiKey, language);
 
 	// Adjust metadata for addon usage
 	if (meta) {
-		meta = await adjustMetadata(meta, imdbId, meta.id, mediaType, apiKey, language);
+		meta = await adjustMetadata(meta, imdbId, meta.id, type, apiKey, language);
 		return meta;
 	}
 
@@ -330,39 +386,14 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	return meta;
 }
 
-async function fetchTrailer(tmdbId, mediaType, apiKey, language) {
-	if (!tmdbId || !mediaType) {
-		return null;
-	}
-
-	try {
-		let url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}/videos?language=${language}&api_key=${apiKey}`;
-
-		const response = await withTimeout(fetch(url), 5000, `TMDB trailer fetch timed out for ${tmdbId}`);
-		const json = await response.json();
-
-		const videos = json?.results ?? null;
-
-		let trailers = null;
-		if (videos) {
-			trailers = videos.filter((v) => v.type === "Trailer" && v.site === "YouTube");
-		}
-
-		return trailers.length > 0 ? trailers : null;
-	} catch (error) {
-		logger.error(error.message, null);
-		return null;
-	}
-}
-
 module.exports = {
 	validateAPIKey,
 	fetchSearchResult,
 	fetchRecommendations,
 	fetchImdbID,
 	fetchFullMetadata,
-	getAPIEndpoint,
 	findByImdbId,
 	adjustMetadata,
 	fetchCollectionRecs,
+	fetchPoster,
 };

@@ -7,6 +7,7 @@ const watchmode = require("../services/watchmode");
 const { titleToImdb } = require("./metadataManager");
 const logger = require("../utils/logger");
 const cache = require("../utils/cache");
+const { withTimeout } = require("../utils/timeout");
 
 async function checkCache(imdbId, recSource) {
 	const cacheKey = await cache.createRecCacheKey(imdbId, recSource);
@@ -18,7 +19,7 @@ async function saveCache(imdbId, recSource, data) {
 	await cache.setCache(cacheKey, data);
 }
 
-async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdbCollection) {
+async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollection) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -31,51 +32,47 @@ async function getTmdbRecs(searchImdb, searchType, apiKey, validKey, includeTmdb
 		return cachedRecs;
 	}
 
-	// Get specific terminlogy for type for API endpoints
-	const mediaTypeForAPI = await tmdb.getAPIEndpoint(searchType);
-
 	// Get recs from TMDB API
-	const searchedMedia = await tmdb.findByImdbId(searchImdb, mediaTypeForAPI, apiKey);
+	const searchedMedia = await tmdb.findByImdbId(searchImdb, type, apiKey);
 	if (!searchedMedia) {
 		return null;
 	}
 
 	const tmdbId = searchedMedia.id;
 
-	let recs = [];
-	const baseRecs = (await tmdb.fetchRecommendations(tmdbId, mediaTypeForAPI, apiKey)) || [];
+	let tmdbRecs = [];
+	const defaultRecs = (await tmdb.fetchRecommendations(tmdbId, type, apiKey)) || [];
 
 	// Include TMDB collections into rec if enabled
 	if (includeTmdbCollection) {
-		const collectionRecs = (await tmdb.fetchCollectionRecs(tmdbId, mediaTypeForAPI, apiKey)) || [];
-		recs = [...collectionRecs, ...baseRecs];
+		const collectionRecs = (await tmdb.fetchCollectionRecs(tmdbId, type, apiKey)) || [];
+		tmdbRecs = [...collectionRecs, ...defaultRecs];
 	} else {
-		recs = [...baseRecs];
+		tmdbRecs = [...defaultRecs];
 	}
 
-	if (!recs || recs.length === 0) {
+	if (!tmdbRecs || tmdbRecs.length === 0) {
 		return null;
 	}
 
-	recs = recs.filter((row) => row !== undefined);
+	tmdbRecs = tmdbRecs.filter((row) => row !== undefined);
 
 	// Get IMDB Id for all recs and add it's placement ranking
-	let recsImdbId = await Promise.all(
-		recs.map(async (rec, index) => {
-			const recId = await tmdb.fetchImdbID(rec.id, mediaTypeForAPI, apiKey);
-			const ranking = index + 1;
-			return recId ? { id: recId, ranking: ranking } : null;
+	let recs = await Promise.all(
+		tmdbRecs.map(async (rec, index) => {
+			const imdbId = await tmdb.fetchImdbID(rec.id, type, apiKey);
+			return imdbId ? { imdbId: imdbId, tmdbId: rec.id, ranking: index + 1 } : null;
 		}),
 	);
 
-	recsImdbId = recsImdbId.filter((row) => row != null);
+	recs = recs.filter((row) => row != null);
 
-	await saveCache(searchImdb, source, recsImdbId);
+	await saveCache(searchImdb, source, recs);
 
-	return recsImdbId;
+	return recs;
 }
 
-async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
+async function getTraktRecs(searchImdb, type, apiKey, validKey) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -86,30 +83,27 @@ async function getTraktRecs(searchImdb, searchType, apiKey, validKey) {
 		return cachedRecs;
 	}
 
-	// Get specific Trakt terminlogy for movie/series for API endpoints
-	const mediaTypeForAPI = await trakt.getAPIEndpoint(searchType);
-
 	// Get recs based on the found media
-	let recs = await trakt.fetchRecommendations(searchImdb, mediaTypeForAPI, apiKey);
+	let traktRecs = await trakt.fetchRecommendations(searchImdb, type, apiKey);
 
-	if (!recs || recs.length === 0) {
+	if (!traktRecs || traktRecs.length === 0) {
 		return null;
 	}
-	recs = recs.filter((row) => row !== undefined);
+	traktRecs = traktRecs.filter((row) => row !== undefined);
 
 	// Get IMDB Id for all recs and add it's placement ranking
-	const recsImdbId = await Promise.all(
-		recs.map(async (rec, index) => {
-			return { id: rec.ids.imdb, ranking: index + 1 };
+	const recs = await Promise.all(
+		traktRecs.map(async (rec, index) => {
+			return { imdbId: rec.ids.imdb, tmdbId: rec.ids.tmdb, ranking: index + 1 };
 		}),
 	);
 
-	await saveCache(searchImdb, "trakt", recsImdbId);
+	await saveCache(searchImdb, "trakt", recs);
 
-	return recsImdbId;
+	return recs;
 }
 
-async function getSimklRecs(searchImdb, searchType, validKey) {
+async function getSimklRecs(searchImdb, type, validKey) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -120,21 +114,18 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 		return cachedRecs;
 	}
 
-	// Get specific Trakt terminlogy for movie/series for API endpoints
-	const mediaTypeForAPI = await simkl.getAPIEndpoint(searchType);
-
 	// Get recs based on the found media
-	let recs = await simkl.fetchRecommendations(searchImdb, mediaTypeForAPI);
-	if (!recs || recs.length === 0) {
+	let simklRecs = await simkl.fetchRecommendations(searchImdb, type);
+	if (!simklRecs || simklRecs.length === 0) {
 		return null;
 	}
 
-	recs = recs.filter((row) => row !== undefined);
+	simklRecs = simklRecs.filter((row) => row !== undefined);
 
 	let movieRecs = [];
 	let seriesRecs = [];
 
-	for (let r of recs) {
+	for (let r of simklRecs) {
 		if (r.type === "movie" || r.anime_type === "movie") {
 			movieRecs.push(r.ids.simkl);
 		} else if (r.type === "tv" || r.anime_type === "tv") {
@@ -142,29 +133,22 @@ async function getSimklRecs(searchImdb, searchType, validKey) {
 		}
 	}
 
-	let recsImdbId = null;
-	if (searchType === "movie") {
-		recsImdbId = await Promise.all(
-			movieRecs.map(async (id, index) => {
-				const imdbId = await simkl.simklToImdbId(id, mediaTypeForAPI);
-				return { id: imdbId, ranking: index + 1 };
-			}),
-		);
-	} else if (searchType === "series") {
-		recsImdbId = await Promise.all(
-			seriesRecs.map(async (id, index) => {
-				const imdbId = await simkl.simklToImdbId(id, mediaTypeForAPI);
-				return { id: imdbId, ranking: index + 1 };
-			}),
-		);
-	}
+	const typeRecs = type === "movie" ? movieRecs : seriesRecs;
+	const recs = await Promise.all(
+		typeRecs.map(async (id, index) => {
+			const ids = await simkl.simklToExteralId(id, type);
+			const imdbId = ids?.imdbId;
+			const tmdbId = ids?.tmdbId;
+			return imdbId ? { imdbId: imdbId, tmdbId: tmdbId, ranking: index + 1 } : null;
+		}),
+	);
 
-	await saveCache(searchImdb, "simkl", recsImdbId);
+	await saveCache(searchImdb, "simkl", recs);
 
-	return recsImdbId;
+	return recs;
 }
 
-async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey, metadataSource) {
+async function getTastediveRecs(searchTitle, searchYear, type, searchImdb, apiKey, validKey, metadataSource) {
 	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -175,11 +159,8 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 		return cachedRecs;
 	}
 
-	// Get specific terminlogy for movie/series for API endpoints
-	const mediaTypeForAPI = await tastedive.getAPIEndpoint(searchType);
-
 	// Get API response from Tastedive
-	const response = await tastedive.fetchRecs(searchTitle, searchYear, mediaTypeForAPI, apiKey);
+	const response = await tastedive.fetchRecs(searchTitle, searchYear, type, apiKey);
 	if (!response) {
 		return null;
 	}
@@ -202,7 +183,8 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 	// Get IMDB Ids for all the rec titles and add it's placement ranking
 	let recs = await Promise.all(
 		recTitles.map(async (rec, index) => {
-			return { id: await titleToImdb(rec.name, null, searchType, metadataSource), ranking: index + 1 };
+			const imdbId = await titleToImdb(rec.name, null, type, metadataSource);
+			return { imdbId: imdbId, tmdbId: null, ranking: index + 1 };
 		}),
 	);
 
@@ -211,7 +193,7 @@ async function getTastediveRecs(searchTitle, searchYear, searchType, searchImdb,
 	return recs;
 }
 
-async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKey, validKey, metadataSource) {
+async function getGeminiRecs(searchTitle, searchYear, type, searchImdb, apiKey, validKey, metadataSource) {
 	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -223,14 +205,14 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 	}
 
 	// Get recs from Gemini - Gemini returns rec's title and year as a string
-	const recTitles = await gemini.getGeminiRecs(searchTitle, searchYear, searchType, apiKey);
+	const recTitles = await gemini.getGeminiRecs(searchTitle, searchYear, type, apiKey);
 	if (!recTitles || recTitles.length === 0) {
 		return null;
 	}
 
 	// If recs were found, verify that the first item is the search input by comparing imdb id
 	const foundMedia = recTitles[0];
-	const foundMediaImdb = await titleToImdb(foundMedia?.title, foundMedia?.year, searchType, metadataSource);
+	const foundMediaImdb = await titleToImdb(foundMedia?.title, foundMedia?.year, type, metadataSource);
 	if (searchImdb && foundMediaImdb !== searchImdb) {
 		return null;
 	}
@@ -241,16 +223,19 @@ async function getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, ap
 			.slice(1)
 			.filter((row) => row[0] !== "") // Remove blank rows
 			.map(async (rec, index) => {
-				return { id: await titleToImdb(rec.title, rec.year, searchType, metadataSource), ranking: index + 1 };
+				const imdbId = await titleToImdb(rec.title, rec.year, type, metadataSource);
+				return imdbId ? { imdbId: imdbId, tmdbId: null, ranking: index + 1 } : null;
 			}),
 	);
+
+	recs = recs.filter((row) => row != null);
 
 	await saveCache(searchImdb, "gemini", recs);
 
 	return recs;
 }
 
-async function getWatchmodeRecs(searchImdb, searchType, apiKey, validKey) {
+async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 	if (!searchImdb || searchImdb === "" || !validKey) {
 		return null;
 	}
@@ -262,78 +247,74 @@ async function getWatchmodeRecs(searchImdb, searchType, apiKey, validKey) {
 	}
 
 	// Get recs based on the found media
-	let recs = await watchmode.fetchRecommendations(searchImdb, apiKey);
-	if (!recs || recs.length === 0) {
+	let watchmodeRecs = await watchmode.fetchRecommendations(searchImdb, apiKey);
+	if (!watchmodeRecs || watchmodeRecs.length === 0) {
 		return null;
 	}
-	recs = recs.filter((row) => row !== undefined);
+	watchmodeRecs = watchmodeRecs.filter((row) => row !== undefined);
 
 	let movieRecs = [];
 	let seriesRecs = [];
 
-	for (let r of recs) {
-		const media = await watchmode.watchmodeToImdbId(r, apiKey);
+	for (let r of watchmodeRecs) {
+		const media = await watchmode.watchmodeToExternalId(r, apiKey);
 		if (media) {
 			if (media.type === "tv") {
-				seriesRecs.push(media.imdbId);
+				seriesRecs.push({ imdbId: media.imdbId, tmdbId: media.tmdbId });
 			} else if (media.type === "movie") {
-				movieRecs.push(media.imdbId);
+				movieRecs.push({ imdbId: media.imdbId, tmdbId: media.tmdbId });
 			}
 		}
 	}
 
-	let recsImdbId = null;
-	if (searchType === "movie") {
-		recsImdbId = await Promise.all(
-			movieRecs.map(async (id, index) => {
-				return { id: id, ranking: index + 1 };
-			}),
-		);
-	} else if (searchType === "series") {
-		recsImdbId = await Promise.all(
-			seriesRecs.map(async (id, index) => {
-				return { id: id, ranking: index + 1 };
-			}),
-		);
-	}
+	const typeRecs = type === "movie" ? movieRecs : seriesRecs;
+	const recs = await Promise.all(
+		typeRecs.map(async (rec, index) => {
+			return { imdbId: rec.imdbId, tmdbId: rec.tmdbId, ranking: index + 1 };
+		}),
+	);
 
-	await saveCache(searchImdb, "watchmode", recsImdbId);
+	await saveCache(searchImdb, "watchmode", recs);
 
-	return recsImdbId;
+	return recs;
 }
 
-async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys, includeTmdbCollection) {
-	// Get recs from all sources
+async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys, includeTmdbCollection, metadataSource) {
+	const timeoutMs = 10000;
+
+	// Get recs from all sources. All sources have a timeout to prevent the whole catalog from not showing if
 	// prettier-ignore
 	const [tmdbRecs, traktRecs, simklRecs, geminiRecs, tastediveRecs, watchmodeRecs] = await Promise.all([
-		getTmdbRecs(searchImdb, searchType, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection), 
-		getTraktRecs(searchImdb, searchType, apiKeys.trakt.key, apiKeys.trakt.valid), 
-		getSimklRecs(searchImdb, searchType, apiKeys.simkl.valid), 
-		getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid), 
-		getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid),
-		getWatchmodeRecs(searchImdb, searchType, apiKeys.watchmode.key, apiKeys.watchmode.valid,)
+		withTimeout(getTmdbRecs(searchImdb, searchType, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection), timeoutMs, "TMDB recs timed out in combined Recs").catch(() => {return []}), 
+		withTimeout(getTraktRecs(searchImdb, searchType, apiKeys.trakt.key, apiKeys.trakt.valid), timeoutMs, "Trakt recs timed out in combined Recs").catch(() => {return []}), 
+		withTimeout(getSimklRecs(searchImdb, searchType, apiKeys.simkl.valid), timeoutMs, "Simkl recs timed out in combined Recs").catch(() => {return null}), 
+		withTimeout(getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource), timeoutMs, "Gemini recs timed out in combined Recs").catch(() => {return []}), 
+		withTimeout(getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource), timeoutMs, "Tastedive recs timed out in combined Recs").catch(() => {return []}), 
+		withTimeout(getWatchmodeRecs(searchImdb, searchType, apiKeys.watchmode.key, apiKeys.watchmode.valid), timeoutMs, "Watchmode recs timed out in combined Recs").catch(() => {return []}), 
 	]);
 
 	// Merge recs into one array
-	const merged = [...(tmdbRecs || []), ...(traktRecs || []), ...(simklRecs || []), ...(geminiRecs || []), ...(tastediveRecs || []), ...(watchmodeRecs || [])];
+	let merged = [...(tmdbRecs || []), ...(traktRecs || []), ...(simklRecs || []), ...(geminiRecs || []), ...(tastediveRecs || []), ...(watchmodeRecs || [])];
 
 	if (merged.length === 0) {
 		logger.emptyCatalog("COMBINED: Empty catalog after merge", searchTitle);
 		return [];
 	}
 
+	merged = merged.filter((row) => row != null);
+
 	// Count occurrences of each media ID and sum their ranking within the recommendations
 	const recMap = {};
 	for (const media of merged) {
-		if (!recMap[media.id]) {
-			recMap[media.id] = {
+		if (!recMap[media.imdbId]) {
+			recMap[media.imdbId] = {
 				...media,
 				count: 1,
 				rankingSum: media.ranking,
 			};
 		} else {
-			recMap[media.id].count += 1;
-			recMap[media.id].rankingSum += media.ranking;
+			recMap[media.imdbId].count += 1;
+			recMap[media.imdbId].rankingSum += media.ranking;
 		}
 	}
 

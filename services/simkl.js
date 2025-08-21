@@ -26,7 +26,8 @@ async function getAPIEndpoint(mediaType) {
 
 async function fetchRecommendations(imdbID, mediaType) {
 	try {
-		const url = `${SIMKL_API_BASE_URL}/${mediaType}/${imdbID}?extended=full`;
+		const type = await getAPIEndpoint(mediaType);
+		const url = `${SIMKL_API_BASE_URL}/${type}/${imdbID}?extended=full`;
 
 		const response = await withTimeout(fetch(url), 5000, "Simkl fetch recs timed out");
 		const json = await response.json();
@@ -37,7 +38,7 @@ async function fetchRecommendations(imdbID, mediaType) {
 			let responseType = json.type === "anime" ? json.anime_type : json.type;
 			responseType = responseType === "tv" ? "show" : responseType;
 
-			if ((mediaType === "tv" && responseType === "show") || (mediaType === "movies" && responseType === "movie")) {
+			if ((type === "tv" && responseType === "show") || (type === "movies" && responseType === "movie")) {
 				return json?.users_recommendations ?? null;
 			}
 		}
@@ -49,14 +50,18 @@ async function fetchRecommendations(imdbID, mediaType) {
 	}
 }
 
-async function simklToImdbId(simklId, mediaType) {
+async function simklToExteralId(simklId, mediaType) {
 	try {
-		const url = `${SIMKL_API_BASE_URL}/${mediaType}/${simklId}?extended=full`;
+		const type = await getAPIEndpoint(mediaType);
+		const url = `${SIMKL_API_BASE_URL}/${type}/${simklId}?extended=full`;
 
-		const response = await withTimeout(fetch(url), 5000, "Simkl call in simklToImdbId timed out");
+		const response = await withTimeout(fetch(url), 5000, `simklToExteralId timed out: ${simklId}`);
 		const json = await response.json();
 
-		return json?.ids?.imdb ?? null;
+		const imdbId = json?.ids?.imdb;
+		const tmdbId = json?.ids?.tmdb;
+
+		return imdbId ? { imdbId: imdbId, tmdbId: tmdbId } : null;
 	} catch (error) {
 		logger.error(error.message, null);
 		return null;
@@ -65,7 +70,6 @@ async function simklToImdbId(simklId, mediaType) {
 
 module.exports = {
 	validateAPIKey,
-	getAPIEndpoint,
 	fetchRecommendations,
-	simklToImdbId,
+	simklToExteralId,
 };

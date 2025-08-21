@@ -25,11 +25,12 @@ async function getAPIEndpoint(mediaType) {
 
 async function fetchRecs(title, year, mediaType, apiKey) {
 	try {
+		const type = await getAPIEndpoint(mediaType);
 		const cleanedTitle = title.replace(/[^\p{L}\p{N} ]/gu, "");
 
 		const searchInput = year ? encodeURI(cleanedTitle) : encodeURI(cleanedTitle);
 
-		const url = `${TASTEDIVE_API_BASE_URL}q=${mediaType}:${searchInput}&type=${mediaType}&slimit=2&k=${apiKey}`;
+		const url = `${TASTEDIVE_API_BASE_URL}q=${type}:${searchInput}&type=${type}&slimit=2&k=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();
@@ -41,6 +42,5 @@ async function fetchRecs(title, year, mediaType, apiKey) {
 
 module.exports = {
 	validateAPIKey,
-	getAPIEndpoint,
 	fetchRecs,
 };

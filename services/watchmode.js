@@ -6,7 +6,7 @@ const logger = require("../utils/logger");
 const rawIdList = require("./watchmode_title_id_map.json");
 
 const idMap = rawIdList.reduce((acc, row) => {
-	acc[row.watchmodeID] = { imdbId: row.imdbID, type: row.type };
+	acc[row.watchmodeID] = { imdbId: row.imdbID, tmdbId: row.tmdbID, type: row.type };
 	return acc;
 }, {});
 
@@ -44,14 +44,15 @@ async function fetchRecommendations(imdbID, apiKey) {
 	}
 }
 
-async function watchmodeToImdbId(watchmodeId, apiKey) {
+async function watchmodeToExternalId(watchmodeId, apiKey) {
 	try {
 		// Look up id in ID dataset first
 		if (idMap[watchmodeId]) {
 			const imdbId = idMap[watchmodeId].imdbId;
+			const tmdbId = idMap[watchmodeId].tmdbId;
 			const type = idMap[watchmodeId].type;
 
-			return imdbId && type ? { imdbId: imdbId, type: type } : null;
+			return imdbId && type ? { imdbId: imdbId, tmdbId, tmdbId, type: type } : null;
 		} else {
 			// Call Watchmode API as a backup
 			const url = `${WATCHMODE_API_BASE_URL}/title/${watchmodeId}/details/?apiKey=${apiKey}`;
@@ -71,7 +72,6 @@ async function watchmodeToImdbId(watchmodeId, apiKey) {
 
 module.exports = {
 	validateAPIKey,
-	getAPIEndpoint,
 	fetchRecommendations,
-	watchmodeToImdbId,
+	watchmodeToExternalId,
 };

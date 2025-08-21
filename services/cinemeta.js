@@ -11,7 +11,7 @@ async function fetchBaseMetadata(imdbId, type) {
 		const mediaType = type === "movie" ? "movie" : "series";
 		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
 
-		const response = await withTimeout(fetch(url), 5000, "Cinemeta fetch timed out");
+		const response = await withTimeout(fetch(url), 5000, `Cinemeta fetch timed out: ${imdbId}`);
 		const json = await response.json();
 
 		if (json?.meta) {

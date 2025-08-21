@@ -36,7 +36,8 @@ async function getAPIEndpoint(mediaType) {
 
 async function fetchSearchResult(title, mediaType, apiKey) {
 	try {
-		const url = `${TRAKT_API_BASE_URL}/search/${mediaType}?query=${encodeURIComponent(title)}`;
+		const type = await getAPIEndpoint(mediaType);
+		const url = `${TRAKT_API_BASE_URL}/search/${type}?query=${encodeURIComponent(title)}`;
 		const options = {
 			method: "GET",
 			headers: {
@@ -61,8 +62,9 @@ async function fetchSearchResult(title, mediaType, apiKey) {
 }
 
 async function fetchRecommendations(imdbID, mediaType, apiKey) {
-	const adjustedMediaType = mediaType === "movie" ? "movies" : "shows";
 	try {
+		const type = await getAPIEndpoint(mediaType);
+		const adjustedMediaType = type === "movie" ? "movies" : "shows";
 		const url = `${TRAKT_API_BASE_URL}/${adjustedMediaType}/${imdbID}/related`;
 		const options = {
 			method: "GET",
@@ -116,5 +118,4 @@ module.exports = {
 	fetchSearchResult,
 	fetchRecommendations,
 	fetchMetadata,
-	getAPIEndpoint,
 };

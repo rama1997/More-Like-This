@@ -12,6 +12,7 @@ fs.createReadStream("watchmode_title_id_map.csv")
 		const trimmed = {
 			watchmodeID: row["Watchmode ID"],
 			imdbID: row["IMDB ID"],
+			tmdbID: row["TMDB ID"],
 			type: row["TMDB Type"],
 		};
 
