@@ -143,8 +143,11 @@ async function fetchCollectionRecs(tmdbId, mediaType, apiKey) {
 			const collectionParts = json?.parts;
 
 			if (collectionParts) {
+				const today = new Date();
+
 				collectionParts.forEach((part) => {
-					if (part.id !== tmdbId) {
+					const releaseDate = new Date(part.release_date);
+					if (part.id !== tmdbId && part.release_date && releaseDate <= today) {
 						const media = { id: part.id };
 						collectionRecs.push(media);
 					}
