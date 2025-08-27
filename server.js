@@ -171,6 +171,7 @@ async function startServer() {
 			tmdbApiKey: userConfig.apiKeys.tmdb,
 			traktApiKey: userConfig.apiKeys.trakt,
 			language: userConfig.language,
+			keepEnglishPosters: userConfig.keepEnglishPosters,
 		};
 
 		const catalog = (await catalogHandler(req.params.type, req.params.id, req.params.extra, userConfig, metadataSource)) || [];
@@ -193,6 +194,7 @@ async function startServer() {
 			tmdbApiKey: userConfig.apiKeys.tmdb,
 			traktApiKey: userConfig.apiKeys.trakt,
 			language: userConfig.language,
+			keepEnglishPosters: userConfig.keepEnglishPosters,
 		};
 
 		const meta = await metaHandler(req.params.type, req.params.id, userConfig, metadataSource);
@@ -227,6 +229,7 @@ async function startServer() {
 				catalogOrder: req.body.catalogOrder.split(",") || null,
 				metadataSource: metadataSource,
 				language: metadataSource === "tmdb" ? req.body.language || "en" : "en",
+				keepEnglishPosters: req.body.keepEnglishPoster === "on" || false,
 				streamButtonPlatform: req.body.streamButtonPlatform || "",
 				includeTmdbCollection: req.body.includeTmdbCollection === "on" || false,
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,

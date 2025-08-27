@@ -123,9 +123,7 @@ async function IdToTitleYearType(id, searchType, metadataSource) {
 
 async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 	const imdbId = recs.imdbId;
-	const tmdbId = recs.tmdbId;
-
-	const language = metadataSource.language;
+	let tmdbId = recs.tmdbId;
 
 	// Get RPDB poster if valid API key provided
 	const rpdbApi = apiKeys.rpdb;
@@ -136,23 +134,44 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 
 	// Meta Previews just need id, type, and poster
 	if (metadataSource.source === "cinemeta") {
-		return rpdbPoster ? { id: imdbId, type: type, poster: rpdbPoster } : { id: imdbId, type: type };
+		return rpdbPoster
+			? {
+					id: imdbId,
+					type: type,
+					poster: rpdbPoster,
+			  }
+			: {
+					id: imdbId,
+					type: type,
+			  };
 	} else if (metadataSource.source === "tmdb") {
+		// Return with RPDB poster
 		if (rpdbPoster) {
-			return { id: "mlt-meta-" + imdbId, type: type, poster: rpdbPoster };
+			return {
+				id: "mlt-meta-" + imdbId,
+				type: type,
+				poster: rpdbPoster,
+			};
 		}
 
-		// Fetch TMDB poster
-		if (tmdbId) {
-			const defaultPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
-			return defaultPoster ? { id: "mlt-meta-" + imdbId, type: type, poster: defaultPoster } : null;
-		} else {
+		// Other wise, fetch TMDB poster
+		const keepEnglishPoster = metadataSource.keepEnglishPosters;
+		const language = keepEnglishPoster ? "en" : metadataSource.language;
+
+		if (!tmdbId) {
 			const res = await tmdb.findByImdbId(imdbId, type, apiKeys.tmdb.key, language);
-			const tmdbId = res?.id;
-			const defaultPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
-
-			return defaultPoster ? { id: "mlt-meta-" + imdbId, type: type, poster: defaultPoster } : null;
+			tmdbId = res?.id;
 		}
+
+		const tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
+
+		return tmdbPoster
+			? {
+					id: "mlt-meta-" + imdbId,
+					type: type,
+					poster: tmdbPoster,
+			  }
+			: null;
 	}
 }
 

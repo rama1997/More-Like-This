@@ -211,6 +211,7 @@ h1 {
 	border-radius: 16px;
 	cursor: pointer;
 	transition: all 0.3s ease;
+	margin-left: 10px;
 }
 
 .toggle input {
@@ -521,6 +522,7 @@ h1 {
 	padding: 20px;
 	margin-bottom: 20px;
 	transition: all 0.3s ease;
+	gap: 16px;
 }
 
 .dropdown-group:hover {
@@ -553,6 +555,11 @@ h1 {
 	outline: none;
 	border-color: var(--accent-purple);
 	box-shadow: 0 0 0 3px var(--shadow-light);
+}
+
+.dropdown-group .dropdown-container select {
+	max-width: 250px;
+	flex: 0 0 auto;
 }
 
 /* API Key Verification Styles */

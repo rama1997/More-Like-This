@@ -66,6 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
 			languageSelect.value = config.language;
 		}
 
+		const keepEnglishPostersCheckbox = document.getElementById("keepEnglishPoster");
+		if (keepEnglishPostersCheckbox) {
+			if (config.keepEnglishPosters) {
+				keepEnglishPostersCheckbox.checked = true;
+			} else {
+				keepEnglishPostersCheckbox.checked = false;
+			}
+		}
+
 		const streamButtonPlatform = document.getElementById("streamButtonPlatform");
 		if (streamButtonPlatform && config.streamButtonPlatform) {
 			streamButtonPlatform.value = config.streamButtonPlatform;

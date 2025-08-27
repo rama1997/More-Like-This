@@ -1,25 +1,55 @@
 document.addEventListener("DOMContentLoaded", function () {
 	const conditionalSections = document.querySelectorAll("[data-conditional]");
 
-	function updateVisibility(triggerId) {
-		const triggerEl = document.getElementById(triggerId);
-		const triggerValue = triggerEl.type === "checkbox" ? (triggerEl.checked ? "true" : "false") : triggerEl.value.trim();
-
+	function updateVisibility() {
 		conditionalSections.forEach((section) => {
-			if (section.getAttribute("data-conditional") !== triggerId) return;
+			const triggerIds = section
+				.getAttribute("data-conditional")
+				.split(",")
+				.map((s) => s.trim());
+			const showIfValues = section
+				.getAttribute("data-show-if")
+				.split(",")
+				.map((s) => s.trim());
 
-			const showIfValue = section.getAttribute("data-show-if");
-			const isNotEmptyCondition = showIfValue === "not-empty";
+			let shouldShow = true;
 
-			const shouldShow = (isNotEmptyCondition && triggerValue !== "") || (!isNotEmptyCondition && triggerValue === showIfValue);
+			triggerIds.forEach((triggerId, index) => {
+				const triggerEl = document.getElementById(triggerId);
+				if (!triggerEl) {
+					shouldShow = false;
+					return;
+				}
+
+				const triggerValue = triggerEl.type === "checkbox" ? (triggerEl.checked ? "true" : "false") : triggerEl.value.trim();
+
+				const showIfValue = showIfValues[index] || ""; // align conditions
+
+				const isNotEmptyCondition = showIfValue === "not-empty";
+				const isNegated = showIfValue.startsWith("not-");
+
+				let conditionMet = false;
+
+				if (isNotEmptyCondition) {
+					conditionMet = triggerValue !== "";
+				} else if (isNegated) {
+					const notValue = showIfValue.slice(4);
+					conditionMet = triggerValue !== notValue;
+				} else {
+					conditionMet = triggerValue === showIfValue;
+				}
+
+				if (!conditionMet) {
+					shouldShow = false; // Any condition not met, hide section
+				}
+			});
 
 			if (shouldShow) {
 				section.classList.remove("hidden");
-				void section.offsetWidth; // Force reflow to ensure animation plays
+				void section.offsetWidth;
 				section.classList.add("visible");
 			} else {
 				section.classList.remove("visible");
-				// Wait for animation transition to finish before fully hiding
 				setTimeout(() => {
 					section.classList.add("hidden");
 				}, 300);
@@ -30,8 +60,11 @@ document.addEventListener("DOMContentLoaded", function () {
 	function setupConditionalLogic() {
 		const triggers = new Set();
 		conditionalSections.forEach((section) => {
-			const triggerId = section.getAttribute("data-conditional");
-			triggers.add(triggerId);
+			section
+				.getAttribute("data-conditional")
+				.split(",")
+				.map((s) => s.trim())
+				.forEach((id) => triggers.add(id));
 		});
 
 		triggers.forEach((triggerId) => {
@@ -39,10 +72,10 @@ document.addEventListener("DOMContentLoaded", function () {
 			if (!triggerEl) return;
 
 			const eventType = triggerEl.tagName === "SELECT" || triggerEl.tagName === "INPUT" ? "change" : "input";
-			triggerEl.addEventListener(eventType, () => updateVisibility(triggerId));
-
-			updateVisibility(triggerId); // Initial state on load
+			triggerEl.addEventListener(eventType, updateVisibility);
 		});
+
+		updateVisibility(); // Initial state
 	}
 
 	setupConditionalLogic();
