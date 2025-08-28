@@ -68,7 +68,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	let searchImdb;
 
 	if (searchKey.startsWith("tt")) {
-		const media = await metadataManager.IdToTitleYearType(searchKey, type, metadataSource);
+		const media = await metadataManager.imdbToTitleYearType(searchKey, type, metadataSource);
 		if (media) {
 			title = media.title;
 			year = media.year;
@@ -76,18 +76,16 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 
 		searchImdb = searchKey;
 	} else if (searchKey.startsWith("kitsu")) {
-		const kitsuMedia = await metadataManager.IdToTitleYearType(searchKey, type, metadataSource);
+		const convertedKitsu = await metadataManager.kitsuToImdbTitleYearType(searchKey, metadataSource);
 
-		// Return empty catalog for invalid kitsu id
-		if (!kitsuMedia) {
+		if (!convertedKitsu) {
 			logger.emptyCatalog(`${catalogSource.toUpperCase()}: No Kitsu Data found`, { type, searchKey });
 			return { metas: [] };
 		}
 
-		title = kitsuMedia.title;
-		year = kitsuMedia.year;
-
-		searchImdb = await metadataManager.titleToImdb(kitsuMedia.title, kitsuMedia.year, kitsuMedia.type, metadataSource);
+		title = convertedKitsu.title;
+		year = convertedKitsu.year;
+		searchImdb = convertedKitsu.imdbId;
 	} else {
 		title = searchKey;
 		year = searchYear;
@@ -102,7 +100,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 		}
 
 		if (!title || !year) {
-			const media = await metadataManager.IdToTitleYearType(searchImdb, type, metadataSource);
+			const media = await metadataManager.imdbToTitleYearType(searchImdb, type, metadataSource);
 			if (media) {
 				title = media.title;
 				year = media.year;

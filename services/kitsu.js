@@ -3,7 +3,7 @@ const KITSU_API_BASE_URL = "https://kitsu.io/api/edge";
 const { withTimeout } = require("../utils/timeout");
 const logger = require("../utils/logger");
 
-async function convertKitsuId(id) {
+async function idToTitleYearType(id) {
 	try {
 		const url = `${KITSU_API_BASE_URL}/anime/${id.split(":")[1]}/`;
 
@@ -42,5 +42,5 @@ async function convertKitsuId(id) {
 }
 
 module.exports = {
-	convertKitsuId,
+	idToTitleYearType,
 };

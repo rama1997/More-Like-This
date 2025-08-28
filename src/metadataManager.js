@@ -103,22 +103,44 @@ async function titleToImdb(title, year, type, metadataSource) {
 	}
 }
 
-async function IdToTitleYearType(id, searchType, metadataSource) {
-	if (id.startsWith("tt")) {
-		// IMDB Id
-		const media = await imdbToMeta(id, searchType, metadataSource);
-		if (!media || media.type !== searchType) {
-			return null;
-		}
-		return { title: media.title, year: media.year, type: media.type };
-	} else if (id.startsWith("kitsu")) {
-		// Kitsu Id
-		const media = await kitsu.convertKitsuId(id);
-		if (!media || media.type !== searchType) {
-			return null;
-		}
-		return { title: media.title, year: media.year, type: media.type };
+async function imdbToTitleYearType(id, searchType, metadataSource) {
+	if (!id || !id.startsWith("tt")) {
+		return null;
 	}
+
+	const media = await imdbToMeta(id, searchType, metadataSource);
+	if (!media || media.type !== searchType) {
+		return null;
+	}
+	return {
+		title: media.title,
+		year: media.year,
+		type: media.type,
+	};
+}
+
+async function kitsuToImdbTitleYearType(kitsuId, metadataSource) {
+	if (!kitsuId || !kitsuId.startsWith("kitsu")) {
+		return null;
+	}
+
+	const kitsuMedia = await kitsu.idToTitleYearType(kitsuId);
+
+	// Return empty catalog for invalid kitsu id
+	if (!kitsuMedia) {
+		return null;
+	}
+
+	const imdbId = await titleToImdb(kitsuMedia.title, kitsuMedia.year, kitsuMedia.type, metadataSource);
+
+	return imdbId
+		? {
+				imdbId: imdbId,
+				title: kitsuMedia.title,
+				year: kitsuMedia.year,
+				type: kitsuMedia.type,
+		  }
+		: null;
 }
 
 async function createMetaPreview(recs, type, apiKeys, metadataSource) {
@@ -236,7 +258,8 @@ async function generateMeta(imdbId, type, metadataSource) {
 
 module.exports = {
 	titleToImdb,
-	IdToTitleYearType,
+	imdbToTitleYearType,
+	kitsuToImdbTitleYearType,
 	createMetaPreview,
 	generateMeta,
 };
