@@ -138,27 +138,27 @@
 							</div>
 						</div>
 						<div class="catalog-order">
-							<div id="tmdb-catalog" class="catalog-item">
+							<div id="tmdb-catalog" class="catalog-item conditional-setting hidden" data-conditional="tmdbApiKey" data-show-if="not-empty">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">TMDB</span>
 							</div>
-							<div id="trakt-catalog" class="catalog-item">
+							<div id="trakt-catalog" class="catalog-item conditional-setting hidden" data-conditional="traktApiKey" data-show-if="not-empty">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Trakt</span>
 							</div>
-							<div id="simkl-catalog" class="catalog-item">
+							<div id="simkl-catalog" class="catalog-item conditional-setting hidden" data-conditional="simkl" data-show-if="true">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Simkl</span>
 							</div>
-							<div id="gemini-catalog" class="catalog-item">
+							<div id="gemini-catalog" class="catalog-item conditional-setting hidden" data-conditional="geminiApiKey" data-show-if="not-empty">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Gemini AI</span>
 							</div>
-							<div id="tastedive-catalog" class="catalog-item">
+							<div id="tastedive-catalog" class="catalog-item conditional-setting hidden" data-conditional="tastediveApiKey" data-show-if="not-empty">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">TasteDive</span>
 							</div>
-							<div id="watchmode-catalog" class="catalog-item">
+							<div id="watchmode-catalog" class="catalog-item conditional-setting hidden" data-conditional="watchmodeApiKey" data-show-if="not-empty">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Watchmode</span>
 							</div>
@@ -179,7 +179,7 @@
 						<div class="dropdown-container">
 							<select id="metadataSource" name="metadataSource">
 								<option value="cinemeta">Cinemeta (Default)</option>
-								<option value="tmdb">TMDB (Requires TMDB API Key)</option>
+								<option value="tmdb">TMDB (Requires API Key)</option>
 							</select>
 						</div>
 					</div>

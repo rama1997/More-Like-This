@@ -1,81 +1,73 @@
 document.addEventListener("DOMContentLoaded", () => {
-	const catalogOrder = document.querySelector(".catalog-order");
-	const catalogOrderInput = document.getElementById("catalogOrder");
+	function setupOrderDragAndDrop(containerSelector, inputId) {
+		const container = document.querySelector(containerSelector);
+		const input = document.getElementById(inputId);
 
-	function updateCatalogOrderInput() {
-		const items = [...catalogOrder.querySelectorAll(".catalog-name")];
-		const order = items.map((item) => item.textContent).join(",");
-		catalogOrderInput.value = order;
-	}
+		if (!container || !input) return;
 
-	function findDropTarget(e) {
-		// Get all draggable items, excluding the currently dragged item
-		const draggableItems = Array.from(catalogOrder.querySelectorAll(".catalog-item:not(.dragging)"));
-
-		// If no items or only one item, return null
-		if (draggableItems.length <= 1) return null;
-
-		// Check if mouse is beyond the bottom of the last item
-		const lastItem = draggableItems[draggableItems.length - 1];
-		const lastItemRect = lastItem.getBoundingClientRect();
-
-		if (e.clientY >= lastItemRect.bottom) {
-			return null; // Indicate to append at the end
+		function updateInput() {
+			const items = [...container.querySelectorAll(".catalog-name, .stream-name")]; // Adjust class if needed
+			const order = items.map((item) => item.textContent).join(",");
+			input.value = order;
 		}
 
-		// Find the first item who's midpoint is below the mouse position
-		const dropTarget = draggableItems.find((item) => {
-			const rect = item.getBoundingClientRect();
-			const verticalMidpoint = rect.top + rect.height / 2;
+		function findDropTarget(e) {
+			const draggableItems = Array.from(container.querySelectorAll(".catalog-item, .stream-item:not(.dragging)"));
 
-			// Check if mouse is above the midpoint of an item
-			return e.clientY < verticalMidpoint;
-		});
+			if (draggableItems.length <= 1) return null;
 
-		return dropTarget;
-	}
+			const lastItem = draggableItems[draggableItems.length - 1];
+			const lastItemRect = lastItem.getBoundingClientRect();
 
-	// Drag and drop setup
-	function setupDragAndDrop() {
-		const catalogItems = catalogOrder.querySelectorAll(".catalog-item");
+			if (e.clientY >= lastItemRect.bottom) return null;
 
-		catalogItems.forEach((item) => {
-			item.setAttribute("draggable", "true");
+			return draggableItems.find((item) => {
+				const rect = item.getBoundingClientRect();
+				const verticalMidpoint = rect.top + rect.height / 2;
+				return e.clientY < verticalMidpoint;
+			});
+		}
 
-			item.addEventListener("dragstart", (e) => {
-				e.dataTransfer.setData("text/plain", item.id);
-				item.classList.add("dragging");
+		function setupDragAndDrop() {
+			const items = container.querySelectorAll(".catalog-item, .stream-item");
+
+			items.forEach((item) => {
+				item.setAttribute("draggable", "true");
+
+				item.addEventListener("dragstart", (e) => {
+					e.dataTransfer.setData("text/plain", item.id);
+					item.classList.add("dragging");
+				});
+
+				item.addEventListener("dragend", () => {
+					item.classList.remove("dragging");
+					updateInput();
+				});
 			});
 
-			item.addEventListener("dragend", () => {
-				item.classList.remove("dragging");
-				updateCatalogOrderInput();
+			container.addEventListener("dragover", (e) => {
+				e.preventDefault();
+				e.dataTransfer.dropEffect = "move";
 			});
-		});
 
-		catalogOrder.addEventListener("dragover", (e) => {
-			e.preventDefault();
-			e.dataTransfer.dropEffect = "move";
-		});
+			container.addEventListener("drop", (e) => {
+				e.preventDefault();
 
-		catalogOrder.addEventListener("drop", (e) => {
-			e.preventDefault();
+				const draggedItemId = e.dataTransfer.getData("text/plain");
+				const draggedItem = document.getElementById(draggedItemId);
+				const dropTarget = findDropTarget(e);
 
-			const draggedItemId = e.dataTransfer.getData("text/plain");
-			const draggedItem = document.getElementById(draggedItemId);
+				if (dropTarget) {
+					container.insertBefore(draggedItem, dropTarget);
+				} else {
+					container.appendChild(draggedItem);
+				}
+			});
+		}
 
-			const dropTarget = findDropTarget(e);
-
-			if (dropTarget) {
-				// Insert before the target element
-				catalogOrder.insertBefore(draggedItem, dropTarget);
-			} else {
-				// If no specific drop target, append to the end
-				catalogOrder.appendChild(draggedItem);
-			}
-		});
+		setupDragAndDrop();
 	}
 
-	// Initialize drag and drop
-	setupDragAndDrop();
+	// Call for each section
+	setupOrderDragAndDrop(".catalog-order", "catalogOrder");
 });
