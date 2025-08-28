@@ -280,7 +280,7 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 }
 
 async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys, includeTmdbCollection, metadataSource) {
-	const timeoutMs = 10000;
+	const timeoutMs = 5000;
 
 	// Get recs from all sources. All sources have a timeout to prevent the whole catalog from not showing if
 	// prettier-ignore

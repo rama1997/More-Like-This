@@ -24,6 +24,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
+		const includeTmdbCollectionCheckbox = document.getElementById("includeTmdbCollection");
+		if (includeTmdbCollection) {
+			if (config.includeTmdbCollection) {
+				includeTmdbCollectionCheckbox.checked = true;
+			}
+		}
+
 		// Combine Catalog
 		const combineCatalogCheckbox = document.getElementById("combineCatalogs");
 		if (combineCatalogCheckbox) {
@@ -42,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			// Map current items by their name
 			const currentItems = [...catalogOrder.querySelectorAll(".catalog-item")];
 			currentItems.forEach((item) => {
-				const name = item.querySelector(".catalog-name")?.textContent;
+				const name = item.dataset.value;
 				if (name) itemsMap[name] = item;
 			});
 
@@ -75,15 +82,47 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
-		const streamButtonPlatform = document.getElementById("streamButtonPlatform");
-		if (streamButtonPlatform && config.streamButtonPlatform) {
-			streamButtonPlatform.value = config.streamButtonPlatform;
+		// Stream Order
+		const streamOrder = document.querySelector(".stream-order");
+		const streamOrderInput = document.getElementById("streamOrder");
+		if (streamOrderInput && config.streamOrder) {
+			const order = config.streamOrder;
+			const itemsMap = {};
+
+			// Map current items by their name
+			const currentItems = [...streamOrder.querySelectorAll(".stream-item")];
+			currentItems.forEach((item) => {
+				const name = item.dataset.value;
+				if (name) itemsMap[name] = item;
+			});
+
+			// Reorder DOM elements based on saved order
+			order.forEach((name) => {
+				const item = itemsMap[name];
+				if (item) streamOrder.appendChild(item);
+			});
+
+			streamOrderInput.value = config.streamOrder.join(",");
 		}
 
-		const includeTmdbCollectionCheckbox = document.getElementById("includeTmdbCollection");
-		if (includeTmdbCollection) {
-			if (config.includeTmdbCollection) {
-				includeTmdbCollectionCheckbox.checked = true;
+		// Stream Button Enabled
+		if (config.enabledStreamButtons) {
+			const detailCheckbox = document.getElementById("streamDetailEnabled");
+			const appCheckbox = document.getElementById("streamAppEnabled");
+			const webCheckbox = document.getElementById("streamWebEnabled");
+			const recsCheckbox = document.getElementById("streamRecEnabled");
+
+			if (detailCheckbox) {
+				detailCheckbox.checked = !!config.enabledStreamButtons.detail;
+			}
+			if (appCheckbox) {
+				appCheckbox.checked = !!config.enabledStreamButtons.app;
+			}
+			if (webCheckbox) {
+				webCheckbox.checked = !!config.enabledStreamButtons.web;
+			}
+			if (recsCheckbox) {
+				recsCheckbox.checked = !!config.enabledStreamButtons.recs;
 			}
 		}
 

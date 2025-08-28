@@ -6,8 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (!container || !input) return;
 
 		function updateInput() {
-			const items = [...container.querySelectorAll(".catalog-name, .stream-name")]; // Adjust class if needed
-			const order = items.map((item) => item.textContent).join(",");
+			const items = [...container.querySelectorAll(".catalog-item, .stream-item")];
+			const order = items.map((item) => item.dataset.value).join(",");
 			input.value = order;
 		}
 
@@ -66,8 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		setupDragAndDrop();
+		updateInput(); // initialize hidden input once
 	}
 
-	// Call for each section
 	setupOrderDragAndDrop(".catalog-order", "catalogOrder");
+	setupOrderDragAndDrop(".stream-order", "streamOrder");
 });

@@ -28,10 +28,16 @@ async function loadUserConfig(config) {
 					rpdb: { key: "", valid: false },
 				},
 				combineCatalogs: false,
-				catalogOrder: ["TMDB", "Trakt", "Simkl", "Gemini AI", "TasteDive", "Watchmode"],
+				catalogOrder: ["tmdb", "trakt", "simkl", "gemini", "tasteDive", "watchmode"],
 				metadataSource: "cinemeta",
 				language: "en",
-				streamButtonPlatform: "both",
+				streamOrder: ["detail", "app", "web", "recs"],
+				enabledStreamButtons: {
+					detail: false,
+					app: false,
+					web: false,
+					recs: false,
+				},
 				includeTmdbCollection: false,
 				enableTitleSearching: false,
 			};
@@ -180,8 +186,7 @@ async function startServer() {
 
 	app.get("/:userConfig/stream/:type/:id.json", async (req, res) => {
 		const userConfig = await loadUserConfig(req.params.userConfig);
-		const platform = userConfig.streamButtonPlatform;
-		const streams = await streamHandler(req.headers["origin"], req.params.type, req.params.id, platform);
+		const streams = await streamHandler(req.headers["origin"], req.params.type, req.params.id, userConfig);
 		res.json(streams);
 	});
 
@@ -226,14 +231,22 @@ async function startServer() {
 			const config = {
 				apiKeys: apiKeys,
 				combineCatalogs: req.body.combineCatalogs === "on" || false,
-				catalogOrder: req.body.catalogOrder.split(",") || null,
+				catalogOrder: req.body.catalogOrder.split(",") || ["tmdb", "trakt", "simkl", "gemini", "tasteDive", "watchmode"],
 				metadataSource: metadataSource,
 				language: metadataSource === "tmdb" ? req.body.language || "en" : "en",
 				keepEnglishPosters: req.body.keepEnglishPoster === "on" || false,
-				streamButtonPlatform: req.body.streamButtonPlatform || "",
+				streamOrder: req.body.streamOrder.split(",") || ["detail", "app", "web", "recs"],
+				enabledStreamButtons: {
+					detail: req.body.streamDetailEnabled === "on" || false,
+					app: req.body.streamAppEnabled === "on" || false,
+					web: req.body.streamWebEnabled === "on" || false,
+					recs: req.body.streamRecEnabled === "on" || false,
+				},
 				includeTmdbCollection: req.body.includeTmdbCollection === "on" || false,
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
+
+			console.log(config);
 
 			let userConfig;
 			if (ENCRYPTION_KEY_INPUT) {

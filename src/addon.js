@@ -99,6 +99,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 			return { metas: cachedRecsCatalog };
 		}
 
+		// Ensure title and year found for Gemini and TasteDive since they require both for searching
 		if (!title || !year) {
 			const media = await metadataManager.imdbToTitleYearType(searchImdb, type, metadataSource);
 			if (media) {
@@ -185,36 +186,54 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	return { metas: [] };
 }
 
-async function streamHandler(origin, type, id, platform) {
+async function streamHandler(origin, type, id, userConfig) {
+	// Parsing IMDB Id and Kitsu Ids for search
 	let searchKey;
-
-	// Parsing IMDB Id and Kitsu Ids
 	if (id.startsWith("tt")) {
 		searchKey = id.split(":")[0];
 	} else if (id.startsWith("kitsu")) {
 		searchKey = id.split(":").slice(0, 2).join(":");
 	}
 
-	const appStreamButton = {
-		name: "More Like This",
-		description: `Search in Stremio App`,
-		externalUrl: `stremio:///search?search=${searchKey}`,
-	};
-
-	const webStreamButton = {
-		name: "More Like This",
-		description: `Search in Stremio Web`,
-		externalUrl: `https://web.stremio.com/#/search?search=${searchKey}`,
-	};
+	const streamOrder = userConfig.streamOrder;
+	const enabledStreamButtons = userConfig.enabledStreamButtons;
 
 	let stream = [];
 
-	if (platform === "web") {
-		stream = [webStreamButton];
-	} else if (platform === "app") {
-		stream = [appStreamButton];
-	} else {
-		stream = [appStreamButton, webStreamButton];
+	for (let button of streamOrder) {
+		if (button === "detail" && enabledStreamButtons.detail) {
+			const detailButton = {
+				name: "More Like This",
+				description: `Go to detail page`,
+				externalUrl: (origin?.includes("web.stremio.com") ? "https://web.stremio.com/#" : "stremio://") + `/detail/${type}/mlt-meta-${id}`,
+			};
+
+			stream.push(detailButton);
+		} else if (button === "app" && enabledStreamButtons.app) {
+			const appSearchButton = {
+				name: "More Like This",
+				description: `Search recommendations in Stremio App`,
+				externalUrl: `stremio:///search?search=${searchKey}`,
+			};
+
+			stream.push(appSearchButton);
+		} else if (button === "web" && enabledStreamButtons.web) {
+			const webSearchButton = {
+				name: "More Like This",
+				description: `Search recommendations in Stremio Web`,
+				externalUrl: `https://web.stremio.com/#/search?search=${searchKey}`,
+			};
+
+			stream.push(webSearchButton);
+		} else if (button === "recs" && enabledStreamButtons.recs) {
+			const recsButton = {
+				name: "More Like This",
+				description: `Get similar recommendations`,
+				externalUrl: (origin?.includes("web.stremio.com") ? "https://web.stremio.com/#" : "stremio://") + `/detail/${type}/mlt-rec-${id}`,
+			};
+
+			stream.push(recsButton);
+		}
 	}
 
 	return Promise.resolve({
@@ -224,13 +243,26 @@ async function streamHandler(origin, type, id, platform) {
 }
 
 async function metaHandler(type, id, userConfig, metadataSource) {
-	const apiKeys = userConfig.apiKeys;
-	const includeTmdbCollection = userConfig.includeTmdbCollection;
 	const request = id.split("-")[1];
-	const imdbId = id.split("-")[2];
+	const rawId = id.split("-")[2];
+
+	let imdbId = null;
+
+	if (rawId.startsWith("tt")) {
+		imdbId = rawId.split(":")[0];
+	} else if (rawId.startsWith("kitsu")) {
+		const [, id] = rawId.split(":");
+		const kitsuId = `kitsu:${id}`;
+
+		const convertedKitsu = await metadataManager.kitsuToImdbTitleYearType(kitsuId, metadataSource);
+		imdbId = convertedKitsu?.imdbId;
+	}
+
 	if (request === "meta") {
 		const meta = await metadataManager.generateMeta(imdbId, type, metadataSource);
 		return { meta: meta };
+	} else if (request === "rec") {
+		return { meta: [] };
 	}
 }
 

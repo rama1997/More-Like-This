@@ -23,7 +23,7 @@
 
 						Getting started is easy — just add your own API keys for the recommendation sources you want to use. Need a key? Click the links under each input field to grab yours for free! You only need keys for the sources you want — for example, if you only want TMDB recommendations, you only need a TMDB key.<br /><br />
 
-						If you have any questions, please visit the project's <a href="https://github.com/rama1997/More-Like-This">GitHub page</a> for the full instructions and tips.
+						For instructions on how to use this addon or if you have any questions, please visit the project's <a href="https://github.com/rama1997/More-Like-This">GitHub page</a> for the full documentation.
 					</p>
 				</div>
 
@@ -138,35 +138,49 @@
 							</div>
 						</div>
 						<div class="catalog-order">
-							<div id="tmdb-catalog" class="catalog-item conditional-setting hidden" data-conditional="tmdbApiKey" data-show-if="not-empty">
+							<div id="tmdb-catalog" class="catalog-item conditional-setting hidden" data-conditional="tmdbApiKey" data-show-if="not-empty" data-value="tmdb">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">TMDB</span>
 							</div>
-							<div id="trakt-catalog" class="catalog-item conditional-setting hidden" data-conditional="traktApiKey" data-show-if="not-empty">
+							<div id="trakt-catalog" class="catalog-item conditional-setting hidden" data-conditional="traktApiKey" data-show-if="not-empty" data-value="trakt">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Trakt</span>
 							</div>
-							<div id="simkl-catalog" class="catalog-item conditional-setting hidden" data-conditional="simkl" data-show-if="true">
+							<div id="simkl-catalog" class="catalog-item conditional-setting hidden" data-conditional="simkl" data-show-if="true" data-value="simkl">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Simkl</span>
 							</div>
-							<div id="gemini-catalog" class="catalog-item conditional-setting hidden" data-conditional="geminiApiKey" data-show-if="not-empty">
+							<div id="gemini-catalog" class="catalog-item conditional-setting hidden" data-conditional="geminiApiKey" data-show-if="not-empty" data-value="gemini">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Gemini AI</span>
 							</div>
-							<div id="tastedive-catalog" class="catalog-item conditional-setting hidden" data-conditional="tastediveApiKey" data-show-if="not-empty">
+							<div id="tastedive-catalog" class="catalog-item conditional-setting hidden" data-conditional="tastediveApiKey" data-show-if="not-empty" data-value="tastedive">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">TasteDive</span>
 							</div>
-							<div id="watchmode-catalog" class="catalog-item conditional-setting hidden" data-conditional="watchmodeApiKey" data-show-if="not-empty">
+							<div id="watchmode-catalog" class="catalog-item conditional-setting hidden" data-conditional="watchmodeApiKey" data-show-if="not-empty" data-value="watchmode">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Watchmode</span>
 							</div>
-							<input type="hidden" name="catalogOrder" id="catalogOrder" value="TMDB,Trakt,Simkl,Gemini AI,TasteDive,Watchmode" />
+							<input type="hidden" name="catalogOrder" id="catalogOrder" value="" />
 						</div>
 					</div>
 
 					<div class="section-header">Optional Settings</div>
+
+					<div class="toggle-group">
+						<div class="toggle-info">
+							<span class="toggle-label">Enable Manual Title Searching</span>
+							<div class="tooltip-container">
+								<div class="tooltip-icon">?</div>
+								<div class="tooltip-text">Enable to find recommendations based on movie or show titles too. (Note: Title-based searches may be less accurate than using the exact ID from Stremio.)</div>
+							</div>
+						</div>
+						<label class="toggle">
+							<input type="checkbox" id="enableTitleSearching" name="enableTitleSearching" checked />
+							<span class="toggle-slider"></span>
+						</label>
+					</div>
 
 					<div class="dropdown-group">
 						<div class="dropdown-info">
@@ -213,27 +227,68 @@
 								<div class="tooltip-text">Change which platform's stream button shows up on each movie/tv show.</div>
 							</div>
 						</div>
-						<div class="dropdown-container">
-							<select id="streamButtonPlatform" name="streamButtonPlatform">
-								<option value="both">Both (Default)</option>
-								<option value="web">Web</option>
-								<option value="app">App</option>
-							</select>
-						</div>
 					</div>
 
-					<div class="toggle-group">
-						<div class="toggle-info">
-							<span class="toggle-label">Enable Manual Title Searching</span>
+					<div id="streamOrderSection" class="stream-order-section">
+						<div class="label-with-tooltip">
+							<label>Stream Button Order</label>
 							<div class="tooltip-container">
 								<div class="tooltip-icon">?</div>
-								<div class="tooltip-text">Enable to find recommendations based on movie or show titles too. (Note: Title-based searches may be less accurate than using the exact ID from Stremio.)</div>
+								<div class="tooltip-text">This addon provides a set of streams in Stremio that act as buttons for easier access. You can drag to reorder them or disable any you don’t need.</div>
 							</div>
 						</div>
-						<label class="toggle">
-							<input type="checkbox" id="enableTitleSearching" name="enableTitleSearching" checked />
-							<span class="toggle-slider"></span>
-						</label>
+
+						<div class="stream-order">
+							<div id="stream-detail" class="stream-item" data-value="detail">
+								<span class="catalog-icon">≡</span>
+								<span class="stream-name">Go to detail page</span>
+								<div class="stream-controls">
+									<label class="mini-toggle">
+										<input type="checkbox" id="streamDetailEnabled" name="streamDetailEnabled" checked />
+										<span class="mini-slider"></span>
+									</label>
+									<span class="control-label">Enabled</span>
+								</div>
+							</div>
+
+							<div id="stream-rec" class="stream-item" data-value="recs">
+								<span class="catalog-icon">≡</span>
+								<span class="stream-name">Get similar recommendations</span>
+								<div class="stream-controls">
+									<label class="mini-toggle">
+										<input type="checkbox" id="streamRecEnabled" name="streamRecEnabled" checked />
+										<span class="mini-slider"></span>
+									</label>
+									<span class="control-label">Enabled</span>
+								</div>
+							</div>
+
+							<div id="stream-app" class="stream-item" data-value="app">
+								<span class="catalog-icon">≡</span>
+								<span class="stream-name">Search recommendations in Stremio App</span>
+								<div class="stream-controls">
+									<label class="mini-toggle">
+										<input type="checkbox" id="streamAppEnabled" name="streamAppEnabled" checked />
+										<span class="mini-slider"></span>
+									</label>
+									<span class="control-label">Enabled</span>
+								</div>
+							</div>
+
+							<div id="stream-web" class="stream-item" data-value="web">
+								<span class="catalog-icon">≡</span>
+								<span class="stream-name">Search recommendations in Stremio Web</span>
+								<div class="stream-controls">
+									<label class="mini-toggle">
+										<input type="checkbox" id="streamWebEnabled" name="streamWebEnabled" checked />
+										<span class="mini-slider"></span>
+									</label>
+									<span class="control-label">Enabled</span>
+								</div>
+							</div>
+						</div>
+
+						<input type="hidden" name="streamOrder" id="streamOrder" value="" />
 					</div>
 
 					<div class="form-group">
