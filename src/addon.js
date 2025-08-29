@@ -263,7 +263,62 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 		const meta = await metadataManager.generateMeta(imdbId, type, metadataSource);
 		return { meta: meta };
 	} else if (request === "rec") {
-		return { meta: [] };
+		// Get meta for "searched" media to provide proper UI meta
+		const meta = await metadataManager.generateMeta(imdbId, type, metadataSource);
+
+		let recsAsVideos = [];
+
+		// Get recs for "searched" media via combined recs catalog so that we can also cache catalogs/recs
+		const catalog = await catalogHandler(type, `mlt-combined`, `search=${imdbId}`, userConfig, metadataSource);
+		let recs = catalog?.metas;
+
+		if (recs) {
+			if (type === "movie") {
+				// Reverse to show correct order.
+				// Non in place reversal so catalog is not affected by Stremio cache.
+				// Only needed for movies since series will automatically show correct rec order via episodes.
+				recs = [...recs].reverse();
+			}
+
+			recsAsVideos = await Promise.all(
+				recs.map(async (rec, i) => {
+					const recId = rec.id?.split("-").at(-1);
+					const recMeta = await metadataManager.generateMeta(recId, type, metadataSource);
+
+					if (!recMeta) return null;
+
+					recMeta.id = recId;
+					recMeta.season = 1;
+					recMeta.episode = i + 1;
+					recMeta.thumbnail = recMeta.background;
+					recMeta.overview =
+						`RUNTIME: ${recMeta.runtime || ""} <br> 
+						YEAR: ${recMeta.year || ""} <br>
+						IMDB RATING: ${recMeta.imdbRating || ""} <br>
+						GENRES: ${recMeta.genres || ""} <br>
+						DIRECTOR: ${recMeta.director || ""} <br>
+						CAST: ${recMeta.cast || ""} <br> <br>
+						` + recMeta.description;
+
+					return recMeta;
+				}),
+			);
+
+			recsAsVideos = recsAsVideos.filter((row) => row != null);
+		}
+
+		const recObject = {
+			...meta,
+			videos: recsAsVideos,
+		};
+
+		recObject.behaviorHints = {}; // Reset behavior hints to properly show recs as a video list
+
+		if (type === "series") {
+			recObject.id = "mlt-meta-" + imdbId;
+		}
+
+		return { meta: recObject };
 	}
 }
 
