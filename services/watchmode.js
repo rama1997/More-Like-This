@@ -57,6 +57,7 @@ async function watchmodeToExternalId(watchmodeId, apiKey) {
 
 module.exports = {
 	validateAPIKey,
+	getAPIEndpoint,
 	fetchRecommendations,
 	watchmodeToExternalId,
 };

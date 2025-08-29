@@ -1,5 +1,6 @@
 const kitsu = require("../services/kitsu");
 const tmdb = require("../services/tmdb");
+const watchmode = require("../services/watchmode");
 const nameToImdb = require("name-to-imdb");
 const trakt = require("../services/trakt");
 const cinemeta = require("../services/cinemeta");
@@ -42,6 +43,7 @@ async function imdbToMeta(imdbId, type, metadataSource) {
 			const tmdbId = await imdbToTmdb(imdbId, type, tmdbApiKey);
 
 			const tmdbMeta = await tmdb.fetchFullMetadata(imdbId, tmdbId, type, tmdbApiKey, language);
+
 			if (tmdbMeta) return tmdbMeta;
 		} else {
 			// Default/Backup to Cinemeta
@@ -79,6 +81,14 @@ async function imdbToTmdb(imdbId, type, tmdbApiKey) {
 	// Check in-memory map first
 	if (idMapByImdb[imdbId]) {
 		const tmdbId = idMapByImdb[imdbId].tmdbId;
+		const mappedType = idMapByImdb[imdbId].type;
+
+		// Convert to watchmode type for comparison. Return null if types do not match
+		const convertedType = await watchmode.getAPIEndpoint(type);
+		if (mappedType && mappedType !== convertedType) {
+			return null;
+		}
+
 		return tmdbId ? tmdbId : null;
 	}
 
