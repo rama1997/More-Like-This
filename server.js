@@ -88,7 +88,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.6.0",
+		version: "0.7.0",
 		resources: [
 			"catalog",
 			"stream",
@@ -245,8 +245,6 @@ async function startServer() {
 				includeTmdbCollection: req.body.includeTmdbCollection === "on" || false,
 				enableTitleSearching: req.body.enableTitleSearching === "on" || false,
 			};
-
-			console.log(config);
 
 			let userConfig;
 			if (ENCRYPTION_KEY_INPUT) {

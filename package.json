@@ -1,7 +1,7 @@
 {
 	"name": "more-like-this",
-	"version": "0.6.0",
-	"description": "Shows recommendations for searched media",
+	"version": "0.7.0",
+	"description": "Shows recommendations for movies and series",
 	"author": "rama1997",
 	"license": "ISC",
 	"main": "addon.js",
