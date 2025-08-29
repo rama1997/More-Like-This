@@ -3,6 +3,7 @@ const metadataManager = require("./metadataManager");
 const catalogManager = require("./catalogManager");
 const recManager = require("./recManager");
 const logger = require("../utils/logger");
+const idConverter = require("../utils/idConverter");
 
 async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	// Get user config settings
@@ -68,7 +69,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	let searchImdb;
 
 	if (searchKey.startsWith("tt")) {
-		const media = await metadataManager.imdbToTitleYearType(searchKey, type, metadataSource);
+		const media = await idConverter.imdbToTitleYearType(searchKey, type, metadataSource);
 		if (media) {
 			title = media.title;
 			year = media.year;
@@ -76,7 +77,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 
 		searchImdb = searchKey;
 	} else if (searchKey.startsWith("kitsu")) {
-		const convertedKitsu = await metadataManager.kitsuToImdbTitleYearType(searchKey, metadataSource);
+		const convertedKitsu = await idConverter.kitsuToImdbTitleYearType(searchKey, metadataSource);
 
 		if (!convertedKitsu) {
 			logger.emptyCatalog(`${catalogSource.toUpperCase()}: No Kitsu Data found`, { type, searchKey });
@@ -89,7 +90,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	} else {
 		title = searchKey;
 		year = searchYear;
-		searchImdb = await metadataManager.titleToImdb(searchKey, searchYear, type, metadataSource);
+		searchImdb = await idConverter.titleToImdb(searchKey, searchYear, type, metadataSource);
 	}
 
 	if (searchImdb) {
@@ -101,7 +102,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 
 		// Ensure title and year found for Gemini and TasteDive since they require both for searching
 		if (!title || !year) {
-			const media = await metadataManager.imdbToTitleYearType(searchImdb, type, metadataSource);
+			const media = await idConverter.imdbToTitleYearType(searchImdb, type, metadataSource);
 			if (media) {
 				title = media.title;
 				year = media.year;
@@ -254,7 +255,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 		const [, id] = rawId.split(":");
 		const kitsuId = `kitsu:${id}`;
 
-		const convertedKitsu = await metadataManager.kitsuToImdbTitleYearType(kitsuId, metadataSource);
+		const convertedKitsu = await idConverter.kitsuToImdbTitleYearType(kitsuId, metadataSource);
 		imdbId = convertedKitsu?.imdbId;
 	}
 

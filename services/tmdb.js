@@ -252,44 +252,26 @@ async function fetchPoster(tmdbId, mediaType, apiKey, language) {
 	}
 }
 
-async function fetchBaseMetadata(id, mediaType, apiKey, language) {
-	if (!id || !mediaType) {
+async function fetchBaseMetadata(tmdbId, mediaType, apiKey, language) {
+	if (!tmdbId || !mediaType) {
 		return null;
 	}
 
 	try {
-		// Get TMDB Id since TMDB provides more data when searching with a TMDB Id compared to an external ID
-		let tmdbId;
-		let imdbId;
-		if (id.toString().startsWith("tt")) {
-			imdbId = id;
-			const media = await findByImdbId(id, mediaType, apiKey, language);
-			if (media) {
-				tmdbId = media.id;
-			}
-		} else {
-			tmdbId = id;
-		}
+		const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}?language=${language}&api_key=${apiKey}`;
+		const response = await withTimeout(fetch(url), 5000, "TMDB metadata fetch for TMDB Id timed out");
+		const json = await response.json();
 
-		// If TMDB Id obtained, then call TMDB API
-		if (tmdbId) {
-			const url = `${TMDB_API_BASE_URL}/${mediaType}/${tmdbId}?language=${language}&api_key=${apiKey}`;
-			const response = await withTimeout(fetch(url), 5000, "TMDB metadata fetch for TMDB Id timed out");
-			const json = await response.json();
-
-			return json ? json : null;
-		}
-
-		return null;
+		return json ? json : null;
 	} catch (error) {
 		logger.error(error.message, null);
 		return null;
 	}
 }
 
-async function fetchFullMetadata(imdbId, mediaType, apiKey, language) {
+async function fetchFullMetadata(imdbId, tmdbId, mediaType, apiKey, language) {
 	const type = await getAPIEndpoint(mediaType);
-	let meta = await fetchBaseMetadata(imdbId, type, apiKey, language);
+	let meta = await fetchBaseMetadata(tmdbId, type, apiKey, language);
 
 	// Adjust metadata for addon usage
 	if (meta) {
@@ -330,7 +312,7 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	// Get description in main language. If none, then use eng description as backup
 	let description = meta.overview || meta.description;
 	if (!description) {
-		const engMeta = await fetchBaseMetadata(imdbId, mediaType, apiKey, "en");
+		const engMeta = await fetchBaseMetadata(imdbId, tmdbId, mediaType, apiKey, "en");
 		description = engMeta?.overview || engMeta?.description;
 	}
 

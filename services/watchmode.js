@@ -3,13 +3,6 @@ const WATCHMODE_API_BASE_URL = "https://api.watchmode.com/v1";
 const { withTimeout } = require("../utils/timeout");
 const logger = require("../utils/logger");
 
-const rawIdList = require("./watchmode_title_id_map.json");
-
-const idMap = rawIdList.reduce((acc, row) => {
-	acc[row.watchmodeID] = { imdbId: row.imdbID, tmdbId: row.tmdbID, type: row.type };
-	return acc;
-}, {});
-
 async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
 		return false;
@@ -46,24 +39,16 @@ async function fetchRecommendations(imdbID, apiKey) {
 
 async function watchmodeToExternalId(watchmodeId, apiKey) {
 	try {
-		// Look up id in ID dataset first
-		if (idMap[watchmodeId]) {
-			const imdbId = idMap[watchmodeId].imdbId;
-			const tmdbId = idMap[watchmodeId].tmdbId;
-			const type = idMap[watchmodeId].type;
+		// Call Watchmode API as a backup
+		const url = `${WATCHMODE_API_BASE_URL}/title/${watchmodeId}/details/?apiKey=${apiKey}`;
+		const response = await withTimeout(fetch(url), 5000, "Watchmode id fetch timed out");
+		const json = await response.json();
 
-			return imdbId && type ? { imdbId: imdbId, tmdbId, tmdbId, type: type } : null;
-		} else {
-			// Call Watchmode API as a backup
-			const url = `${WATCHMODE_API_BASE_URL}/title/${watchmodeId}/details/?apiKey=${apiKey}`;
-			const response = await withTimeout(fetch(url), 5000, "Watchmode id fetch timed out");
-			const json = await response.json();
+		const imdbId = json?.imdb_id;
+		const tmdbId = json?.tmdb_id;
+		const type = json?.tmdb_type;
 
-			const imdbId = json?.imdb_id;
-			const type = json?.tmdb_type;
-
-			return imdbId && type ? { imdbId: imdbId, type: type } : null;
-		}
+		return imdbId && type ? { imdbId: imdbId, tmdbId: tmdbId, type: type } : null;
 	} catch (error) {
 		logger.error(error.message, null);
 		return null;

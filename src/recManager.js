@@ -4,10 +4,11 @@ const simkl = require("../services/simkl");
 const gemini = require("../services/gemini");
 const tastedive = require("../services/tastedive");
 const watchmode = require("../services/watchmode");
-const { titleToImdb } = require("./metadataManager");
+const { titleToImdb } = require("../utils/idConverter");
 const logger = require("../utils/logger");
 const cache = require("../utils/cache");
 const { withTimeout } = require("../utils/timeout");
+const idConverter = require("../utils/idConverter");
 
 async function checkCache(imdbId, recSource) {
 	const cacheKey = await cache.createRecCacheKey(imdbId, recSource);
@@ -33,12 +34,10 @@ async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollec
 	}
 
 	// Get recs from TMDB API
-	const searchedMedia = await tmdb.findByImdbId(searchImdb, type, apiKey);
-	if (!searchedMedia) {
+	const tmdbId = await idConverter.imdbToTmdb(searchImdb, type, apiKey);
+	if (!tmdbId) {
 		return null;
 	}
-
-	const tmdbId = searchedMedia.id;
 
 	let tmdbRecs = [];
 	const defaultRecs = (await tmdb.fetchRecommendations(tmdbId, type, apiKey)) || [];
@@ -60,7 +59,7 @@ async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollec
 	// Get IMDB Id for all recs and add it's placement ranking
 	let recs = await Promise.all(
 		tmdbRecs.map(async (rec, index) => {
-			const imdbId = await tmdb.fetchImdbID(rec.id, type, apiKey);
+			const imdbId = await idConverter.tmdbToImdb(rec.id, type, apiKey);
 			return imdbId ? { imdbId: imdbId, tmdbId: rec.id, ranking: index + 1 } : null;
 		}),
 	);
@@ -257,12 +256,15 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 	let seriesRecs = [];
 
 	for (let r of watchmodeRecs) {
-		const media = await watchmode.watchmodeToExternalId(r, apiKey);
-		if (media) {
-			if (media.type === "tv") {
-				seriesRecs.push({ imdbId: media.imdbId, tmdbId: media.tmdbId });
-			} else if (media.type === "movie") {
-				movieRecs.push({ imdbId: media.imdbId, tmdbId: media.tmdbId });
+		const imdbId = await idConverter.watchmodeToImdb(r, apiKey);
+		const tmdbId = await idConverter.watchmodeToTmdb(r, apiKey);
+		const recType = await idConverter.watchmodeToType(r, apiKey);
+
+		if (recType) {
+			if (recType === "tv") {
+				seriesRecs.push({ imdbId: imdbId, tmdbId: tmdbId });
+			} else if (recType === "movie") {
+				movieRecs.push({ imdbId: imdbId, tmdbId: tmdbId });
 			}
 		}
 	}

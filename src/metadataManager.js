@@ -1,12 +1,8 @@
-const nameToImdb = require("name-to-imdb");
-const kitsu = require("../services/kitsu");
 const tmdb = require("../services/tmdb");
-const trakt = require("../services/trakt");
-const cinemeta = require("../services/cinemeta");
-const logger = require("../utils/logger");
 const rpdb = require("../services/rpdb");
 const cache = require("../utils/cache");
 const { withLock } = require("../utils/lock");
+const idConverter = require("../utils/idConverter");
 
 async function checkCache(imdbId, metaSource, language) {
 	const cacheKey = await cache.createMetaCacheKey(imdbId, metaSource, language);
@@ -16,131 +12,6 @@ async function checkCache(imdbId, metaSource, language) {
 async function saveCache(imdbId, metaSource, language, data) {
 	const cacheKey = await cache.createMetaCacheKey(imdbId, metaSource, language);
 	await cache.setCache(cacheKey, data);
-}
-
-async function imdbToMeta(imdbId, type, metadataSource) {
-	const source = metadataSource.source;
-	const validTMDBKey = metadataSource.tmdbApiKey.valid;
-
-	try {
-		// Get metadata from tmdb
-		if (source === "tmdb" && validTMDBKey) {
-			const tmdbApiKey = metadataSource.tmdbApiKey.key;
-			const language = metadataSource.language;
-
-			const tmdbMeta = await tmdb.fetchFullMetadata(imdbId, type, tmdbApiKey, language);
-			if (tmdbMeta) return tmdbMeta;
-		} else {
-			// Default/Backup to Cinemeta
-			const cinemetaMeta = await cinemeta.fetchFullMetadata(imdbId, type);
-			if (cinemetaMeta) return cinemetaMeta;
-		}
-		return null;
-	} catch (error) {
-		logger.error(error.message, "Error converting IMDB Id to metadata");
-		return null;
-	}
-}
-
-async function titleToImdb(title, year, type, metadataSource) {
-	if (!title) {
-		return null;
-	}
-
-	try {
-		// Default method is Cinemeta
-		const mediaType = type === "movie" ? "movie" : "series";
-		const input = { name: title, year: year, type: mediaType };
-
-		const cinemetaResult = await new Promise((resolve, reject) => {
-			nameToImdb(input, (err, res, inf) => {
-				if (err) {
-					logger.error("Unable to find title in nameToImdb package", { input });
-					return resolve(null);
-				}
-				resolve(res);
-			});
-		});
-
-		if (cinemetaResult) return cinemetaResult;
-
-		// Backup method using TMDB if API key provided
-		const validTMDBKey = metadataSource.tmdbApiKey.valid;
-		if (validTMDBKey) {
-			const tmdbApiKey = metadataSource.tmdbApiKey.key;
-			const language = metadataSource.language;
-
-			// Search TMDB's search results for a title + year and fetch the top result
-			const searchResults = await tmdb.fetchSearchResult(title, year, type, tmdbApiKey, language);
-			if (searchResults && searchResults.length !== 0) {
-				const foundMedia = searchResults[0];
-
-				// If the IMDB Id's media does not match catalog type, skip the catalog
-				const mediaType = foundMedia.release_date ? "movie" : "series";
-				if (mediaType === type) {
-					const tmdbResult = await tmdb.fetchImdbID(foundMedia.id, type, tmdbApiKey);
-					if (tmdbResult) return tmdbResult;
-				}
-			}
-		}
-
-		// Backup method using Trakt if API key provided
-		const validTraktKey = metadataSource.traktApiKey.valid;
-		if (validTraktKey) {
-			const traktApiKey = metadataSource.traktApiKey.key;
-
-			const searchResults = await trakt.fetchSearchResult(title, type, traktApiKey);
-			if (searchResults && searchResults.length !== 0) {
-				const foundMedia = searchResults[0][mediaTypeForTrakt];
-				const traktResult = foundMedia?.ids?.imdb;
-				if (traktResult) return traktResult;
-			}
-		}
-
-		return null;
-	} catch (error) {
-		return null;
-	}
-}
-
-async function imdbToTitleYearType(id, searchType, metadataSource) {
-	if (!id || !id.startsWith("tt")) {
-		return null;
-	}
-
-	const media = await imdbToMeta(id, searchType, metadataSource);
-	if (!media || media.type !== searchType) {
-		return null;
-	}
-	return {
-		title: media.title,
-		year: media.year,
-		type: media.type,
-	};
-}
-
-async function kitsuToImdbTitleYearType(kitsuId, metadataSource) {
-	if (!kitsuId || !kitsuId.startsWith("kitsu")) {
-		return null;
-	}
-
-	const kitsuMedia = await kitsu.idToTitleYearType(kitsuId);
-
-	// Return empty catalog for invalid kitsu id
-	if (!kitsuMedia) {
-		return null;
-	}
-
-	const imdbId = await titleToImdb(kitsuMedia.title, kitsuMedia.year, kitsuMedia.type, metadataSource);
-
-	return imdbId
-		? {
-				imdbId: imdbId,
-				title: kitsuMedia.title,
-				year: kitsuMedia.year,
-				type: kitsuMedia.type,
-		  }
-		: null;
 }
 
 async function createMetaPreview(recs, type, apiKeys, metadataSource) {
@@ -181,8 +52,7 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 		const language = keepEnglishPoster ? "en" : metadataSource.language;
 
 		if (!tmdbId) {
-			const res = await tmdb.findByImdbId(imdbId, type, apiKeys.tmdb.key, language);
-			tmdbId = res?.id;
+			tmdbId = await idConverter.imdbToTmdb(imdbId, type, apiKeys.tmdb.key);
 		}
 
 		const tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
@@ -210,7 +80,7 @@ async function generateMeta(imdbId, type, metadataSource) {
 		}
 
 		const mediaType = type === "movie" ? "movie" : "series";
-		const rawMeta = await imdbToMeta(imdbId, mediaType, metadataSource);
+		const rawMeta = await idConverter.imdbToMeta(imdbId, mediaType, metadataSource);
 		if (!rawMeta) return null;
 
 		let meta = {};
@@ -257,9 +127,6 @@ async function generateMeta(imdbId, type, metadataSource) {
 }
 
 module.exports = {
-	titleToImdb,
-	imdbToTitleYearType,
-	kitsuToImdbTitleYearType,
 	createMetaPreview,
 	generateMeta,
 };
