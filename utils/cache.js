@@ -120,8 +120,8 @@ async function createMetaCacheKey(imdbId, metaSource, language) {
 	return `meta:${imdbId}:${metaSource}:${language}`;
 }
 
-async function createRecCacheKey(imdbId, recSource) {
-	return `recs:${imdbId}:${recSource}`;
+async function createRecCacheKey(imdbId, type, recSource) {
+	return `recs:${imdbId}:${type}:${recSource}`;
 }
 
 module.exports = {

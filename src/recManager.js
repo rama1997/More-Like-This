@@ -10,13 +10,13 @@ const cache = require("../utils/cache");
 const { withTimeout } = require("../utils/timeout");
 const idConverter = require("../utils/idConverter");
 
-async function checkCache(imdbId, recSource) {
-	const cacheKey = await cache.createRecCacheKey(imdbId, recSource);
+async function checkCache(imdbId, type, recSource) {
+	const cacheKey = await cache.createRecCacheKey(imdbId, type, recSource);
 	return await cache.getCache(cacheKey);
 }
 
-async function saveCache(imdbId, recSource, data) {
-	const cacheKey = await cache.createRecCacheKey(imdbId, recSource);
+async function saveCache(imdbId, type, recSource, data) {
+	const cacheKey = await cache.createRecCacheKey(imdbId, type, recSource);
 	await cache.setCache(cacheKey, data);
 }
 
@@ -28,7 +28,7 @@ async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollec
 	const source = includeTmdbCollection ? "tmdb+collection" : "tmdb";
 
 	// Check cache for recs
-	const cachedRecs = await checkCache(searchImdb, source);
+	const cachedRecs = await checkCache(searchImdb, type, source);
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -66,7 +66,7 @@ async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollec
 
 	recs = recs.filter((row) => row != null);
 
-	await saveCache(searchImdb, source, recs);
+	await saveCache(searchImdb, type, source, recs);
 
 	return recs;
 }
@@ -77,7 +77,7 @@ async function getTraktRecs(searchImdb, type, apiKey, validKey) {
 	}
 
 	// Check cache for recs
-	const cachedRecs = await checkCache(searchImdb, "trakt");
+	const cachedRecs = await checkCache(searchImdb, type, "trakt");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -97,7 +97,7 @@ async function getTraktRecs(searchImdb, type, apiKey, validKey) {
 		}),
 	);
 
-	await saveCache(searchImdb, "trakt", recs);
+	await saveCache(searchImdb, type, "trakt", recs);
 
 	return recs;
 }
@@ -108,7 +108,7 @@ async function getSimklRecs(searchImdb, type, validKey) {
 	}
 
 	// Check cache for recs
-	const cachedRecs = await checkCache(searchImdb, "simkl");
+	const cachedRecs = await checkCache(searchImdb, type, "simkl");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -142,7 +142,7 @@ async function getSimklRecs(searchImdb, type, validKey) {
 		}),
 	);
 
-	await saveCache(searchImdb, "simkl", recs);
+	await saveCache(searchImdb, type, "simkl", recs);
 
 	return recs;
 }
@@ -153,7 +153,7 @@ async function getTastediveRecs(searchTitle, searchYear, type, searchImdb, apiKe
 	}
 
 	// Check cache for recs
-	const cachedRecs = await checkCache(searchImdb, "tastedive");
+	const cachedRecs = await checkCache(searchImdb, type, "tastedive");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -187,7 +187,7 @@ async function getTastediveRecs(searchTitle, searchYear, type, searchImdb, apiKe
 		}),
 	);
 
-	await saveCache(searchImdb, "tastedive", recs);
+	await saveCache(searchImdb, type, "tastedive", recs);
 
 	return recs;
 }
@@ -198,7 +198,7 @@ async function getGeminiRecs(searchTitle, searchYear, type, searchImdb, apiKey, 
 	}
 
 	// Check cache for recs
-	const cachedRecs = await checkCache(searchImdb, "gemini");
+	const cachedRecs = await checkCache(searchImdb, type, "gemini");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -229,7 +229,7 @@ async function getGeminiRecs(searchTitle, searchYear, type, searchImdb, apiKey, 
 
 	recs = recs.filter((row) => row != null);
 
-	await saveCache(searchImdb, "gemini", recs);
+	await saveCache(searchImdb, type, "gemini", recs);
 
 	return recs;
 }
@@ -240,7 +240,7 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 	}
 
 	// Check cache for recs
-	const cachedRecs = await checkCache(searchImdb, "watchmode");
+	const cachedRecs = await checkCache(searchImdb, type, "watchmode");
 	if (cachedRecs) {
 		return cachedRecs;
 	}
@@ -256,11 +256,13 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 	let seriesRecs = [];
 
 	for (let r of watchmodeRecs) {
-		const imdbId = await idConverter.watchmodeToImdb(r, apiKey);
-		const tmdbId = await idConverter.watchmodeToTmdb(r, apiKey);
+		const convertedType = await watchmode.getAPIEndpoint(type);
 		const recType = await idConverter.watchmodeToType(r, apiKey);
 
-		if (recType) {
+		if (recType && recType === convertedType) {
+			const imdbId = await idConverter.watchmodeToImdb(r, apiKey);
+			const tmdbId = await idConverter.watchmodeToTmdb(r, apiKey);
+
 			if (recType === "tv") {
 				seriesRecs.push({ imdbId: imdbId, tmdbId: tmdbId });
 			} else if (recType === "movie") {
@@ -276,7 +278,7 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 		}),
 	);
 
-	await saveCache(searchImdb, "watchmode", recs);
+	await saveCache(searchImdb, type, "watchmode", recs);
 
 	return recs;
 }

@@ -5,7 +5,7 @@ const nameToImdb = require("name-to-imdb");
 const trakt = require("../services/trakt");
 const cinemeta = require("../services/cinemeta");
 const logger = require("../utils/logger");
-const { idMapByImdb, idMapByTmdb, idMapByWatchmode } = require("../utils/idMaps");
+const { idMapByImdb, idMapByTmdbMovie, idMapByTmdbSeries, idMapByWatchmode } = require("../utils/idMaps");
 
 async function kitsuToImdbTitleYearType(kitsuId, metadataSource) {
 	if (!kitsuId || !kitsuId.startsWith("kitsu")) {
@@ -85,11 +85,9 @@ async function imdbToTmdb(imdbId, type, tmdbApiKey) {
 
 		// Convert to watchmode type for comparison. Return null if types do not match
 		const convertedType = await watchmode.getAPIEndpoint(type);
-		if (mappedType && mappedType !== convertedType) {
-			return null;
+		if (mappedType && mappedType === convertedType) {
+			return tmdbId ? tmdbId : null;
 		}
-
-		return tmdbId ? tmdbId : null;
 	}
 
 	// Call TMDB API if not found in map
@@ -104,9 +102,16 @@ async function tmdbToImdb(tmdbId, type, tmdbApiKey) {
 	}
 
 	// Check in-memory map first
-	if (idMapByTmdb[tmdbId]) {
-		const imdbId = idMapByTmdb[tmdbId].imdbId;
-		return imdbId ? imdbId : null;
+	if (type === "movies" && idMapByTmdbMovie[tmdbId]) {
+		const imdbId = idMapByTmdbMovie[tmdbId].imdbId;
+		if (imdbId && imdbId.startsWith("tt")) {
+			return imdbId;
+		}
+	} else if (type === "series" && idMapByTmdbSeries[tmdbId]) {
+		const imdbId = idMapByTmdbSeries[tmdbId].imdbId;
+		if (imdbId && imdbId.startsWith("tt")) {
+			return imdbId;
+		}
 	}
 
 	// Call TMDB API if not found in map
