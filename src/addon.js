@@ -24,6 +24,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 			}
 		}
 	}
+
 	if (includeTmdbCollection && catalogSource.includes("tmdb")) {
 		catalogSource = catalogSource + "-collection";
 	}
@@ -123,7 +124,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	try {
 		if (type === "movie") {
 			if (id.includes("combined")) {
-				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource);
+				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource, catalogSource);
 			} else if (id.includes("tmdb")) {
 				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
 			} else if (id.includes("trakt")) {
@@ -141,7 +142,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 			}
 		} else if (type === "series") {
 			if (id.includes("combined")) {
-				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource);
+				recs = await recManager.getCombinedRecs(title, year, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource, catalogSource);
 			} else if (id.includes("tmdb")) {
 				recs = await recManager.getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection);
 			} else if (id.includes("trakt")) {

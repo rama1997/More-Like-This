@@ -239,6 +239,8 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 		return null;
 	}
 
+	const convertedType = await watchmode.getAPIEndpoint(type);
+
 	// Check cache for recs
 	const cachedRecs = await checkCache(searchImdb, type, "watchmode");
 	if (cachedRecs) {
@@ -256,7 +258,6 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 	let seriesRecs = [];
 
 	for (let r of watchmodeRecs) {
-		const convertedType = await watchmode.getAPIEndpoint(type);
 		const recType = await idConverter.watchmodeToType(r, apiKey);
 
 		if (recType && recType === convertedType) {
@@ -283,33 +284,50 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 	return recs;
 }
 
-async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys, includeTmdbCollection, metadataSource) {
-	const timeoutMs = 5000;
+async function getCombinedRecs(searchTitle, searchYear, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource, catalogSource) {
+	// Check cache for recs
+	const cachedRecs = await checkCache(searchImdb, type, catalogSource);
+	if (cachedRecs) {
+		return cachedRecs;
+	}
 
 	// Get recs from all sources. All sources have a timeout to prevent the whole catalog from not showing if
 	// prettier-ignore
+	const timeoutMs = 10000;
 	const [tmdbRecs, traktRecs, simklRecs, geminiRecs, tastediveRecs, watchmodeRecs] = await Promise.all([
-		withTimeout(getTmdbRecs(searchImdb, searchType, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection), timeoutMs, "TMDB recs timed out in combined Recs").catch(() => {return []}), 
-		withTimeout(getTraktRecs(searchImdb, searchType, apiKeys.trakt.key, apiKeys.trakt.valid), timeoutMs, "Trakt recs timed out in combined Recs").catch(() => {return []}), 
-		withTimeout(getSimklRecs(searchImdb, searchType, apiKeys.simkl.valid), timeoutMs, "Simkl recs timed out in combined Recs").catch(() => {return null}), 
-		withTimeout(getGeminiRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource), timeoutMs, "Gemini recs timed out in combined Recs").catch(() => {return []}), 
-		withTimeout(getTastediveRecs(searchTitle, searchYear, searchType, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource), timeoutMs, "Tastedive recs timed out in combined Recs").catch(() => {return []}), 
-		withTimeout(getWatchmodeRecs(searchImdb, searchType, apiKeys.watchmode.key, apiKeys.watchmode.valid), timeoutMs, "Watchmode recs timed out in combined Recs").catch(() => {return []}), 
+		withTimeout(getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection), timeoutMs, "TMDB recs timed out in combined Recs").catch(() => {
+			return [];
+		}),
+		withTimeout(getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid), timeoutMs, "Trakt recs timed out in combined Recs").catch(() => {
+			return [];
+		}),
+		withTimeout(getSimklRecs(searchImdb, type, apiKeys.simkl.valid), timeoutMs, "Simkl recs timed out in combined Recs").catch(() => {
+			return null;
+		}),
+		withTimeout(getGeminiRecs(searchTitle, searchYear, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource), timeoutMs, "Gemini recs timed out in combined Recs").catch(() => {
+			return [];
+		}),
+		withTimeout(getTastediveRecs(searchTitle, searchYear, type, searchImdb, apiKeys.tastedive.key, apiKeys.tastedive.valid, metadataSource), timeoutMs, "Tastedive recs timed out in combined Recs").catch(() => {
+			return [];
+		}),
+		withTimeout(getWatchmodeRecs(searchImdb, type, apiKeys.watchmode.key, apiKeys.watchmode.valid), timeoutMs, "Watchmode recs timed out in combined Recs").catch(() => {
+			return [];
+		}),
 	]);
 
 	// Merge recs into one array
-	let merged = [...(tmdbRecs || []), ...(traktRecs || []), ...(simklRecs || []), ...(geminiRecs || []), ...(tastediveRecs || []), ...(watchmodeRecs || [])];
+	let combinedRecs = [...(tmdbRecs || []), ...(traktRecs || []), ...(simklRecs || []), ...(geminiRecs || []), ...(tastediveRecs || []), ...(watchmodeRecs || [])];
 
-	if (merged.length === 0) {
+	if (combinedRecs.length === 0) {
 		logger.emptyCatalog("COMBINED: Empty catalog after merge", searchTitle);
 		return [];
 	}
 
-	merged = merged.filter((row) => row != null);
+	combinedRecs = combinedRecs.filter((row) => row != null);
 
 	// Count occurrences of each media ID and sum their ranking within the recommendations
 	const recMap = {};
-	for (const media of merged) {
+	for (const media of combinedRecs) {
 		if (!recMap[media.imdbId]) {
 			recMap[media.imdbId] = {
 				...media,
@@ -331,6 +349,8 @@ async function getCombinedRecs(searchTitle, searchYear, searchType, searchImdb, 
 		const bAvgRank = b.rankingSum / b.count;
 		return aAvgRank - bAvgRank; // Lower average rank = better
 	});
+
+	await saveCache(searchImdb, type, catalogSource, sorted);
 
 	return sorted;
 }
