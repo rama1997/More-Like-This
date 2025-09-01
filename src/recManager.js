@@ -318,7 +318,7 @@ async function getCombinedRecs(searchTitle, searchYear, type, searchImdb, apiKey
 	// Merge recs into one array
 	let combinedRecs = [...(tmdbRecs || []), ...(traktRecs || []), ...(simklRecs || []), ...(geminiRecs || []), ...(tastediveRecs || []), ...(watchmodeRecs || [])];
 
-	if (combinedRecs.length === 0) {
+	if (!combinedRecs || combinedRecs.length === 0) {
 		logger.emptyCatalog("COMBINED: Empty catalog after merge", searchTitle);
 		return [];
 	}
