@@ -82,6 +82,15 @@ async function resolveSearchInput(searchKey, searchYear, type, metadataSource) {
 		title = convertedKitsu.title;
 		year = convertedKitsu.year || searchYear;
 		imdbId = convertedKitsu.imdbId;
+	} else if (searchKey.startsWith("tmdb")) {
+		const tmdbId = searchKey.split(":")[1];
+
+		const convertedId = await idConverter.tmdbToImdb(tmdbId, type, metadataSource.tmdbApiKey.key);
+		const media = await idConverter.imdbToTitleYearType(convertedId, type, metadataSource);
+
+		title = media?.title;
+		year = media?.year || searchYear;
+		imdbId = convertedId;
 	} else {
 		title = searchKey;
 		year = searchYear;

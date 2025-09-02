@@ -188,7 +188,17 @@ async function startServer() {
 
 	app.get("/:userConfig/stream/:type/:id.json", async (req, res) => {
 		const userConfig = await loadUserConfig(req.params.userConfig);
-		const streams = await streamHandler(req.headers["origin"], req.params.type, req.params.id, userConfig);
+
+		// Retreieve and format meta data source
+		const metadataSource = {
+			source: userConfig.metadataSource === "tmdb" && userConfig.apiKeys.tmdb.valid ? "tmdb" : "cinemeta",
+			tmdbApiKey: userConfig.apiKeys.tmdb,
+			traktApiKey: userConfig.apiKeys.trakt,
+			language: userConfig.language,
+			keepEnglishPosters: userConfig.keepEnglishPosters,
+		};
+
+		const streams = await streamHandler(req.headers["origin"], req.params.type, req.params.id, userConfig, metadataSource);
 		res.json(streams);
 	});
 
