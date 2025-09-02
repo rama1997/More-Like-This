@@ -5,7 +5,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 	// Remove season/episode info if exists
 	if (searchId.startsWith("tt")) {
 		searchId = searchId.split(":")[0];
-	} else if (searchId.startsWith("kitsu") || searchId.startsWith("tmdb")) {
+	} else if (searchId.startsWith("kitsu") || searchId.startsWith("tmdb") || searchId.startsWith("trakt")) {
 		searchId = searchId.split(":").slice(0, 2).join(":");
 	}
 
@@ -24,7 +24,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 					detailURL = `/detail/${type}/mlt-meta-${searchId}`;
 				}
 			} else {
-				detailURL = `/detail/${type}/${metaId}`;
+				detailURL = `/detail/${type}/${metaId.split(":").slice(0, 2).join(":")}`;
 			}
 
 			const detailButton = {

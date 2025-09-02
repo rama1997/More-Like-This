@@ -113,9 +113,56 @@ async function fetchMetadata(id, mediaType, apiKey) {
 	}
 }
 
+async function idToImdbTitleYearType(traktId, mediaType, apiKey) {
+	try {
+		const type = await getAPIEndpoint(mediaType);
+		const adjustedMediaType = type === "movie" ? "movie" : "show";
+
+		const url = `${TRAKT_API_BASE_URL}/search/trakt/${traktId}?type=${adjustedMediaType}`;
+		const options = {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				"trakt-api-version": "2",
+				"trakt-api-key": apiKey,
+			},
+		};
+
+		const response = await withTimeout(fetch(url, options), 5000, `Trakt Id to Imdb conversion timed out: ${traktId}`);
+		const json = await response.json();
+		const res = json?.[0];
+
+		let resTitle;
+		let resYear;
+		let imdbId;
+		let resType;
+		if (res) {
+			resType = res.type;
+
+			if (resType) {
+				if (resType === "movie") {
+					resTitle = res.movie.title;
+					resYear = res.movie.year;
+					imdbId = res.movie.ids.imdb;
+				} else if (resType === "show") {
+					resTitle = res.show.title;
+					resYear = res.show.year;
+					imdbId = res.show.ids.imdb;
+				}
+			}
+		}
+
+		return { title: resTitle, year: resYear, type: resType, imdbId: imdbId };
+	} catch (error) {
+		logger.error(error.message, { imdbID: traktId, mediaType });
+		return null;
+	}
+}
+
 module.exports = {
 	validateAPIKey,
 	fetchSearchResult,
 	fetchRecommendations,
 	fetchMetadata,
+	idToImdbTitleYearType,
 };

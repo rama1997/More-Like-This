@@ -58,7 +58,7 @@ async function generateCatalogSource(id, apiKeys, userConfig, metadataSource) {
 	return catalogSource;
 }
 
-async function resolveSearchInput(searchKey, searchYear, type, metadataSource) {
+async function resolveSearchInput(searchKey, searchYear, type, userConfig, metadataSource) {
 	let title;
 	let year;
 	let imdbId;
@@ -85,12 +85,20 @@ async function resolveSearchInput(searchKey, searchYear, type, metadataSource) {
 	} else if (searchKey.startsWith("tmdb")) {
 		const tmdbId = searchKey.split(":")[1];
 
-		const convertedId = await idConverter.tmdbToImdb(tmdbId, type, metadataSource.tmdbApiKey.key);
+		const convertedId = await idConverter.tmdbToImdb(tmdbId, type, userConfig.apiKeys.tmdb.key);
 		const media = await idConverter.imdbToTitleYearType(convertedId, type, metadataSource);
 
 		title = media?.title;
 		year = media?.year || searchYear;
 		imdbId = convertedId;
+	} else if (searchKey.startsWith("trakt")) {
+		const traktId = searchKey.split(":")[1];
+
+		const res = await idConverter.traktToImdbTitleYearType(traktId, type, userConfig.apiKeys.trakt.key, metadataSource);
+
+		title = res?.title;
+		year = res?.year || searchYear;
+		imdbId = res?.imdbId;
 	} else {
 		title = searchKey;
 		year = searchYear;
@@ -162,9 +170,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	}
 
 	// Convert search input to IMDB Id, title, and year
-	let { title, year, imdbId: searchImdb } = await resolveSearchInput(searchKey, searchYear, type, metadataSource);
-
-	console.log({ title, year, searchImdb });
+	let { title, year, imdbId: searchImdb } = await resolveSearchInput(searchKey, searchYear, type, userConfig, metadataSource);
 
 	if (searchImdb) {
 		// Check cache for IMDB id

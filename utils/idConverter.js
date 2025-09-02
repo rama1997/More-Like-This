@@ -119,6 +119,30 @@ async function tmdbToImdb(tmdbId, type, tmdbApiKey) {
 	return imdbId ? imdbId : null;
 }
 
+async function traktToImdbTitleYearType(traktId, type, traktApiKey, metadataSource) {
+	if (!traktId) {
+		return null;
+	}
+
+	// Call Trakt API to convert Trakt Id
+	const res = await trakt.idToImdbTitleYearType(traktId, type, traktApiKey);
+
+	if (res) {
+		const title = res.title;
+		const year = res.year;
+		let imdbId = res.imdbId;
+
+		// If title and year are found, but no imdbId, attempt to manually find using title
+		if (!imdbId && title && year) {
+			imdbId = await titleToImdb(title, year, type, metadataSource);
+		}
+
+		return { title: title, year: year, imdbId: imdbId, type: type };
+	}
+
+	return null;
+}
+
 async function titleToImdb(title, year, type, metadataSource) {
 	if (!title) {
 		return null;
@@ -234,6 +258,7 @@ module.exports = {
 	imdbToTitleYearType,
 	imdbToTmdb,
 	tmdbToImdb,
+	traktToImdbTitleYearType,
 	titleToImdb,
 	watchmodeToImdb,
 	watchmodeToTmdb,
