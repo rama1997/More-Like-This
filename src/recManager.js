@@ -286,10 +286,10 @@ async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
 
 async function getCombinedRecs(searchTitle, searchYear, type, searchImdb, apiKeys, includeTmdbCollection, metadataSource, catalogSource) {
 	// Check cache for recs
-	const cachedRecs = await checkCache(searchImdb, type, catalogSource);
-	if (cachedRecs) {
-		return cachedRecs;
-	}
+	// const cachedRecs = await checkCache(searchImdb, type, catalogSource);
+	// if (cachedRecs) {
+	// 	return cachedRecs;
+	// }
 
 	// Get recs from all sources. All sources have a timeout to prevent the whole catalog from not showing if
 	// prettier-ignore
@@ -350,7 +350,7 @@ async function getCombinedRecs(searchTitle, searchYear, type, searchImdb, apiKey
 		return aAvgRank - bAvgRank; // Lower average rank = better
 	});
 
-	await saveCache(searchImdb, type, catalogSource, sorted);
+	// await saveCache(searchImdb, type, catalogSource, sorted);
 
 	return sorted;
 }
