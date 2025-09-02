@@ -130,7 +130,7 @@ npm start
 | PORT              | Desired port that addon listens on          | `8080`            |
 | CACHE_TTL         | Cache TTL (seconds)                         | `259200` (3 Days) |
 | CACHE_MAX_SIZE    | Max size of cache                           | `3000`            |
-| GEMINI_MAX_RESULT | Max number of Gemini AI returns per catalog | `30`              |
+| GEMINI_MAX_RESULT | Max number of Gemini AI returns per catalog | `20`              |
 | REDIS_URL         | Redis URL                                   |
 | REDIS_HOST        | Redis host                                  |
 | REDIS_PORT        | Redis port                                  |

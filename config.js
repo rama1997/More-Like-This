@@ -17,7 +17,7 @@ const REDIS_DB = process.env.REDIS_DB || null;
 
 // Gemini Configs
 const GEMINI_MODEL = "gemini-2.0-flash";
-const GEMINI_REC_LIMIT = process.env.GEMINI_MAX_RESULT || 30;
+const GEMINI_REC_LIMIT = process.env.GEMINI_MAX_RESULT || 20;
 
 async function getGeminiSystemInstructions(searchType) {
 	const mediaType = searchType === "movie" ? "movie" : "tv show";
