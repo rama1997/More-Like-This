@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-const { catalogHandler, streamHandler, metaHandler } = require("./src/addon");
+const { streamHandler } = require("./src/stream");
+const { metaHandler } = require("./src/metadata");
+const { catalogHandler } = require("./src/catalog");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
