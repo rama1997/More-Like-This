@@ -78,9 +78,9 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 
 	let imdbId = null;
 
-	if (rawId.startsWith("tt")) {
+	if (rawId?.startsWith("tt")) {
 		imdbId = rawId.split(":")[0];
-	} else if (rawId.startsWith("kitsu")) {
+	} else if (rawId?.startsWith("kitsu")) {
 		const [, id] = rawId.split(":");
 		const kitsuId = `kitsu:${id}`;
 
