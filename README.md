@@ -25,7 +25,7 @@
 </div>
 <br></br>
 
-<h1>What is More Like This?</h1>
+# ✨ What is More Like This?
 
 **More Like This** is a Stremio addon that fetches similar movie and TV show recommendations from multiple sources, all in one place.
 
@@ -59,7 +59,7 @@
 - Supports **RPDB** posters
 - Multi Language Support
 
-# Installation
+# 🚀 Installation
 
 Install the addon directly from:  
 ➡️ [https://bbab4a35b833-more-like-this.baby-beamup.club/configure](https://bbab4a35b833-more-like-this.baby-beamup.club/configure)
@@ -256,7 +256,13 @@ This addon is still a work in progress. While it works well in many scenarios, s
 - New releases, unreleased titles, and obscure international content may yield strange or no results.
 - Works best with default Stremio catalogs. Not compatible with other Stremio addons that generate custom catalogs and IDs.
 
-# Security
+# 🔓 Security
 
 - User Data Encryption: AES-256 GCM encryption + PBKDF2
 - API Keys: API keys are never stored
+
+## ❤️ Support the Project
+
+If you find this project useful and would like to support its development, you can make a small donation here:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/raymadev)
