@@ -9,7 +9,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 		searchId = searchId.split(":").slice(0, 2).join(":");
 	}
 
-	const streamOrder = userConfig.streamOrder;
+	const streamOrder = userConfig.streamOrder || [];
 	const enabledStreamButtons = userConfig.enabledStreamButtons;
 
 	let stream = [];
@@ -37,7 +37,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 		} else if (button === "app" && enabledStreamButtons.app) {
 			const appSearchButton = {
 				name: "More Like This",
-				description: `Search recommendations in Stremio App`,
+				description: `Search on App`,
 				externalUrl: `stremio:///search?search=${searchId}`,
 			};
 
@@ -45,7 +45,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 		} else if (button === "web" && enabledStreamButtons.web) {
 			const webSearchButton = {
 				name: "More Like This",
-				description: `Search recommendations in Stremio Web`,
+				description: `Search on Web`,
 				externalUrl: `https://web.stremio.com/#/search?search=${searchId}`,
 			};
 
@@ -53,7 +53,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 		} else if (button === "recs" && enabledStreamButtons.recs) {
 			const recsButton = {
 				name: "More Like This",
-				description: `Get similar recommendations`,
+				description: `Show recommendations`,
 				externalUrl: (origin?.includes("web.stremio.com") ? "https://web.stremio.com/#" : "stremio://") + `/detail/${type}/mlt-rec-${searchId}`,
 			};
 
