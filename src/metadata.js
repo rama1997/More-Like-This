@@ -14,6 +14,10 @@ async function saveCache(imdbId, metaSource, language, data) {
 }
 
 async function generateMeta(imdbId, type, metadataSource) {
+	if (!imdbId) {
+		return null;
+	}
+
 	const source = metadataSource.source;
 	const language = metadataSource.language || "en";
 
@@ -94,6 +98,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 	} else if (request === "rec") {
 		// Get meta for "searched" media to provide proper UI meta
 		const meta = await generateMeta(imdbId, type, metadataSource);
+		if (!meta) return { meta: [] };
 
 		let recsAsVideos = [];
 
