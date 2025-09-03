@@ -2,20 +2,30 @@
   <img src="https://i.imgur.com/DHKJ7dT.png" alt="More Like This Logo" width="150" />
 </p>
 
-# More Like This
+<h1 align="center">More Like This</h1>
 
-![Status](https://img.shields.io/badge/status-active-brightgreen)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/rama1997/More-Like-This)
+<div align="center">
+
+![Status](https://img.shields.io/badge/status-active-brightgreen?logo=github)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/rama1997/More-Like-This?logo=github)
+![GitHub Repo stars](https://img.shields.io/github/stars/rama1997/More-Like-This?style=flat&logo=github)
+![Docker Pulls](https://img.shields.io/docker/pulls/raymadev/more-like-this-stremio-addon?logo=docker)
 ![License](https://img.shields.io/github/license/rama1997/More-Like-This)
+
+</div>
 
 **More Like This** is a Stremio addon that fetches similar movie and TV show recommendations from multiple sources, all in one place.
 
 <p align="center">
-  <img src="https://i.imgur.com/X2B8Yc8.jpeg" alt="example1" width="700" />
+  <img src="https://i.imgur.com/BW9xWHU.jpeg" alt="example1" width="700" />
 </p>
 
 <p align="center">
   <img src="https://i.imgur.com/KBBGfvi.jpeg" alt="example2" width="700" />
+</p>
+
+<p align="center">
+  <img src="https://i.imgur.com/ELGUm9v.png" alt="example2" width="700" />
 </p>
 
 # Features
@@ -30,6 +40,8 @@
 - Find recommendations by searching for:
   - **IMDb ID**
   - **Kitsu ID**
+  - **TMDB ID**
+  - **Trakt ID**
   - **Movie/TV Show Title**
 - Supports **RPDB** posters
 - Multi Language Support
@@ -138,6 +150,11 @@ npm start
 
 # Configuration
 
+- **Include TMDB Collections in Recommendation**:  
+  TMDB groups related movies (like sequels and film series) into 'collections.' These movies are not always included in TMDB’s default recommendations.
+  Enable this setting to add collection movies to the start of the TMDB recommendation list.
+  Tip: This is useful if you want all directly related movies shown, but it may clutter the catalog for films with many sequels or large franchises."
+
 - **Combine Into One Catalog**:  
   By default, each recommendation source appears as its own catalog.
   Enable this option to merge all recommendations into a single catalog. Combined catalogs will display the most frequent recommendations first.
@@ -145,6 +162,10 @@ npm start
 
 - **Catalog Order**:  
   Drag and drop to reorder how catalogs are displayed.
+
+- **Enable Manual Title Searching**:  
+  Enable this option to search by movie/show titles on top of IMDb IDs.
+  (Note: Title-based searching is less accurate than using exact IDs.)
 
 - **Metadata Source**:  
   By default, the addon uses Cinemeta (Stremio’s main addon) for movie and show metadata.
@@ -154,22 +175,27 @@ npm start
 - **Language**:  
   Select the language used for posters, metadata, and search queries. Only available when using TMDB as the metadata source.
 
-- **Stream Button Platform**:  
-  This addon adds two stream buttons for each movie/show, one for searching recommendations in the Stremio app and one for the Stremio Web App. Choose which button you'd like to display.
+- **Keep English Poster**:  
+  Preserve the original English poster artwork even when metadata is set to a non-English language.
 
-- **Include TMDB Collections in Recommendation**:  
-  TMDB groups related movies (like sequels and film series) into 'collections.' These movies are not always included in TMDB’s default recommendations.
-  Enable this setting to add collection movies to the start of the TMDB recommendation list.
-  Tip: This is useful if you want all directly related movies shown, but it may clutter the catalog for films with many sequels or large franchises."
+- **Stream Button**:  
+  Drag and drop to reorder stream buttons, or disable specific ones from appearing.
 
-- **Title-Based Searching**:  
-  Enable this option to search by movie/show titles on top of IMDb IDs.
-  (Note: Title-based searching is less accurate than using exact IDs.)
+  Available buttons:
+
+  - Go to Detail Page – Opens the item’s detail page in Stremio.
+  - Search on App – Search for recommendations inside the Stremio app.
+  - Search on Web – Search for recommendations inside the Stremio web.
+  - Show recommendations – Generates and displays recommendations as streams in Stremio
 
 # Usage
 
-For any movie or TV show, click the stream button provided by the addon. It will automatically search in Stremio using the item's ID.
-You can also manually search an ID via Stremio’s search bar yourself.
+For any movie or TV show, use the stream buttons provided by the addon to quickly access recommendations.
+
+## Getting Recs From Search Bar
+
+Click the **Search in App** or **Search in Web** stream button to automatically search Stremio using the item’s ID.
+You can also enter an ID manually in Stremio’s search bar.
 
 If title-based search is enabled, you can also search by entering the title. For the best results, use the exact title and include:
 
@@ -182,7 +208,23 @@ Examples:
 - `Inception y:2010 t:movie`
 - `Breaking Bad y:2008 t:series`
 
-After searching, recommendations will appear in the addon’s catalogs.
+You can also search using non IMDB ids from various sources.
+
+Examples:
+
+- `tmdb:1726`
+- `kitsu:12`
+
+## Getting Recs as Streams
+
+Click the **Show Recommendations** stream button to display recommendations directly as streams on the current page in Stremio.
+A combined catalog of all enabled sources will be shown.
+
+Limitations:
+
+- Stremio’s UI always reflects the original movie/series info and does not update per recommendation. As a workaround, recommendation details are added to the Summary section.
+- For TV series, you cannot directly select episodes from the recommendation list. Instead, the addon provides an optional stream button that takes you to the series’ detail page.
+- This method will generally be much slower because metadata must be generated for every recommendation. Performance decreases as more sources are enabled.
 
 ## Tips
 
@@ -198,10 +240,8 @@ This addon is still a work in progress. While it works well in many scenarios, s
 
 - Stream button not supported on Smart TVs or Stremio 5 Beta. Manually searching should still yield recommendations catalogs.
 - TMDB metadata may not show up properly with the current stable Android app, but does work with the new beta version on Android
-- Kitsu ID searches may be inaccurate, especially for niche or very specific titles.
 - New releases, unreleased titles, and obscure international content may yield strange or no results.
-- Not compatible with other Stremio addons that generate custom catalogs and IDs.
-- As of April 2025, TasteDive’s API may return poor results due to API changes. It now returns recommendations that includes another unrelated media titles.
+- Works best with default Stremio catalogs. Not compatible with other Stremio addons that generate custom catalogs and IDs.
 
 # Security
 
