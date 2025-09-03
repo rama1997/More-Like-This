@@ -293,7 +293,7 @@ async function getCombinedRecs(searchTitle, searchYear, type, searchImdb, apiKey
 
 	// Get recs from all sources. All sources have a timeout to prevent the whole catalog from not showing if
 	// prettier-ignore
-	const timeoutMs = 10000;
+	const timeoutMs = 5000;
 	const [tmdbRecs, traktRecs, simklRecs, geminiRecs, tastediveRecs, watchmodeRecs] = await Promise.all([
 		withTimeout(getTmdbRecs(searchImdb, type, apiKeys.tmdb.key, apiKeys.tmdb.valid, includeTmdbCollection), timeoutMs, "TMDB recs timed out in combined Recs").catch(() => {
 			return [];
