@@ -23,6 +23,9 @@
   </a>
 
 </div>
+<br></br>
+
+<h1>What is More Like This?</h1>
 
 **More Like This** is a Stremio addon that fetches similar movie and TV show recommendations from multiple sources, all in one place.
 
