@@ -6,11 +6,21 @@
 
 <div align="center">
 
-![Status](https://img.shields.io/badge/status-active-brightgreen?logo=github)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/rama1997/More-Like-This?logo=github)
-![GitHub Repo stars](https://img.shields.io/github/stars/rama1997/More-Like-This?style=flat&logo=github)
-![Docker Pulls](https://img.shields.io/docker/pulls/raymadev/more-like-this-stremio-addon?logo=docker)
-![License](https://img.shields.io/github/license/rama1997/More-Like-This)
+  <a href="https://github.com/rama1997/More-Like-This">
+      <img src="https://img.shields.io/badge/status-active-brightgreen?logo=github" alt="Status">
+  </a>
+  <a href="https://github.com/rama1997/More-Like-This/releases">
+      <img src="https://img.shields.io/github/v/tag/rama1997/More-Like-This?logo=github" alt="Latest Release">
+  </a>
+  <a href="https://github.com/rama1997/More-Like-This/stargazers">
+      <img src="https://img.shields.io/github/stars/rama1997/More-Like-This?style=flat&logo=github" alt="GitHub Stars">
+  </a>
+  <a href="https://hub.docker.com/r/raymadev/more-like-this-stremio-addon">
+      <img src="https://img.shields.io/docker/pulls/raymadev/more-like-this-stremio-addon?logo=docker" alt="Docker Pulls">
+  </a>
+  <a href="https://github.com/rama1997/More-Like-This/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/rama1997/More-Like-This" alt="License">
+  </a>
 
 </div>
 
