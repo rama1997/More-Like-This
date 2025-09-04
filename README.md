@@ -15,9 +15,6 @@
   <a href="https://github.com/rama1997/More-Like-This/stargazers">
       <img src="https://img.shields.io/github/stars/rama1997/More-Like-This?style=flat&logo=github" alt="GitHub Stars">
   </a>
-  <a href="https://hub.docker.com/r/raymadev/more-like-this-stremio-addon">
-      <img src="https://img.shields.io/docker/pulls/raymadev/more-like-this-stremio-addon?logo=docker" alt="Docker Pulls">
-  </a>
   <a href="https://github.com/rama1997/More-Like-This/blob/main/LICENSE">
       <img src="https://img.shields.io/github/license/rama1997/More-Like-This" alt="License">
   </a>
