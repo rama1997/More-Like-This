@@ -2,6 +2,7 @@ const cache = require("../utils/cache");
 const { withLock } = require("../utils/lock");
 const idConverter = require("../utils/idConverter");
 const { catalogHandler } = require("./catalog");
+const { withTimeout, collectInChunksUntilTimeout } = require("../utils/timeout");
 
 async function checkCache(imdbId, metaSource, language) {
 	const cacheKey = await cache.createMetaCacheKey(imdbId, metaSource, language);
@@ -114,10 +115,10 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 				recs = [...recs].reverse();
 			}
 
-			recsAsVideos = await Promise.all(
+			recsAsVideos = await collectInChunksUntilTimeout(
 				recs.map(async (rec, i) => {
 					const recId = rec.id?.split("-").at(-1);
-					const recMeta = await generateMeta(recId, type, metadataSource);
+					const recMeta = await withTimeout(generateMeta(recId, type, metadataSource), 5000).catch(() => null);
 
 					if (!recMeta) return null;
 
@@ -126,16 +127,17 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 					recMeta.episode = i + 1;
 					recMeta.thumbnail = recMeta.background;
 					recMeta.overview =
-						`RUNTIME: ${recMeta.runtime || ""} <br> 
-						YEAR: ${recMeta.year || ""} <br>
-						IMDB RATING: ${recMeta.imdbRating || ""} <br>
-						GENRES: ${recMeta.genres || ""} <br>
-						DIRECTOR: ${recMeta.director || ""} <br>
-						CAST: ${recMeta.cast || ""} <br> <br>
-						` + recMeta.description;
+						`RUNTIME: ${recMeta.runtime || ""} <br>
+			 			YEAR: ${recMeta.year || ""} <br>
+			 			IMDB RATING: ${recMeta.imdbRating || ""} <br>
+			 			GENRES: ${recMeta.genres || ""} <br>
+			 			DIRECTOR: ${recMeta.director || ""} <br>
+			 			CAST: ${recMeta.cast || ""} <br><br>` + recMeta.description;
 
 					return recMeta;
 				}),
+				10, // chuck size
+				10000, // global cutoff
 			);
 
 			recsAsVideos = recsAsVideos.filter((row) => row != null);
