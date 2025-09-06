@@ -90,7 +90,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.7.2",
+		version: "0.7.3",
 		resources: [
 			"catalog",
 			"stream",
