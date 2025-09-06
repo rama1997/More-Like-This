@@ -252,6 +252,32 @@ async function fetchPoster(tmdbId, mediaType, apiKey, language) {
 	}
 }
 
+async function fetchLogo(tmdbId, mediaType, apiKey, language) {
+	if (!tmdbId || !mediaType) {
+		return null;
+	}
+
+	try {
+		const type = await getAPIEndpoint(mediaType);
+		let url = `${TMDB_API_BASE_URL}/${type}/${tmdbId}/images?language=${language}&api_key=${apiKey}`;
+
+		const response = await withTimeout(fetch(url), 5000, `TMDB Logo fetch timed out for ${tmdbId}`);
+		const json = await response.json();
+
+		const logos = json?.logos;
+
+		if (logos && logos.length > 0) {
+			const firstLogo = logos[0].file_path;
+			return firstLogo ? `https://image.tmdb.org/t/p/original${firstLogo}` : null;
+		}
+
+		return null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
 async function fetchBaseMetadata(tmdbId, mediaType, apiKey, language) {
 	if (!tmdbId || !mediaType) {
 		return null;
@@ -295,6 +321,9 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	if (currentYear < year || year === 0) {
 		return null;
 	}
+
+	// Get logo
+	const logo_url = await fetchLogo(tmdbId, mediaType, apiKey, language);
 
 	// Get cast and director
 	const { cast, director } = await fetchCastDirectors(tmdbId, mediaType, apiKey, language);
@@ -359,6 +388,7 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	meta.description = description;
 	meta.poster = meta.poster_path ? `https://image.tmdb.org/t/p/original${meta.poster_path}` : null;
 	meta.backdrop = backdrop_path ? `https://image.tmdb.org/t/p/original${backdrop_path}` : null;
+	meta.logo = logo_url ? logo_url : null;
 	meta.title = meta.title ? meta.title : meta.name;
 	meta.type = meta.release_date ? "movie" : "series";
 	meta.year = year;

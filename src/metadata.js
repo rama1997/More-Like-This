@@ -54,6 +54,7 @@ async function generateMeta(imdbId, type, metadataSource) {
 				description: rawMeta.description,
 				poster: rawMeta.poster,
 				background: rawMeta.backdrop,
+				logo: rawMeta.logo,
 				type: mediaType,
 				year: rawMeta.year,
 				released: released,
