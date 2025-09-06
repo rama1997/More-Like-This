@@ -118,8 +118,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 			recsAsVideos = await collectInChunksUntilTimeout(
 				recs.map(async (rec, i) => {
 					const recId = rec.id?.split("-").at(-1);
-					const recMeta = await withTimeout(generateMeta(recId, type, metadataSource), 5000).catch(() => null);
-
+					const recMeta = await generateMeta(recId, type, metadataSource);
 					if (!recMeta) return null;
 
 					recMeta.id = recId;
@@ -136,8 +135,8 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 
 					return recMeta;
 				}),
-				10, // chuck size
-				10000, // global cutoff
+				20, // chuck size
+				7000, // global cutoff
 			);
 
 			recsAsVideos = recsAsVideos.filter((row) => row != null);

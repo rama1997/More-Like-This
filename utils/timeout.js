@@ -31,18 +31,29 @@ async function collectInChunksUntilTimeout(tasks, chunkSize, timeoutMs) {
 	let index = 0;
 	const start = Date.now();
 
-	while (index < tasks.length && Date.now() - start < timeoutMs) {
+	while (index < tasks.length) {
+		const elapsed = Date.now() - start;
+		const remaining = timeoutMs - elapsed;
+		if (remaining <= 0) break;
+
 		// slice out the next chunk
 		const chunk = tasks.slice(index, index + chunkSize);
 
-		// run this chunk in parallel
-		const settled = await Promise.allSettled(chunk);
-
-		// store results
-		settled.forEach((res, i) => {
-			const realIndex = index + i;
-			results[realIndex] = res.status === "fulfilled" ? res.value : null;
-		});
+		// run chunk and race against remaining time
+		await Promise.race([
+			Promise.allSettled(
+				chunk.map((task, i) =>
+					task
+						.then((res) => {
+							results[index + i] = res;
+						})
+						.catch(() => {
+							results[index + i] = null;
+						}),
+				),
+			),
+			new Promise((resolve) => setTimeout(resolve, remaining)),
+		]);
 
 		index += chunkSize;
 	}
