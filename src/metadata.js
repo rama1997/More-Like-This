@@ -125,7 +125,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 					recMeta.id = recId;
 					recMeta.season = 1;
 					recMeta.episode = i + 1;
-					recMeta.thumbnail = recMeta.background;
+					recMeta.thumbnail = recMeta.background || recMeta.poster;
 					recMeta.overview =
 						`RUNTIME: ${recMeta.runtime || ""} <br>
 			 			YEAR: ${recMeta.year || ""} <br>
