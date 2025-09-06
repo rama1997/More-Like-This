@@ -311,8 +311,8 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 
 	// Get description in main language. If none, then use eng description as backup
 	let description = meta.overview || meta.description;
-	if (!description) {
-		const engMeta = await fetchBaseMetadata(imdbId, tmdbId, mediaType, apiKey, "en");
+	if (!description && language !== "en") {
+		const engMeta = await fetchFullMetadata(imdbId, tmdbId, mediaType, apiKey, "en");
 		description = engMeta?.overview || engMeta?.description;
 	}
 
