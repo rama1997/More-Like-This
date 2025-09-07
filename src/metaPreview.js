@@ -43,7 +43,12 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 			tmdbId = await idConverter.imdbToTmdb(imdbId, type, apiKeys.tmdb.key);
 		}
 
-		const tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
+		let tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
+
+		// If poster not available in desired language, default to english posters
+		if (!tmdbPoster) {
+			tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, "en");
+		}
 
 		return tmdbPoster
 			? {
