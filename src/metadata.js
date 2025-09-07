@@ -96,11 +96,11 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 
 	if (request === "meta") {
 		const meta = await generateMeta(imdbId, type, metadataSource);
-		return { meta: meta };
+		return { meta: meta ? meta : {} };
 	} else if (request === "rec") {
 		// Get meta for "searched" media to provide proper UI meta
 		const meta = await generateMeta(imdbId, type, metadataSource);
-		if (!meta) return { meta: [] };
+		if (!meta) return { meta: {} };
 
 		let recsAsVideos = [];
 

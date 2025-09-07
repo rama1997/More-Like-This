@@ -2,6 +2,25 @@ const fetch = require("node-fetch");
 const { withTimeout } = require("../utils/timeout");
 const logger = require("../utils/logger");
 
+async function fetchPoster(imdbId, type) {
+	if (!imdbId) {
+		return null;
+	}
+
+	try {
+		const mediaType = type === "movie" ? "movie" : "series";
+		const url = `https://v3-cinemeta.strem.io/meta/${mediaType}/${imdbId}.json`;
+
+		const response = await withTimeout(fetch(url), 5000, `Cinemeta poster fetch timed out: ${imdbId}`);
+		const json = await response.json();
+
+		return json?.meta?.poster || null;
+	} catch (error) {
+		logger.error(error.message, null);
+		return null;
+	}
+}
+
 async function fetchBaseMetadata(imdbId, type) {
 	if (!imdbId) {
 		return null;
@@ -66,5 +85,6 @@ async function fetchFullMetadata(imdbId, type) {
 }
 
 module.exports = {
+	fetchPoster,
 	fetchFullMetadata,
 };

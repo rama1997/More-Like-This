@@ -1,5 +1,6 @@
 const tmdb = require("../services/tmdb");
 const rpdb = require("../services/rpdb");
+const cinemeta = require("../services/cinemeta");
 const idConverter = require("../utils/idConverter");
 
 async function createMetaPreview(recs, type, apiKeys, metadataSource) {
@@ -24,6 +25,7 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 			: {
 					id: imdbId,
 					type: type,
+					poster: await cinemeta.fetchPoster(imdbId, type),
 			  };
 	} else if (metadataSource.source === "tmdb") {
 		// Return with RPDB poster
