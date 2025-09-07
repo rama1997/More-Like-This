@@ -116,6 +116,8 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 				recs = [...recs].reverse();
 			}
 
+			recs = recs.filter((row) => row.id !== imdbId); // Remove base movie/show from the rec list if it exist
+
 			recsAsVideos = await collectInChunksUntilTimeout(
 				recs.map(async (rec, i) => {
 					const recId = rec.id?.split("-").at(-1);
@@ -140,7 +142,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 				7000, // global cutoff
 			);
 
-			recsAsVideos = recsAsVideos.filter((row) => row != null);
+			recsAsVideos = recsAsVideos.filter((row) => row !== null);
 		}
 
 		const recObject = {
