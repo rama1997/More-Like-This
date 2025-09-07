@@ -105,7 +105,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 		let recsAsVideos = [];
 
 		// Get recs for "searched" media via combined recs catalog so that we can also cache catalogs/recs
-		const catalog = await catalogHandler(type, `mlt-combined`, `search=${imdbId}`, userConfig, metadataSource);
+		const catalog = await catalogHandler(type, `mlt-combined-${type}-rec`, `search=${imdbId}`, userConfig, metadataSource);
 		let recs = catalog?.metas;
 
 		if (recs) {
