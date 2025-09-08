@@ -35,7 +35,7 @@
 </p>
 
 <p align="center">
-  <img src="https://i.imgur.com/ELGUm9v.png" alt="example2" width="700" />
+  <img src="https://i.imgur.com/nuXpDyO.png" alt="example2" width="700" />
 </p>
 
 # Features
