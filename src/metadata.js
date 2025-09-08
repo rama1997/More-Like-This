@@ -113,6 +113,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 				// Reverse to show correct order.
 				// Non in place reversal so catalog is not affected by Stremio cache.
 				// Only needed for movies since series will automatically show correct rec order via episodes.
+				// Movies on mobile seems to respect the order, but not on Mac app
 				recs = [...recs].reverse();
 			}
 
@@ -136,6 +137,8 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 			 			DIRECTOR: ${recMeta.director || ""} <br>
 			 			CAST: ${recMeta.cast || ""} <br><br>` + recMeta.description;
 
+					delete recMeta.title; // deletes "duplicate" title attribute so the rec list can work on mobile
+
 					return recMeta;
 				}),
 				20, // chuck size
@@ -151,6 +154,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 		};
 
 		recObject.behaviorHints = {}; // Reset behavior hints to properly show recs as a video list
+		delete recObject.title; // deletes "duplicate" title attribute so the rec list can work on mobile
 
 		if (type === "series") {
 			recObject.id = "mlt-meta-" + imdbId;
