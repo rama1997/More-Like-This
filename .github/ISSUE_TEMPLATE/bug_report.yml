@@ -1,0 +1,60 @@
+name: "Bug Report"
+description: "Report something that isn’t working as expected"
+labels:
+  - bug
+title: "bug: "
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the problem. Include any relevant configuration details for this addon.
+      placeholder: "Example: When I open the addon on Stremio 5 Beta, the posters don’t load."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce the problem? Please list the steps.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+      placeholder: "Example: Posters should load in the addon view."
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include error messages if any.
+      placeholder: "Example: Error '500 Internal Server Error' appears."
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Information about your setup (be as specific as possible).
+      placeholder: |
+        - Device/OS: Google Pixel 9 / Windows 11 / macOS 14
+        - Browser: Chrome 140
+        - Addon version: v0.2.3
+        - Stremio version: Stremio 5 Beta
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Logs
+      description: If applicable, add screenshots, logs, or configuration snippets that show the problem.
+      placeholder: "Drag and drop images or paste log output here."

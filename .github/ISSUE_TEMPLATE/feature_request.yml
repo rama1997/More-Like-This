@@ -1,0 +1,22 @@
+name: "Feature Request"
+description: "Suggest an idea for this project"
+labels:
+  - feature request
+title: "feature request: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Use Case
+      description: What problem are you trying to solve, or what use case do you have in mind? Why is this feature important?
+      placeholder: "Example: When I try to do X, it's difficult because..."
+    validations:
+      required: true
+  - type: textarea
+    id: desired
+    attributes:
+      label: Desired Outcome
+      description: What would the ideal solution look like? Be specific about what you’d like the feature to do.
+      placeholder: "Example: Add a setting that lets me..."
+    validations:
+      required: true
