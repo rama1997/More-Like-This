@@ -32,7 +32,11 @@ async function kitsuToImdbTitleYearType(kitsuId, metadataSource) {
 }
 
 async function imdbToMeta(imdbId, type, metadataSource) {
-	const source = metadataSource.source;
+	if (!imdbId || !metadataSource) {
+		return null;
+	}
+
+	const source = metadataSource.source || "cinemeta";
 	const validTMDBKey = metadataSource.tmdbApiKey.valid;
 
 	try {

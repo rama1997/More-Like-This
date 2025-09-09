@@ -15,12 +15,12 @@ async function saveCache(imdbId, metaSource, language, data) {
 }
 
 async function generateMeta(imdbId, type, metadataSource) {
-	if (!imdbId) {
+	if (!imdbId || !metadataSource) {
 		return null;
 	}
 
-	const source = metadataSource.source;
-	const language = metadataSource.language || "en";
+	const source = metadataSource?.source || "cinemeta";
+	const language = metadataSource?.language || "en";
 
 	// Check cache for meta with lock for each id to prevent cache stampede
 	return await withLock(imdbId + source + language, async () => {
@@ -70,6 +70,8 @@ async function generateMeta(imdbId, type, metadataSource) {
 			}
 		} else if (source === "cinemeta") {
 			meta = rawMeta;
+		} else {
+			return meta;
 		}
 
 		await saveCache(imdbId, source, language, meta);
