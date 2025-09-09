@@ -374,11 +374,15 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	// Get trailer
 	const trailers = await fetchTrailer(tmdbId, mediaType, apiKey, language);
 	let trailer = {};
-	if (trailers) {
+	if (trailers && trailers.length > 0) {
 		trailer.source = trailers[0].key;
 		trailer.type = "Trailer";
 		trailer.url = `https://www.youtube.com/watch?v=${trailers[0].key}`;
 		trailer.ytId = trailers[0].key;
+	} else {
+		trailer.source = "";
+		trailer.type = "Trailer";
+		trailer.ytId = "";
 	}
 
 	let backdrop_path = meta.backdrop_path || meta.background;
