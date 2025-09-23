@@ -164,7 +164,6 @@ async function startServer() {
 			const userConfig = await loadUserConfig(req.params.userConfig);
 			manifest = await generateManifest(userConfig.apiKeys, userConfig.combineCatalogs, userConfig.catalogOrder);
 		} catch (err) {
-			console.error("Loading manifest from user config failed", err);
 			manifest = await generateManifest({}, false, []); // Default Manifest
 		}
 		res.json(manifest);
@@ -268,7 +267,8 @@ async function startServer() {
 
 			let host = req.headers.host;
 			if (req.body.forCopy === "true") {
-				res.redirect(`http://${host}/${userConfig}/manifest.json`);
+				const manifestUrl = `http://${host}/${userConfig}/manifest.json`;
+				return res.json({ manifestUrl });
 			} else {
 				if (host === "bbab4a35b833-more-like-this") {
 					host = host + ".baby-beamup.club";

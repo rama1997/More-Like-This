@@ -8,8 +8,40 @@ document.addEventListener("DOMContentLoaded", () => {
 		forCopyInput.value = "false";
 	});
 
-	copyManifestBtn.addEventListener("click", function () {
+	copyManifestBtn.addEventListener("click", async function (e) {
+		e.preventDefault(); // stop form submission
 		forCopyInput.value = "true";
+
+		const form = document.querySelector("form");
+		const formData = new FormData(form);
+
+		// Convert to plain object
+		const plainData = {};
+		formData.forEach((value, key) => {
+			plainData[key] = value;
+		});
+
+		try {
+			const response = await fetch("/saveConfig", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(plainData),
+			});
+
+			if (!response.ok) throw new Error("Failed to save config");
+
+			const data = await response.json();
+			if (data.manifestUrl) {
+				// Copy to clipboard
+				await navigator.clipboard.writeText(data.manifestUrl);
+
+				// Open manifest page in new tab
+				window.open(data.manifestUrl, "_blank");
+			}
+		} catch (err) {
+			console.error(err);
+			alert("Error copying manifest URL. Please try again.");
+		}
 	});
 });
 
