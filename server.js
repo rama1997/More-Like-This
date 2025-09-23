@@ -266,13 +266,13 @@ async function startServer() {
 			}
 
 			let host = req.headers.host;
+			if (host === "bbab4a35b833-more-like-this") {
+				host = host + ".baby-beamup.club";
+			}
 			if (req.body.forCopy === "true") {
 				const manifestUrl = `http://${host}/${userConfig}/manifest.json`;
 				return res.json({ manifestUrl });
 			} else {
-				if (host === "bbab4a35b833-more-like-this") {
-					host = host + ".baby-beamup.club";
-				}
 				res.redirect(`stremio://${host}/${userConfig}/manifest.json`);
 			}
 		} catch (error) {
