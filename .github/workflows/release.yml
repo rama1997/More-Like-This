@@ -30,5 +30,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            your-dockerhub-username/your-repo:latest
-            your-dockerhub-username/your-repo:${{ github.ref_name }}
+            raymadev/more-like-this-stremio-addon:latest
+            raymadev/more-like-this-stremio-addon:${{ github.ref_name }}
