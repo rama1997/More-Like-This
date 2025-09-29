@@ -165,4 +165,5 @@ module.exports = {
 	fetchRecommendations,
 	fetchMetadata,
 	idToImdbTitleYearType,
+	getAPIEndpoint,
 };

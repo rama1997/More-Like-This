@@ -148,17 +148,13 @@ async function traktToImdbTitleYearType(traktId, type, traktApiKey, metadataSour
 }
 
 async function titleToImdb(title, year, type, metadataSource) {
-	if (!title) {
-		return null;
-	}
+	if (!title) return null;
 
-	try {
-		// Default method is Cinemeta
+	const searchCinemeta = async () => {
 		const mediaType = type === "movie" ? "movie" : "series";
 		const input = { name: title, year: year, type: mediaType };
-
-		const cinemetaResult = await new Promise((resolve, reject) => {
-			nameToImdb(input, (err, res, inf) => {
+		const cinemetaResult = await new Promise((resolve) => {
+			nameToImdb(input, (err, res) => {
 				if (err) {
 					logger.error("Unable to find title in nameToImdb package", { input });
 					return resolve(null);
@@ -166,47 +162,68 @@ async function titleToImdb(title, year, type, metadataSource) {
 				resolve(res);
 			});
 		});
+		return cinemetaResult || null;
+	};
 
-		if (cinemetaResult) return cinemetaResult;
+	const searchTmdb = async () => {
+		if (!metadataSource.tmdbApiKey.valid) return null;
 
-		// Backup method using TMDB if API key provided
-		const validTMDBKey = metadataSource.tmdbApiKey.valid;
-		if (validTMDBKey) {
-			const tmdbApiKey = metadataSource.tmdbApiKey.key;
-			const language = metadataSource.language;
+		const tmdbApiKey = metadataSource.tmdbApiKey.key;
+		const language = metadataSource.language;
 
-			// Search TMDB's search results for a title + year and fetch the top result
-			const searchResults = await tmdb.fetchSearchResult(title, year, type, tmdbApiKey, language);
-			if (searchResults && searchResults.length !== 0) {
-				const foundMedia = searchResults[0];
+		// Search TMDB's search results and fetch the top result
+		const searchResults = await tmdb.fetchSearchResult(title, year, type, tmdbApiKey, language);
+		if (searchResults && searchResults.length !== 0) {
+			const foundMedia = searchResults[0];
 
-				// If the IMDB Id's media does not match catalog type, skip the catalog
-				const mediaType = foundMedia.release_date ? "movie" : "series";
-				if (mediaType === type) {
-					const tmdbResult = await tmdbToImdb(foundMedia.id, type, tmdbApiKey);
-
-					if (tmdbResult) return tmdbResult;
-				}
+			// If the IMDB Id's media does not match catalog type, skip the catalog
+			const mediaType = foundMedia.release_date ? "movie" : "series";
+			if (mediaType === type) {
+				const tmdbResult = await tmdbToImdb(foundMedia.id, type, tmdbApiKey);
+				return tmdbResult || null;
 			}
 		}
+		return null;
+	};
 
-		// Backup method using Trakt if API key provided
-		const validTraktKey = metadataSource.traktApiKey.valid;
-		if (validTraktKey) {
-			const traktApiKey = metadataSource.traktApiKey.key;
+	const searchTrakt = async () => {
+		if (!metadataSource.traktApiKey.valid) return null;
 
-			const searchResults = await trakt.fetchSearchResult(title, type, traktApiKey);
-			if (searchResults && searchResults.length !== 0) {
-				const foundMedia = searchResults[0][mediaTypeForTrakt];
-				const traktResult = foundMedia?.ids?.imdb;
-				if (traktResult) return traktResult;
-			}
+		const traktApiKey = metadataSource.traktApiKey.key;
+
+		// Search Trakt's search results and fetch the top result
+		const searchResults = await trakt.fetchSearchResult(title, type, traktApiKey);
+		if (searchResults && searchResults.length !== 0) {
+			const mediaType = await trakt.getAPIEndpoint(type);
+
+			const foundMedia = searchResults[0][mediaType];
+			return foundMedia?.ids?.imdb || null;
 		}
+		return null;
+	};
 
-		return null;
-	} catch (error) {
-		return null;
+	// Determine order based on metadata source preference
+	let order = [];
+	if (metadataSource.source === "tmdb") {
+		order = [searchTmdb, searchCinemeta, searchTrakt];
+	} else if (metadataSource.source === "cinemeta") {
+		order = [searchCinemeta, searchTmdb, searchTrakt];
+	} else {
+		// default order
+		order = [searchCinemeta, searchTmdb, searchTrakt];
 	}
+
+	// Try each source in order until one returns a valid imdbId
+	for (const source of order) {
+		try {
+			const result = await source();
+			if (result) return result;
+		} catch (err) {
+			// Continue trying next
+		}
+	}
+
+	return null;
 }
 
 async function watchmodeToImdb(watchmodeId, apiKey) {
