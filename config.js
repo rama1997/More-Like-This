@@ -16,7 +16,7 @@ const REDIS_PORT = process.env.REDIS_PORT || null;
 const REDIS_DB = process.env.REDIS_DB || null;
 
 // Gemini Configs
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.5-flash-lite";
 const GEMINI_REC_LIMIT = process.env.GEMINI_MAX_RESULT || 20;
 
 async function getGeminiSystemInstructions(searchType) {
