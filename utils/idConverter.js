@@ -183,7 +183,8 @@ async function titleToImdb(title, year, type, metadataSource) {
 				// If the IMDB Id's media does not match catalog type, skip the catalog
 				const mediaType = foundMedia.release_date ? "movie" : "series";
 				if (mediaType === type) {
-					const tmdbResult = await idConverter.tmdbToImdb(foundMedia.id, type, tmdbApiKey);
+					const tmdbResult = await tmdbToImdb(foundMedia.id, type, tmdbApiKey);
+
 					if (tmdbResult) return tmdbResult;
 				}
 			}
