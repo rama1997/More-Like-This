@@ -16,17 +16,13 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 
 	// Meta Previews just need id, type, and poster
 	if (metadataSource.source === "cinemeta") {
-		return rpdbPoster
-			? {
-					id: imdbId,
-					type: type,
-					poster: rpdbPoster,
-			  }
-			: {
-					id: imdbId,
-					type: type,
-					poster: await cinemeta.fetchPoster(imdbId, type),
-			  };
+		const poster = rpdbPoster || (await cinemeta.fetchPoster(imdbId, type));
+		return {
+			id: imdbId,
+			type,
+			poster,
+			background: poster,
+		};
 	} else if (metadataSource.source === "tmdb") {
 		// Return with RPDB poster
 		if (rpdbPoster) {
@@ -34,6 +30,7 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 				id: "mlt-meta-" + imdbId,
 				type: type,
 				poster: rpdbPoster,
+				background: rpdbPoster,
 			};
 		}
 
@@ -57,6 +54,7 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 					id: "mlt-meta-" + imdbId,
 					type: type,
 					poster: tmdbPoster,
+					background: tmdbPoster,
 			  }
 			: null;
 	}
