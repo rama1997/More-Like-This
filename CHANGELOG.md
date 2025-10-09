@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.4](https://github.com/rama1997/More-Like-This/compare/v0.8.3...v0.8.4) (2025-10-09)
+
+
+### Bug Fixes
+
+* change release-please version to v3 ([2da9af8](https://github.com/rama1997/More-Like-This/commit/2da9af842181a2324edc1eed117e1d3e14f79718))
+* release workflow triggers now uses gh cli ([63887f5](https://github.com/rama1997/More-Like-This/commit/63887f51f4362681af460d994945cef6f2ad4307))
+
 ## [0.8.3](https://github.com/rama1997/More-Like-This/compare/v0.8.2...v0.8.3) (2025-10-09)
 
 
