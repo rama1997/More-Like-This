@@ -29,6 +29,6 @@ jobs:
           TAG_NAME: ${{ steps.release.outputs.tag_name }}
         run: |
           echo "Triggering Docker workflow for tag $TAG_NAME"
-          gh workflow run "release-docker.yml" \
+          gh workflow run "docker-release.yml" \
             --repo "${GITHUB_REPOSITORY}" \
             -f ref="${TAG_NAME}"
