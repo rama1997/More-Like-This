@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.2](https://github.com/rama1997/More-Like-This/compare/v0.8.1...v0.8.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* auto-run Docker workflow after release-please ([93e97d1](https://github.com/rama1997/More-Like-This/commit/93e97d1ea5b4caf63495c1c962684c6a0d345e53))
+* update peter-evans/repository-dispatch@v4 ([f70c3f8](https://github.com/rama1997/More-Like-This/commit/f70c3f84e5b1b91afecbee6aa5f2f1bdef639e19))
+
 ## [0.8.1](https://github.com/rama1997/More-Like-This/compare/v0.8.0...v0.8.1) (2025-10-09)
 
 
