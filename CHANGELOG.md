@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/rama1997/More-Like-This/compare/v0.8.2...v0.8.3) (2025-10-09)
+
+
+### Bug Fixes
+
+* fix workflow trigger ([a0dccd7](https://github.com/rama1997/More-Like-This/commit/a0dccd7f896962b2f40ea209c951c9a1bccbc5d8))
+
 ## [0.8.2](https://github.com/rama1997/More-Like-This/compare/v0.8.1...v0.8.2) (2025-10-09)
 
 
