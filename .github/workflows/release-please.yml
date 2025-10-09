@@ -6,26 +6,29 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
     steps:
       - name: Release Please
-        uses: google-github-actions/release-please-action@v3
+        id: release
+        uses: google-github-actions/release-please-action@v4
         with:
           release-type: node
           package-name: "more-like-this"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
       - name: Trigger Docker Image Publish
         if: ${{ steps.release.outputs.release_created }}
-        uses: peter-evans/repository-dispatch@v4
-        with:
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          event-type: trigger-docker-release
-          client-payload: '{"ref": "main"}'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+        run: |
+          echo "Triggering Docker workflow for tag $TAG_NAME"
+          gh workflow run "release-docker.yml" \
+            --repo "${GITHUB_REPOSITORY}" \
+            -f ref="${TAG_NAME}"
