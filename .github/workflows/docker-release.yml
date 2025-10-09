@@ -3,7 +3,8 @@ name: Release Docker Image
 on:
   release:
     types: [published]
-  workflow_dispatch:
+  repository_dispatch:
+    types: [trigger-docker-release]
 
 jobs:
   build:

@@ -27,5 +27,5 @@ jobs:
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          workflow: "Release Docker Image"
-          ref: main
+          event-type: trigger-docker-release
+          client-payload: '{"ref": "main"}'
