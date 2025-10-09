@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/rama1997/More-Like-This/compare/v0.8.0...v0.8.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* trigger Docker release on tag push ([f00bc85](https://github.com/rama1997/More-Like-This/commit/f00bc858f4fc342d65ab6f5d9bde156ff4678561))
+
 ## [0.8.0](https://github.com/rama1997/More-Like-This/compare/v0.7.7...v0.8.0) (2025-10-06)
 
 
