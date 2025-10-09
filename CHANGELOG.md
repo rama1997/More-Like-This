@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.5](https://github.com/rama1997/More-Like-This/compare/v0.8.4...v0.8.5) (2025-10-09)
+
+
+### Bug Fixes
+
+* correct yml name for docker release workflow ([2fc99f8](https://github.com/rama1997/More-Like-This/commit/2fc99f88306926aa16c1118ab20ebefc607bfb52))
+
 ## [0.8.4](https://github.com/rama1997/More-Like-This/compare/v0.8.3...v0.8.4) (2025-10-09)
 
 
