@@ -20,3 +20,12 @@ jobs:
           release-type: node
           package-name: "more-like-this"
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger Docker Image Publish
+        if: ${{ steps.release.outputs.release_created }}
+        uses: peter-evans/workflow-dispatch@v2
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          workflow: "Release Docker Image"
+          ref: main
