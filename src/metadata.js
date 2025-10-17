@@ -14,7 +14,7 @@ async function saveCache(imdbId, metaSource, language, data) {
 	await cache.setCache(cacheKey, data);
 }
 
-async function generateMeta(imdbId, type, metadataSource) {
+async function generateFullMeta(imdbId, type, metadataSource) {
 	if (!imdbId || !metadataSource) {
 		return null;
 	}
@@ -31,7 +31,7 @@ async function generateMeta(imdbId, type, metadataSource) {
 		}
 
 		const mediaType = type === "movie" ? "movie" : "series";
-		const rawMeta = await idConverter.imdbToMeta(imdbId, mediaType, metadataSource);
+		const rawMeta = await idConverter.imdbToFullMeta(imdbId, mediaType, metadataSource);
 		if (!rawMeta) return null;
 
 		let meta = {};
@@ -97,11 +97,11 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 	}
 
 	if (request === "meta") {
-		const meta = await generateMeta(imdbId, type, metadataSource);
+		const meta = await generateFullMeta(imdbId, type, metadataSource);
 		return { meta: meta ? meta : {} };
 	} else if (request === "rec") {
 		// Get meta for "searched" media to provide proper UI meta
-		const meta = await generateMeta(imdbId, type, metadataSource);
+		const meta = await generateFullMeta(imdbId, type, metadataSource);
 		if (!meta) return { meta: {} };
 
 		let recsAsVideos = [];
@@ -124,7 +124,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 			recsAsVideos = await collectInChunksUntilTimeout(
 				recs.map(async (rec, i) => {
 					const recId = rec.id?.split("-").at(-1);
-					const recMeta = await generateMeta(recId, type, metadataSource);
+					const recMeta = await generateFullMeta(recId, type, metadataSource);
 					if (!recMeta) return null;
 
 					recMeta.id = recId;
@@ -167,6 +167,5 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 }
 
 module.exports = {
-	generateMeta,
 	metaHandler,
 };

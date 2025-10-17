@@ -31,7 +31,7 @@ async function kitsuToImdbTitleYearType(kitsuId, metadataSource) {
 		: null;
 }
 
-async function imdbToMeta(imdbId, type, metadataSource) {
+async function imdbToFullMeta(imdbId, type, metadataSource) {
 	if (!imdbId || !metadataSource) {
 		return null;
 	}
@@ -66,7 +66,7 @@ async function imdbToTitleYearType(imdbId, searchType, metadataSource) {
 		return null;
 	}
 
-	const media = await imdbToMeta(imdbId, searchType, metadataSource);
+	const media = await imdbToFullMeta(imdbId, searchType, metadataSource);
 	if (!media || media.type !== searchType) {
 		return null;
 	}
@@ -276,7 +276,7 @@ async function watchmodeToType(watchmodeId, apiKey) {
 
 module.exports = {
 	kitsuToImdbTitleYearType,
-	imdbToMeta,
+	imdbToFullMeta,
 	imdbToTitleYearType,
 	imdbToTmdb,
 	tmdbToImdb,
