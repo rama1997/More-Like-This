@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/rama1997/More-Like-This/compare/v0.8.5...v0.9.0) (2025-10-17)
+
+
+### Features
+
+* display manifest URL below copy button for manual copying ([294a7c4](https://github.com/rama1997/More-Like-This/commit/294a7c45fa1db446c4f1dac3da16187590c2a9b3))
+
 ## [0.8.5](https://github.com/rama1997/More-Like-This/compare/v0.8.4...v0.8.5) (2025-10-09)
 
 
