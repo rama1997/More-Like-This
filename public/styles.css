@@ -714,3 +714,39 @@ h1 {
 	transform: translateX(20px);
 	background: var(--accent-purple);
 }
+
+.manifest-url-box {
+	margin-top: 20px;
+	background: var(--bg-card);
+	border: 2px solid var(--border-color);
+	border-radius: 12px;
+	padding: 20px;
+	transition: all 0.3s ease;
+}
+
+.manifest-url-box label {
+	display: block;
+	font-weight: 500;
+	margin-bottom: 8px;
+	color: var(--text-primary);
+}
+
+.manifest-url-box input {
+	width: 100%;
+	padding: 12px 16px;
+	background: var(--bg-secondary);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	color: var(--text-primary);
+	font-size: 15px;
+}
+
+.manifest-url-box input:focus {
+	outline: none;
+	border-color: var(--accent-purple);
+	box-shadow: 0 0 0 3px var(--shadow-light);
+}
+
+.manifest-url-box.hidden {
+	display: none;
+}
