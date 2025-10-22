@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/rama1997/More-Like-This/compare/v0.9.0...v0.10.0) (2025-10-22)
+
+
+### Features
+
+* add base metadata to meta previews for future use ([1b900dc](https://github.com/rama1997/More-Like-This/commit/1b900dc9c26bc50c91e62fec250c298957e80f6a))
+
 ## [0.9.0](https://github.com/rama1997/More-Like-This/compare/v0.8.5...v0.9.0) (2025-10-17)
 
 
