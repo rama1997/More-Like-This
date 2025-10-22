@@ -2,6 +2,7 @@ const tmdb = require("../services/tmdb");
 const rpdb = require("../services/rpdb");
 const cinemeta = require("../services/cinemeta");
 const idConverter = require("../utils/idConverter");
+const { generateFullMeta } = require("./metadata");
 
 async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 	const imdbId = recs.imdbId;
@@ -14,47 +15,54 @@ async function createMetaPreview(recs, type, apiKeys, metadataSource) {
 		rpdbPoster = await rpdb.getRPDBPoster(imdbId, rpdbApi.key);
 	}
 
-	// Meta Previews just need id, type, and poster
+	//const meta = await generateFullMeta(imdbId, type, metadataSource);
+	const meta = null;
+
 	if (metadataSource.source === "cinemeta") {
 		const poster = rpdbPoster || (await cinemeta.fetchPoster(imdbId, type));
-		return {
-			id: imdbId,
-			type,
-			poster,
-			background: poster,
-		};
+
+		return poster
+			? {
+					id: imdbId,
+					type: type,
+					poster: poster,
+					background: meta?.background || poster,
+					name: meta?.name,
+					releaseInfo: meta?.releaseInfo,
+					description: meta?.description,
+					imdbRating: meta?.imdbRating,
+			  }
+			: null;
 	} else if (metadataSource.source === "tmdb") {
-		// Return with RPDB poster
-		if (rpdbPoster) {
-			return {
-				id: "mlt-meta-" + imdbId,
-				type: type,
-				poster: rpdbPoster,
-				background: rpdbPoster,
-			};
+		// If no rpdbPoster, fetch TMDB poster
+		let poster = rpdbPoster;
+		if (!poster) {
+			const keepEnglishPoster = metadataSource.keepEnglishPosters;
+			const language = keepEnglishPoster ? "en" : metadataSource.language;
+
+			if (!tmdbId) {
+				tmdbId = await idConverter.imdbToTmdb(imdbId, type, apiKeys.tmdb.key);
+			}
+
+			let tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
+
+			// If poster not available in desired language, default to english posters
+			if (!tmdbPoster) {
+				tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, "en");
+			}
+
+			poster = tmdbPoster;
 		}
 
-		// Other wise, fetch TMDB poster
-		const keepEnglishPoster = metadataSource.keepEnglishPosters;
-		const language = keepEnglishPoster ? "en" : metadataSource.language;
-
-		if (!tmdbId) {
-			tmdbId = await idConverter.imdbToTmdb(imdbId, type, apiKeys.tmdb.key);
-		}
-
-		let tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, language);
-
-		// If poster not available in desired language, default to english posters
-		if (!tmdbPoster) {
-			tmdbPoster = await tmdb.fetchPoster(tmdbId, type, apiKeys.tmdb.key, "en");
-		}
-
-		return tmdbPoster
+		return poster
 			? {
 					id: "mlt-meta-" + imdbId,
 					type: type,
-					poster: tmdbPoster,
-					background: tmdbPoster,
+					poster: poster,
+					background: meta?.background || poster,
+					name: meta?.name,
+					releaseInfo: meta?.year,
+					description: meta?.description,
 			  }
 			: null;
 	}
