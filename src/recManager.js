@@ -21,7 +21,7 @@ async function saveCache(imdbId, type, recSource, data) {
 }
 
 async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollection) {
-	if (!searchImdb || searchImdb === "" || !validKey) {
+	if (!searchImdb || searchImdb === "" || !validKey || !apiKey) {
 		return null;
 	}
 
@@ -72,7 +72,7 @@ async function getTmdbRecs(searchImdb, type, apiKey, validKey, includeTmdbCollec
 }
 
 async function getTraktRecs(searchImdb, type, apiKey, validKey) {
-	if (!searchImdb || searchImdb === "" || !validKey) {
+	if (!searchImdb || searchImdb === "" || !validKey || !apiKey) {
 		return null;
 	}
 
@@ -148,7 +148,7 @@ async function getSimklRecs(searchImdb, type, apiKey, validKey) {
 }
 
 async function getTastediveRecs(searchTitle, searchYear, type, searchImdb, apiKey, validKey, metadataSource) {
-	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
+	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey || !apiKey) {
 		return null;
 	}
 
@@ -193,7 +193,7 @@ async function getTastediveRecs(searchTitle, searchYear, type, searchImdb, apiKe
 }
 
 async function getGeminiRecs(searchTitle, searchYear, type, searchImdb, apiKey, validKey, metadataSource) {
-	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey) {
+	if (!searchTitle || searchTitle === "" || !searchImdb || searchImdb === "" || !validKey || !apiKey) {
 		return null;
 	}
 
@@ -235,7 +235,7 @@ async function getGeminiRecs(searchTitle, searchYear, type, searchImdb, apiKey, 
 }
 
 async function getWatchmodeRecs(searchImdb, type, apiKey, validKey) {
-	if (!searchImdb || searchImdb === "" || !validKey) {
+	if (!searchImdb || searchImdb === "" || !validKey || !apiKey) {
 		return null;
 	}
 
