@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Make sure all inputed API Keys are validated first before submiting form
 document.querySelector("form").addEventListener("submit", function (e) {
-	const sources = ["tmdb", "trakt", "gemini", "tastedive", "watchmode", "rpdb"];
+	const sources = ["tmdb", "trakt", "gemini", "tastedive", "watchmode", "simkl", "rpdb"];
 	let allValid = true;
 
 	for (const source of sources) {

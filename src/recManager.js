@@ -102,8 +102,8 @@ async function getTraktRecs(searchImdb, type, apiKey, validKey) {
 	return recs;
 }
 
-async function getSimklRecs(searchImdb, type, validKey) {
-	if (!searchImdb || searchImdb === "" || !validKey) {
+async function getSimklRecs(searchImdb, type, apiKey, validKey) {
+	if (!searchImdb || searchImdb === "" || !validKey || !apiKey) {
 		return null;
 	}
 
@@ -114,7 +114,7 @@ async function getSimklRecs(searchImdb, type, validKey) {
 	}
 
 	// Get recs based on the found media
-	let simklRecs = await simkl.fetchRecommendations(searchImdb, type);
+	let simklRecs = await simkl.fetchRecommendations(searchImdb, type, apiKey);
 	if (!simklRecs || simklRecs.length === 0) {
 		return null;
 	}
@@ -135,7 +135,7 @@ async function getSimklRecs(searchImdb, type, validKey) {
 	const typeRecs = type === "movie" ? movieRecs : seriesRecs;
 	const recs = await Promise.all(
 		typeRecs.map(async (id, index) => {
-			const ids = await simkl.simklToExteralId(id, type);
+			const ids = await simkl.simklToExteralId(id, type, apiKey);
 			const imdbId = ids?.imdbId;
 			const tmdbId = ids?.tmdbId;
 			return imdbId ? { imdbId: imdbId, tmdbId: tmdbId, ranking: index + 1 } : null;
@@ -301,7 +301,7 @@ async function getCombinedRecs(searchTitle, searchYear, type, searchImdb, apiKey
 		withTimeout(getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid), timeoutMs, "Trakt recs timed out in combined Recs").catch(() => {
 			return [];
 		}),
-		withTimeout(getSimklRecs(searchImdb, type, apiKeys.simkl.valid), timeoutMs, "Simkl recs timed out in combined Recs").catch(() => {
+		withTimeout(getSimklRecs(searchImdb, type, apiKeys.simkl.key, apiKeys.simkl.valid), timeoutMs, "Simkl recs timed out in combined Recs").catch(() => {
 			return null;
 		}),
 		withTimeout(getGeminiRecs(searchTitle, searchYear, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource), timeoutMs, "Gemini recs timed out in combined Recs").catch(() => {

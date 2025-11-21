@@ -9,12 +9,12 @@ async function validateAPIKey(apiKey) {
 	}
 
 	try {
-		const url = `${SIMKL_API_BASE_URL}/movies/trending`;
+		const url = `${SIMKL_API_BASE_URL}/movies/trending?client_id=${apiKey}`;
 
 		const response = await fetch(url);
 		const json = await response.json();
 
-		return json ? true : false;
+		return json?.error ? false : true;
 	} catch (error) {
 		return false;
 	}
@@ -24,10 +24,10 @@ async function getAPIEndpoint(mediaType) {
 	return mediaType === "movie" ? "movies" : "tv";
 }
 
-async function fetchRecommendations(imdbID, mediaType) {
+async function fetchRecommendations(imdbID, mediaType, apiKey) {
 	try {
 		const type = await getAPIEndpoint(mediaType);
-		const url = `${SIMKL_API_BASE_URL}/${type}/${imdbID}?extended=full`;
+		const url = `${SIMKL_API_BASE_URL}/${type}/${imdbID}?extended=full&client_id=${apiKey}`;
 
 		const response = await withTimeout(fetch(url), 5000, "Simkl fetch recs timed out");
 		const json = await response.json();
@@ -50,10 +50,10 @@ async function fetchRecommendations(imdbID, mediaType) {
 	}
 }
 
-async function simklToExteralId(simklId, mediaType) {
+async function simklToExteralId(simklId, mediaType, apiKey) {
 	try {
 		const type = await getAPIEndpoint(mediaType);
-		const url = `${SIMKL_API_BASE_URL}/${type}/${simklId}?extended=full`;
+		const url = `${SIMKL_API_BASE_URL}/${type}/${simklId}?extended=full&client_id=${apiKey}`;
 
 		const response = await withTimeout(fetch(url), 5000, `simklToExteralId timed out: ${simklId}`);
 		const json = await response.json();

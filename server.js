@@ -220,7 +220,7 @@ async function startServer() {
 	app.post("/saveConfig", async (req, res) => {
 		try {
 			// Build API Keys object
-			const sources = ["tmdb", "trakt", "tastedive", "gemini", "watchmode", "rpdb"];
+			const sources = ["tmdb", "trakt", "tastedive", "gemini", "watchmode", "simkl", "rpdb"];
 			const apiKeys = {};
 
 			for (const source of sources) {
@@ -230,11 +230,6 @@ async function startServer() {
 					valid: Boolean(key),
 				};
 			}
-
-			// Handle special case: simkl toggle checkbox
-			apiKeys.simkl = {
-				valid: req.body.simkl === "on",
-			};
 
 			const metadataSource = req.body.metadataSource || null;
 

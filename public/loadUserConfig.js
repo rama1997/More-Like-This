@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			const tastediveInput = document.getElementById("tastediveApiKey");
 			const rpdbInput = document.getElementById("rpdbApiKey");
 			const watchmodeInput = document.getElementById("watchmodeApiKey");
+			const simklInput = document.getElementById("simklApiKey");
 
 			if (tmdbInput) tmdbInput.value = config.apiKeys.tmdb?.key || "";
 			if (traktInput) traktInput.value = config.apiKeys.trakt?.key || "";
@@ -17,11 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (tastediveInput) tastediveInput.value = config.apiKeys.tastedive?.key || "";
 			if (rpdbInput) rpdbInput.value = config.apiKeys.rpdb?.key || "";
 			if (watchmodeInput) watchmodeInput.value = config.apiKeys.watchmode?.key || "";
-
-			const simklCheckbox = document.getElementById("simkl");
-			if (simklCheckbox && config.apiKeys.simkl?.valid) {
-				simklCheckbox.checked = true;
-			}
+			if (simklInput) simklInput.value = config.apiKeys.simkl?.key || "";
 		}
 
 		const includeTmdbCollectionCheckbox = document.getElementById("includeTmdbCollection");

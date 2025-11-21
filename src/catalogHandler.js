@@ -208,7 +208,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 			} else if (id.includes("trakt")) {
 				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
 			} else if (id.includes("simkl")) {
-				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
+				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.key, apiKeys.simkl.valid);
 			} else if (id.includes("gemini")) {
 				recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
 			} else if (id.includes("tastedive")) {
@@ -226,7 +226,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 			} else if (id.includes("trakt")) {
 				recs = await recManager.getTraktRecs(searchImdb, type, apiKeys.trakt.key, apiKeys.trakt.valid);
 			} else if (id.includes("simkl")) {
-				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.valid);
+				recs = await recManager.getSimklRecs(searchImdb, type, apiKeys.simkl.key, apiKeys.simkl.valid);
 			} else if (id.includes("gemini")) {
 				recs = await recManager.getGeminiRecs(title, year, type, searchImdb, apiKeys.gemini.key, apiKeys.gemini.valid, metadataSource);
 			} else if (id.includes("tastedive")) {

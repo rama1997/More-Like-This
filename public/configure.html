@@ -99,18 +99,15 @@
 						<div id="watchmode-verify-status" class="verify-status"></div>
 					</div>
 
-					<div class="toggle-group">
-						<div class="toggle-info">
-							<span class="toggle-label">Simkl Recommendations</span>
-							<div class="tooltip-container">
-								<div class="tooltip-icon">?</div>
-								<div class="tooltip-text">Simkl API does not require a key</div>
-							</div>
+					<div class="form-group">
+						<label for="simklApiKey">Simkl API Key</label>
+						<p class="key-help">Get your free Simkl key <a href="https://simkl.com/settings/developer/new/" target="_blank">here</a></p>
+						<div class="input-with-verify">
+							<input type="text" id="simklApiKey" name="simklApiKey" placeholder="Enter Simkl API Key" />
+							<button type="button" class="verify-btn" onclick="verifyApiKey('simkl')">Verify Key</button>
+							<input type="hidden" name="validatedSimklApiKey" id="validatedSimklApiKey" />
 						</div>
-						<label class="toggle">
-							<input type="checkbox" id="simkl" name="simkl" />
-							<span class="toggle-slider"></span>
-						</label>
+						<div id="simkl-verify-status" class="verify-status"></div>
 					</div>
 
 					<div class="section-header">Catalog Settings</div>
@@ -146,7 +143,7 @@
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Trakt</span>
 							</div>
-							<div id="simkl-catalog" class="catalog-item conditional-setting hidden" data-conditional="simkl" data-show-if="true" data-value="simkl">
+							<div id="simkl-catalog" class="catalog-item conditional-setting hidden" data-conditional="simklApiKey" data-show-if="not-empty" data-value="simkl">
 								<span class="catalog-icon">≡</span>
 								<span class="catalog-name">Simkl</span>
 							</div>
