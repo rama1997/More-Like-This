@@ -43,6 +43,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 			}
 
 			recs = recs.filter((row) => row.id !== imdbId); // Remove base movie/show from the rec list if it exist
+			recs = recs.slice(0, 20); // Limit to first 20 recs to reduce load time
 
 			recsAsVideos = await collectInChunksUntilTimeout(
 				recs.map(async (rec, i) => {
