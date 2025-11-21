@@ -29,7 +29,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 
 			const detailButton = {
 				name: "More Like This",
-				description: `Go to detail page`,
+				description: `See details`,
 				externalUrl: (origin?.includes("web.stremio.com") ? "https://web.stremio.com/#" : "stremio://") + detailURL,
 			};
 
@@ -53,7 +53,7 @@ async function streamHandler(origin, type, metaId, userConfig, metadataSource) {
 		} else if (button === "recs" && enabledStreamButtons.recs) {
 			const recsButton = {
 				name: "More Like This",
-				description: `Show recommendations`,
+				description: `Show similar movies/shows`,
 				externalUrl: (origin?.includes("web.stremio.com") ? "https://web.stremio.com/#" : "stremio://") + `/detail/${type}/mlt-rec-${searchId}`,
 			};
 
