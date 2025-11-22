@@ -10,6 +10,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	copyManifestBtn.addEventListener("click", async function (e) {
 		e.preventDefault(); // stop form submission
+
+		if (!validateApiKeys()) {
+			alert("Please verify all entered API keys before continuing.");
+			return;
+		}
+
 		forCopyInput.value = "true";
 
 		const form = document.querySelector("form");
@@ -51,8 +57,15 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 });
 
-// Make sure all inputed API Keys are validated first before submiting form
 document.querySelector("form").addEventListener("submit", function (e) {
+	if (!validateApiKeys()) {
+		e.preventDefault();
+		alert("Please verify all entered API keys before continuing.");
+	}
+});
+
+// Function to make sure all inputed API Keys are validated first before submiting form
+function validateApiKeys() {
 	const sources = ["tmdb", "trakt", "gemini", "tastedive", "watchmode", "simkl", "rpdb"];
 	let allValid = true;
 
@@ -72,8 +85,5 @@ document.querySelector("form").addEventListener("submit", function (e) {
 		}
 	}
 
-	if (!allValid) {
-		e.preventDefault(); // Block form submission
-		alert("Please verify all entered API keys before continuing.");
-	}
-});
+	return allValid;
+}
