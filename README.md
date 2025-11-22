@@ -193,10 +193,10 @@ npm start
 
   Available buttons:
 
-  - Go to Detail Page – Opens the item’s detail page in Stremio.
+  - See details – Opens the item’s detail page in Stremio.
   - Search on App – Search for recommendations inside the Stremio app.
   - Search on Web – Search for recommendations inside the Stremio web.
-  - Show recommendations – Generates and displays recommendations as streams in Stremio
+  - Show similar movies/series – Generates and displays recommendations as streams in Stremio
 
 # Usage
 
