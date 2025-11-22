@@ -61,6 +61,7 @@ async function generateFullMeta(imdbId, type, metadataSource) {
 				cast: rawMeta.cast,
 				director: rawMeta.director,
 				trailers: rawMeta.trailer,
+				imdbRating: rawMeta.imdbRating || "",
 			};
 
 			if (type === "series") {

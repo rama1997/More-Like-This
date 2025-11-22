@@ -401,6 +401,7 @@ async function adjustMetadata(rawMeta, imdbId, tmdbId, mediaType, apiKey, langua
 	meta.runtime = runtime;
 	meta.videos = videos;
 	meta.trailer = [trailer];
+	meta.imdbRating = meta.vote_average ? meta.vote_average.toFixed(1).toString() : null;
 
 	return meta;
 }

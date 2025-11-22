@@ -58,7 +58,7 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 					recMeta.overview =
 						`RUNTIME: ${recMeta.runtime || ""} <br>
 			 			YEAR: ${recMeta.year || ""} <br>
-			 			IMDB RATING: ${recMeta.imdbRating || ""} <br>
+			 			IMDB/TMDB RATING: ${recMeta.imdbRating || ""} <br>
 			 			GENRES: ${recMeta.genres || ""} <br>
 			 			DIRECTOR: ${recMeta.director || ""} <br>
 			 			CAST: ${recMeta.cast || ""} <br><br>` + recMeta.description;
