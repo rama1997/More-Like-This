@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.0](https://github.com/rama1997/More-Like-This/compare/v0.10.0...v0.11.0) (2025-11-22)
+
+
+### Features
+
+* add support for user-provided API key after Simkl API changes ([5e0e77a](https://github.com/rama1997/More-Like-This/commit/5e0e77a25b9ddb9fb432c54f6150a5c1ac35931e))
+* include TMDB ratings in metadata ([972fca1](https://github.com/rama1997/More-Like-This/commit/972fca123ed42222149d7a280ccee7853f616ca3))
+
+
+### Bug Fixes
+
+* add apiKey check to guard clause ([113b065](https://github.com/rama1997/More-Like-This/commit/113b06584832fa184a3e9c757f22a6ff1b4b7407))
+* set recs shown from stream button to 20 ([d650b95](https://github.com/rama1997/More-Like-This/commit/d650b951c096d5c1664e752c64f2078c337ef1dc))
+* validate API keys when using Copy Manifest button ([2d5a1c5](https://github.com/rama1997/More-Like-This/commit/2d5a1c5b1eac0d89c6bb47412ab0a3b18c9bfa04))
+
 ## [0.10.0](https://github.com/rama1997/More-Like-This/compare/v0.9.0...v0.10.0) (2025-10-22)
 
 
