@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/rama1997/More-Like-This/compare/v0.11.0...v0.11.1) (2025-11-22)
+
+
+### Bug Fixes
+
+* bump manifest to v0.11.1 ([a82dc56](https://github.com/rama1997/More-Like-This/commit/a82dc5630eb01b787fca1c229db3fd6a6af6f70e))
+
 ## [0.11.0](https://github.com/rama1997/More-Like-This/compare/v0.10.0...v0.11.0) (2025-11-22)
 
 
