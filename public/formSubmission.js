@@ -38,14 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			const data = await response.json();
 			if (data.manifestUrl) {
-				// Copy to clipboard
-				await navigator.clipboard.writeText(data.manifestUrl);
-
 				// Show manifest URL box
 				const manifestBox = document.getElementById("manifestUrlBox");
 				const manifestInput = document.getElementById("manifestUrlDisplay");
 				manifestInput.value = data.manifestUrl;
 				manifestBox.classList.remove("hidden");
+
+				// Copy to clipboard
+				await navigator.clipboard.writeText(data.manifestUrl);
 
 				// Open manifest page in new tab
 				window.open(data.manifestUrl, "_blank");
