@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/rama1997/More-Like-This/compare/v0.11.1...v0.11.2) (2025-11-29)
+
+
+### Bug Fixes
+
+* manfiest url box appears even when coping to clipboard fails ([1ab915e](https://github.com/rama1997/More-Like-This/commit/1ab915e977dcfe7971822196251837de8152cd34))
+
 ## [0.11.1](https://github.com/rama1997/More-Like-This/compare/v0.11.0...v0.11.1) (2025-11-22)
 
 
