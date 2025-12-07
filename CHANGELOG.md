@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/rama1997/More-Like-This/compare/v0.11.2...v0.11.3) (2025-12-07)
+
+
+### Bug Fixes
+
+* correct manifest url for copy ([2c2d436](https://github.com/rama1997/More-Like-This/commit/2c2d43685f51aa56563c090ee0e55a9ba23a49d4))
+
 ## [0.11.2](https://github.com/rama1997/More-Like-This/compare/v0.11.1...v0.11.2) (2025-11-29)
 
 
