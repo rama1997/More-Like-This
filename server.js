@@ -265,7 +265,7 @@ async function startServer() {
 				host = host + ".baby-beamup.club";
 			}
 			if (req.body.forCopy === "true") {
-				const manifestUrl = `http://${host}/${userConfig}/manifest.json`;
+				const manifestUrl = `https://${host}/${userConfig}/manifest.json`;
 				return res.json({ manifestUrl });
 			} else {
 				res.redirect(`stremio://${host}/${userConfig}/manifest.json`);
