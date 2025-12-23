@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.4](https://github.com/rama1997/More-Like-This/compare/v0.11.3...v0.11.4) (2025-12-23)
+
+
+### Bug Fixes
+
+* switch from gemini 2.0 to gemini 2.5 ([8f028e7](https://github.com/rama1997/More-Like-This/commit/8f028e7845532d9157c51a28cd9df1310046a3ed))
+
 ## [0.11.3](https://github.com/rama1997/More-Like-This/compare/v0.11.2...v0.11.3) (2025-12-07)
 
 
