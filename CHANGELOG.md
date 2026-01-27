@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.5](https://github.com/rama1997/More-Like-This/compare/v0.11.4...v0.11.5) (2026-01-27)
+
+
+### Bug Fixes
+
+* add guard for user config json parsing ([7530f3b](https://github.com/rama1997/More-Like-This/commit/7530f3bacb7ecdd00676422f41e6671a8136f36d))
+
 ## [0.11.4](https://github.com/rama1997/More-Like-This/compare/v0.11.3...v0.11.4) (2025-12-23)
 
 
