@@ -12,13 +12,6 @@ const { validateApiKeys } = require("./services/api");
 const { encryptData, decryptData } = require("./utils/encryption");
 
 async function loadUserConfig(config) {
-	let userConfig = JSON.parse(decodeURIComponent(config));
-
-	if (ENCRYPTION_KEY_INPUT) {
-		try {
-			userConfig = await decryptData(userConfig);
-		} catch (err) {
-			logger.error("Decryption Failed", err);
 			const defaultConfig = {
 				apiKeys: {
 					tmdb: { key: "", valid: false },
@@ -43,11 +36,23 @@ async function loadUserConfig(config) {
 				includeTmdbCollection: false,
 				enableTitleSearching: false,
 			};
+
+	if (ENCRYPTION_KEY_INPUT) {
+		try {
+			let userConfig;
+
+			if (typeof config === "string" && config.trim().startsWith("{")) {
+				userConfig = JSON.parse(decodeURIComponent(config));
+				userConfig = await decryptData(userConfig);
+				return userConfig;
+			}
+		} catch (err) {
+			logger.error("Decryption Failed", err);
 			return defaultConfig;
 		}
 	}
 
-	return userConfig;
+	return defaultConfig;
 }
 
 async function generateManifest(apiKeys, combine, catalog_order) {
@@ -90,7 +95,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.11.4",
+		version: "0.11.5",
 		resources: [
 			"catalog",
 			"stream",
