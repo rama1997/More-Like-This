@@ -12,30 +12,30 @@ const { validateApiKeys } = require("./services/api");
 const { encryptData, decryptData } = require("./utils/encryption");
 
 async function loadUserConfig(config) {
-			const defaultConfig = {
-				apiKeys: {
-					tmdb: { key: "", valid: false },
-					trakt: { key: "", valid: false },
-					gemini: { key: "", valid: false },
-					watchmode: { key: "", valid: false },
-					simkl: { key: "", valid: false },
-					tastedive: { key: "", valid: false },
-					rpdb: { key: "", valid: false },
-				},
-				combineCatalogs: false,
-				catalogOrder: ["tmdb", "trakt", "simkl", "gemini", "tasteDive", "watchmode"],
-				metadataSource: "cinemeta",
-				language: "en",
-				streamOrder: ["detail", "app", "web", "recs"],
-				enabledStreamButtons: {
-					detail: false,
-					app: false,
-					web: false,
-					recs: false,
-				},
-				includeTmdbCollection: false,
-				enableTitleSearching: false,
-			};
+	const defaultConfig = {
+		apiKeys: {
+			tmdb: { key: "", valid: false },
+			trakt: { key: "", valid: false },
+			gemini: { key: "", valid: false },
+			watchmode: { key: "", valid: false },
+			simkl: { key: "", valid: false },
+			tastedive: { key: "", valid: false },
+			rpdb: { key: "", valid: false },
+		},
+		combineCatalogs: false,
+		catalogOrder: ["tmdb", "trakt", "simkl", "gemini", "tasteDive", "watchmode"],
+		metadataSource: "cinemeta",
+		language: "en",
+		streamOrder: ["detail", "app", "web", "recs"],
+		enabledStreamButtons: {
+			detail: false,
+			app: false,
+			web: false,
+			recs: false,
+		},
+		includeTmdbCollection: false,
+		enableTitleSearching: false,
+	};
 
 	if (ENCRYPTION_KEY_INPUT) {
 		try {
@@ -95,7 +95,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.11.5",
+		version: "0.11.6",
 		resources: [
 			"catalog",
 			"stream",
