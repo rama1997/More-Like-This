@@ -58,7 +58,7 @@ async function generateCatalogSource(id, apiKeys, userConfig, metadataSource) {
 	return catalogSource;
 }
 
-async function resolveSearchInput(searchKey, searchYear, type, userConfig, metadataSource) {
+async function resolveSearchInput(searchKey, searchYear, type, userConfig, metadataSource, catalogSource) {
 	let title;
 	let year;
 	let imdbId;
@@ -170,7 +170,7 @@ async function catalogHandler(type, id, extra, userConfig, metadataSource) {
 	}
 
 	// Convert search input to IMDB Id, title, and year
-	let { title, year, imdbId: searchImdb } = await resolveSearchInput(searchKey, searchYear, type, userConfig, metadataSource);
+	let { title, year, imdbId: searchImdb } = await resolveSearchInput(searchKey, searchYear, type, userConfig, metadataSource, catalogSource);
 
 	if (searchImdb) {
 		// Check cache for IMDB id
