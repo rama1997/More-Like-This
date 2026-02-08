@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.6](https://github.com/rama1997/More-Like-This/compare/v0.11.5...v0.11.6) (2026-02-08)
+
+
+### Bug Fixes
+
+* missing catalogSource in resolveSearchInput ([f12ca70](https://github.com/rama1997/More-Like-This/commit/f12ca700309fe75d47b8c6d46c1f3e58905b77a7))
+
 ## [0.11.5](https://github.com/rama1997/More-Like-This/compare/v0.11.4...v0.11.5) (2026-01-27)
 
 
