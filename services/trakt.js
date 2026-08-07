@@ -3,6 +3,12 @@ const TRAKT_API_BASE_URL = "https://api.trakt.tv";
 const { withTimeout } = require("../utils/timeout");
 const logger = require("../utils/logger");
 
+const TRAKT_HEADERS = {
+	accept: "application/json",
+	"User-Agent": "readme/1.0",
+	"trakt-api-version": "2",
+};
+
 async function validateAPIKey(apiKey) {
 	if (!apiKey || apiKey === "") {
 		return false;
@@ -13,13 +19,13 @@ async function validateAPIKey(apiKey) {
 		const options = {
 			method: "GET",
 			headers: {
-				"Content-Type": "application/json",
-				"trakt-api-version": "2",
+				...TRAKT_HEADERS,
 				"trakt-api-key": apiKey,
 			},
 		};
 
 		const response = await fetch(url, options);
+
 		const json = await response.json();
 
 		return json ? true : false;
@@ -41,8 +47,7 @@ async function fetchSearchResult(title, mediaType, apiKey) {
 		const options = {
 			method: "GET",
 			headers: {
-				"Content-Type": "application/json",
-				"trakt-api-version": "2",
+				...TRAKT_HEADERS,
 				"trakt-api-key": apiKey,
 			},
 		};
@@ -69,8 +74,7 @@ async function fetchRecommendations(imdbID, mediaType, apiKey) {
 		const options = {
 			method: "GET",
 			headers: {
-				"Content-Type": "application/json",
-				"trakt-api-version": "2",
+				...TRAKT_HEADERS,
 				"trakt-api-key": apiKey,
 			},
 		};
@@ -93,8 +97,7 @@ async function fetchMetadata(id, mediaType, apiKey) {
 		const options = {
 			method: "GET",
 			headers: {
-				"Content-Type": "application/json",
-				"trakt-api-version": "2",
+				...TRAKT_HEADERS,
 				"trakt-api-key": apiKey,
 			},
 		};
@@ -122,8 +125,7 @@ async function idToImdbTitleYearType(traktId, mediaType, apiKey) {
 		const options = {
 			method: "GET",
 			headers: {
-				"Content-Type": "application/json",
-				"trakt-api-version": "2",
+				...TRAKT_HEADERS,
 				"trakt-api-key": apiKey,
 			},
 		};
