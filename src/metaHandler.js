@@ -56,12 +56,13 @@ async function metaHandler(type, id, userConfig, metadataSource) {
 					recMeta.episode = i + 1;
 					recMeta.thumbnail = recMeta.background || recMeta.poster;
 					recMeta.overview =
-						`RUNTIME: ${recMeta.runtime || ""} <br>
-			 			YEAR: ${recMeta.year || ""} <br>
-			 			IMDB/TMDB RATING: ${recMeta.imdbRating || ""} <br>
-			 			GENRES: ${recMeta.genres || ""} <br>
-			 			DIRECTOR: ${recMeta.director || ""} <br>
-			 			CAST: ${recMeta.cast || ""} <br><br>` + recMeta.description;
+						recMeta.description +
+						`\n RATING: ${recMeta.imdbRating || ""}
+						\n RUNTIME: ${recMeta.runtime || ""}
+			 			\n YEAR: ${recMeta.year || ""}
+			 			\n GENRES: ${recMeta.genres || ""}
+			 			\n DIRECTOR: ${recMeta.director || ""}
+			 			\n CAST: ${recMeta.cast || ""}`;
 
 					delete recMeta.title; // deletes "duplicate" title attribute so the rec list can work on mobile
 
