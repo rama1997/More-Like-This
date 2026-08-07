@@ -265,16 +265,22 @@ async function startServer() {
 				userConfig = encodeURIComponent(JSON.stringify(config));
 			}
 
+			// Build manifest URL and redirect
 			let host = req.headers.host;
 			if (host === "bbab4a35b833-more-like-this") {
 				host = host + ".baby-beamup.club";
 			}
+
+			const isLocalhost = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+			const protocol = isLocalhost ? "http" : "https";
+
+			const manifestUrl = `${protocol}://${host}/${userConfig}/manifest.json`;
+
 			if (req.body.forCopy === "true") {
-				const manifestUrl = `https://${host}/${userConfig}/manifest.json`;
 				return res.json({ manifestUrl });
-			} else {
-				res.redirect(`stremio://${host}/${userConfig}/manifest.json`);
 			}
+
+			return res.redirect(`stremio://${host}/${userConfig}/manifest.json`);
 		} catch (error) {
 			res.status(400).send("Error: Something went wrong. Please try again.");
 		}
