@@ -10,6 +10,7 @@ const logger = require("./utils/logger");
 const { PORT, ENCRYPTION_KEY_INPUT } = require("./config");
 const { validateApiKeys } = require("./services/api");
 const { encryptData, decryptData } = require("./utils/encryption");
+const packageJson = require("./package.json");
 
 async function loadUserConfig(config) {
 	const defaultConfig = {
@@ -95,7 +96,7 @@ async function generateManifest(apiKeys, combine, catalog_order) {
 
 	const manifest = {
 		id: "community.morelikethis",
-		version: "0.12.0",
+		version: packageJson.version,
 		resources: [
 			"catalog",
 			"stream",
