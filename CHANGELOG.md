@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.0](https://github.com/rama1997/More-Like-This/compare/v0.11.6...v0.12.0) (2026-08-08)
+
+
+### Features
+
+* update recs overview to show media description first ([c7ac440](https://github.com/rama1997/More-Like-This/commit/c7ac440d0b4f537d8e4a29cb929d492a2ec014f9))
+
+
+### Bug Fixes
+
+* manifest url generation better supports local hosting ([cbd0411](https://github.com/rama1997/More-Like-This/commit/cbd0411f1180124d833227f2d4905c66b975bbf7))
+* update Gemini API integration ([f14971e](https://github.com/rama1997/More-Like-This/commit/f14971eaa3d2e7ea40cc66c155f47afe14f95a9d))
+* update Trakt API to include correct user-agent ([6b6fd12](https://github.com/rama1997/More-Like-This/commit/6b6fd12a4ba46948765a2d3c0e14c0f11135c3ef))
+
 ## [0.11.6](https://github.com/rama1997/More-Like-This/compare/v0.11.5...v0.11.6) (2026-02-08)
 
 
