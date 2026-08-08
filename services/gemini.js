@@ -18,10 +18,11 @@ async function validateAPIKey(apiKey) {
 	};
 
 	try {
-		const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+		const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				"x-goog-api-key": apiKey,
 			},
 			body: JSON.stringify(data),
 		});
@@ -39,18 +40,52 @@ async function validateAPIKey(apiKey) {
 
 async function getGeminiRecs(title, year, mediaType, apiKey) {
 	try {
-		const genAI = new GoogleGenerativeAI(apiKey);
-		const model = genAI.getGenerativeModel({
-			model: GEMINI_MODEL,
-			systemInstruction: await getGeminiSystemInstructions(mediaType),
-		});
-
 		const cleanedTitle = title.replace(/[^\p{L}\p{N} ]/gu, "");
 
+		const systemInstruction = await getGeminiSystemInstructions(mediaType);
 		const prompt = await getGeminiPrompt(cleanedTitle, year, mediaType);
-		const result = await model.generateContent(prompt);
 
-		return await parseGeminiReturn(result.response.text());
+		const data = {
+			systemInstruction: {
+				parts: [
+					{
+						text: systemInstruction,
+					},
+				],
+			},
+			contents: [
+				{
+					parts: [
+						{
+							text: prompt,
+						},
+					],
+				},
+			],
+		};
+
+		const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"x-goog-api-key": apiKey,
+			},
+			body: JSON.stringify(data),
+		});
+
+		if (!response.ok) {
+			return null;
+		}
+
+		const responseData = await response.json();
+
+		const text = responseData?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("") || "";
+
+		if (!text) {
+			return null;
+		}
+
+		return await parseGeminiReturn(text);
 	} catch (error) {
 		logger.error(error.message, null);
 		return null;
