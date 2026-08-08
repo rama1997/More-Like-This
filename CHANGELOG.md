@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/rama1997/More-Like-This/compare/v0.12.0...v0.12.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* synchronize addon manifest version ([f8a57b5](https://github.com/rama1997/More-Like-This/commit/f8a57b53690d7830483420b00506842aa7c2ff97))
+
 ## [0.12.0](https://github.com/rama1997/More-Like-This/compare/v0.11.6...v0.12.0) (2026-08-08)
 
 
